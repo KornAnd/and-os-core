@@ -1,0 +1,464 @@
+{
+  "ai-rule": {
+    "name": "ai-rule",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/ai-rule",
+    "has_references": true
+  },
+  "api-contract-generator": {
+    "name": "api-contract-generator",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/api_contract_generator.py",
+    "path": "and_os/lib/skills/api-contract-generator",
+    "has_references": false
+  },
+  "app-bridge": {
+    "name": "app-bridge",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/app_bridge.py",
+    "path": "and_os/lib/skills/app-bridge",
+    "has_references": false
+  },
+  "app-deconstructor": {
+    "name": "app-deconstructor",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/app_deconstructor.py",
+    "path": "and_os/lib/skills/app-deconstructor",
+    "has_references": false
+  },
+  "board-analyzer": {
+    "name": "board-analyzer",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/board_parser.py",
+    "path": "and_os/lib/skills/board-analyzer",
+    "has_references": false
+  },
+  "book-hub": {
+    "name": "book-hub",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/book-hub",
+    "has_references": true
+  },
+  "book-summary-practical": {
+    "name": "book-summary-practical",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/book-summary-practical",
+    "has_references": true
+  },
+  "budget-calculator": {
+    "name": "budget-calculator",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/budget_calc.py",
+    "path": "and_os/lib/skills/budget-calculator",
+    "has_references": true
+  },
+  "career-radar": {
+    "name": "career-radar",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/career_radar.py",
+    "path": "and_os/lib/skills/career-radar",
+    "has_references": false
+  },
+  "cg-article": {
+    "name": "cg-article",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/cg-article",
+    "has_references": true
+  },
+  "cg-content-factory": {
+    "name": "cg-content-factory",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/cg-content-factory",
+    "has_references": false
+  },
+  "cg-core-consulting": {
+    "name": "cg-core-consulting",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/cg-core-consulting",
+    "has_references": true
+  },
+  "cg-pipeline": {
+    "name": "cg-pipeline",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/cg_bridge.py",
+    "path": "and_os/lib/skills/cg-pipeline",
+    "has_references": false
+  },
+  "clean-code-guardian": {
+    "name": "clean-code-guardian",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/clean-code-guardian",
+    "has_references": true
+  },
+  "clipping-finder": {
+    "name": "clipping-finder",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/quick_find.py",
+    "path": "and_os/lib/skills/clipping-finder",
+    "has_references": true
+  },
+  "comfy-builder": {
+    "name": "comfy-builder",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/comfy-builder",
+    "has_references": true
+  },
+  "context-compressor": {
+    "name": "context-compressor",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/context_bundler.py",
+    "path": "and_os/lib/skills/context-compressor",
+    "has_references": true
+  },
+  "decision-log": {
+    "name": "decision-log",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/decision-log",
+    "has_references": false
+  },
+  "dev-flow": {
+    "name": "dev-flow",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/dev_flow.py",
+    "path": "and_os/lib/skills/dev-flow",
+    "has_references": false
+  },
+  "document-hub": {
+    "name": "document-hub",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/convert_doc.py",
+    "path": "and_os/lib/skills/document-hub",
+    "has_references": false
+  },
+  "editorial-otio-conform": {
+    "name": "editorial-otio-conform",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/editorial_otio_conform.py",
+    "path": "and_os/lib/skills/editorial-otio-conform",
+    "has_references": false
+  },
+  "employee-hub": {
+    "name": "employee-hub",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/employee-hub",
+    "has_references": true
+  },
+  "endurance-training-plan": {
+    "name": "endurance-training-plan",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/endurance-training-plan",
+    "has_references": true
+  },
+  "executive-mirror": {
+    "name": "executive-mirror",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/executive-mirror",
+    "has_references": false
+  },
+  "external-skills-gateway": {
+    "name": "external-skills-gateway",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/lib/skills/external-skills-gateway/scripts/skills_gateway.py",
+    "path": "and_os/lib/skills/external-skills-gateway",
+    "has_references": true
+  },
+  "ftrack-sync": {
+    "name": "ftrack-sync",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/ftrack_sync.py",
+    "path": "and_os/lib/skills/ftrack-sync",
+    "has_references": true
+  },
+  "telemetry_sync": {
+    "name": "telemetry_sync",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/telemetry_sync_sync.py",
+    "path": "and_os/lib/skills/telemetry_sync",
+    "has_references": false
+  },
+  "github-ops": {
+    "name": "github-ops",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/github-ops",
+    "has_references": true
+  },
+  "goal-writer": {
+    "name": "goal-writer",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/goal-writer",
+    "has_references": true
+  },
+  "health-diagnostics-hub": {
+    "name": "health-diagnostics-hub",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/health-diagnostics-hub",
+    "has_references": true
+  },
+  "health-orchestrator": {
+    "name": "health-orchestrator",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/health-orchestrator",
+    "has_references": true
+  },
+  "higgsfield-seedance-prompt": {
+    "name": "higgsfield-seedance-prompt",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/higgsfield-seedance-prompt",
+    "has_references": false
+  },
+  "hybrid-animatic-director": {
+    "name": "hybrid-animatic-director",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/hybrid_animatic_director.py",
+    "path": "and_os/lib/skills/hybrid-animatic-director",
+    "has_references": false
+  },
+  "hybrid-comfyui-render": {
+    "name": "hybrid-comfyui-render",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/hybrid_comfyui_render.py",
+    "path": "and_os/lib/skills/hybrid-comfyui-render",
+    "has_references": false
+  },
+  "investor-outreach": {
+    "name": "investor-outreach",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/investor-outreach",
+    "has_references": true
+  },
+  "ios-game-builder": {
+    "name": "ios-game-builder",
+    "modality": "PROCEDURAL_AUTOMATION",
+    "engine": null,
+    "path": "and_os/lib/skills/ios-game-builder",
+    "has_references": false
+  },
+  "knowledge-promoter": {
+    "name": "knowledge-promoter",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": "and_os/bin/sys_cli.py",
+    "path": "and_os/lib/skills/knowledge-promoter",
+    "has_references": false
+  },
+  "llm-council": {
+    "name": "llm-council",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/llm-council",
+    "has_references": false
+  },
+  "mattermost-sync": {
+    "name": "mattermost-sync",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/mattermost_sync.py",
+    "path": "and_os/lib/skills/mattermost-sync",
+    "has_references": false
+  },
+  "meetings-hub": {
+    "name": "meetings-hub",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/meetings-hub",
+    "has_references": true
+  },
+  "negotiation": {
+    "name": "negotiation",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/negotiation",
+    "has_references": true
+  },
+  "obsidian-bases": {
+    "name": "obsidian-bases",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/obsidian-bases",
+    "has_references": false
+  },
+  "openmontage-builder": {
+    "name": "openmontage-builder",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/openmontage-builder",
+    "has_references": false
+  },
+  "portfolio-summary": {
+    "name": "portfolio-summary",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/portfolio-summary",
+    "has_references": true
+  },
+  "postmortem-analyzer": {
+    "name": "postmortem-analyzer",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/postmortem_analyzer.py",
+    "path": "and_os/lib/skills/postmortem-analyzer",
+    "has_references": false
+  },
+  "project-state": {
+    "name": "project-state",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/project_registry.py",
+    "path": "and_os/lib/skills/project-state",
+    "has_references": false
+  },
+  "prompt-improver": {
+    "name": "prompt-improver",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/prompt-improver",
+    "has_references": true
+  },
+  "script-bible-extractor": {
+    "name": "script-bible-extractor",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/script_bible_extractor.py",
+    "path": "and_os/lib/skills/script-bible-extractor",
+    "has_references": false
+  },
+  "skill-creator": {
+    "name": "skill-creator",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": null,
+    "path": "and_os/lib/skills/skill-creator",
+    "has_references": true
+  },
+  "skill-router": {
+    "name": "skill-router",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/skill-router",
+    "has_references": false
+  },
+  "status-report": {
+    "name": "status-report",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/status-report",
+    "has_references": true
+  },
+  "story-dev": {
+    "name": "story-dev",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/story-dev",
+    "has_references": true
+  },
+  "strategy-review": {
+    "name": "strategy-review",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/strategy-review",
+    "has_references": false
+  },
+  "sync-context": {
+    "name": "sync-context",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/sync_context.py",
+    "path": "and_os/lib/skills/sync-context",
+    "has_references": true
+  },
+  "system-architect": {
+    "name": "system-architect",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/system-architect",
+    "has_references": false
+  },
+  "system-audit": {
+    "name": "system-audit",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/validate_system.py",
+    "path": "and_os/lib/skills/system-audit",
+    "has_references": true
+  },
+  "ta-bu-plan": {
+    "name": "ta-bu-plan",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/ta-bu-plan",
+    "has_references": true
+  },
+  "task-graph": {
+    "name": "task-graph",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/post_prompt_planner.py",
+    "path": "and_os/lib/skills/task-graph",
+    "has_references": false
+  },
+  "tax-compliance": {
+    "name": "tax-compliance",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/tax-compliance",
+    "has_references": true
+  },
+  "teach-hub": {
+    "name": "teach-hub",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/teach-hub",
+    "has_references": false
+  },
+  "temporal-consistency-guard": {
+    "name": "temporal-consistency-guard",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/temporal_consistency_guard.py",
+    "path": "and_os/lib/skills/temporal-consistency-guard",
+    "has_references": false
+  },
+  "uc-diet-planning": {
+    "name": "uc-diet-planning",
+    "modality": "DECLARATIVE_KNOWLEDGE",
+    "engine": null,
+    "path": "and_os/lib/skills/uc-diet-planning",
+    "has_references": false
+  },
+  "ui-inspector": {
+    "name": "ui-inspector",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/ui_inspector.py",
+    "path": "and_os/lib/skills/ui-inspector",
+    "has_references": false
+  },
+  "vault-router": {
+    "name": "vault-router",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/context_router.py",
+    "path": "and_os/lib/skills/vault-router",
+    "has_references": true
+  },
+  "weeek-hub": {
+    "name": "weeek-hub",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/weeek_sync.py",
+    "path": "and_os/lib/skills/weeek-hub",
+    "has_references": true
+  },
+  "yt-analyze": {
+    "name": "yt-analyze",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/bin/yt_analyze.py",
+    "path": "and_os/lib/skills/yt-analyze",
+    "has_references": false
+  }
+}

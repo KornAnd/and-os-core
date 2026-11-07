@@ -1,0 +1,136 @@
+{
+  "nodes": [
+    {
+      "id": "grp_1",
+      "type": "group",
+      "x": 0,
+      "y": 0,
+      "width": 480,
+      "height": 320,
+      "label": "Фаза 1: Сбор первичных данных",
+      "color": "3"
+    },
+    {
+      "id": "step_1",
+      "type": "text",
+      "text": "### 1. Выгрузка сырых данных Ftrack\n**🎯 Скилл:** `ftrack-sync`\n**⚙️ Скрипт:** `ftrack_sync.py`\n📥 **Вход:** Ftrack API, Episode E275\n📤 **Выход:** ftrack_e275_raw.json\n✅ **Критерий (DoD):** Данные по 53 шотам и 31 задаче загружены без ошибок",
+      "x": 50,
+      "y": 80,
+      "width": 380,
+      "height": 180,
+      "color": "5"
+    },
+    {
+      "id": "grp_2",
+      "type": "group",
+      "x": 620,
+      "y": 0,
+      "width": 480,
+      "height": 840,
+      "label": "Фаза 2: Параллельный анализ",
+      "color": "4"
+    },
+    {
+      "id": "step_2a",
+      "type": "text",
+      "text": "### 2A. Анализ выработки CFX/Анимации\n**🎯 Скилл:** `ftrack-sync`\n**⚙️ Скрипт:** `ftrack_report.py`\n🔀 **Режим:** Параллельный\n📥 **Вход:** ftrack_e275_raw.json\n📤 **Выход:** Выработка_E275.md\n✅ **Критерий (DoD):** Посчитаны часы, переработки и дельта отставания",
+      "x": 670,
+      "y": 80,
+      "width": 380,
+      "height": 180,
+      "color": "5"
+    },
+    {
+      "id": "step_2b",
+      "type": "text",
+      "text": "### 2B. Срез блокеров на доске Weeek\n**🎯 Скилл:** `weeek-hub`\n**⚙️ Скрипт:** `weeek_sync.py`\n🔀 **Режим:** Параллельный\n📥 **Вход:** Safari Live Sync, Доска Марс #798\n📤 **Выход:** Weeek_Mars_Blockers.md\n✅ **Критерий (DoD):** Выявлены все задачи со статусом Blocked и задержкой >30д",
+      "x": 670,
+      "y": 340,
+      "width": 380,
+      "height": 180,
+      "color": "3"
+    },
+    {
+      "id": "step_2c",
+      "type": "text",
+      "text": "### 2C. Сверка состава артистов и ставок\n**🎯 Скилл:** `employee-hub`\n**⚙️ Скрипт:** `doc_analyze.py`\n🔀 **Режим:** Параллельный\n📥 **Вход:** МАРС_СОТРУДНИКИ.xlsx\n📤 **Выход:** Ресурсы_отдела_CFX.md\n✅ **Критерий (DoD):** Подтверждена доступность лидов и супервайзеров на финализацию",
+      "x": 670,
+      "y": 600,
+      "width": 380,
+      "height": 180,
+      "color": "2"
+    },
+    {
+      "id": "grp_3",
+      "type": "group",
+      "x": 1240,
+      "y": 0,
+      "width": 480,
+      "height": 320,
+      "label": "Фаза 3: Финализация и релиз",
+      "color": "5"
+    },
+    {
+      "id": "step_3",
+      "type": "text",
+      "text": "### 3. Консолидация статус-отчёта и рисков\n**🎯 Скилл:** `status-report`\n**⚙️ Скрипт:** `validate_system.py`\n📥 **Вход:** Выработка_E275.md, Weeek_Mars_Blockers.md, Ресурсы_отдела_CFX.md\n📤 **Выход:** Статус_Марс_E275_Финал.md\n✅ **Критерий (DoD):** Сформирован итоговый протокол с экшн-пойнтами и оценкой рисков",
+      "x": 1290,
+      "y": 80,
+      "width": 380,
+      "height": 180,
+      "color": "1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "fromNode": "step_1",
+      "fromSide": "right",
+      "toNode": "step_2a",
+      "toSide": "left"
+    },
+    {
+      "id": "edge_2",
+      "fromNode": "step_1",
+      "fromSide": "right",
+      "toNode": "step_2b",
+      "toSide": "left"
+    },
+    {
+      "id": "edge_3",
+      "fromNode": "step_1",
+      "fromSide": "right",
+      "toNode": "step_2c",
+      "toSide": "left"
+    },
+    {
+      "id": "edge_4",
+      "fromNode": "step_2a",
+      "fromSide": "right",
+      "toNode": "step_3",
+      "toSide": "left"
+    },
+    {
+      "id": "edge_5",
+      "fromNode": "step_2b",
+      "fromSide": "right",
+      "toNode": "step_3",
+      "toSide": "left"
+    },
+    {
+      "id": "edge_6",
+      "fromNode": "step_2c",
+      "fromSide": "right",
+      "toNode": "step_3",
+      "toSide": "left"
+    }
+  ],
+  "metadata": {
+    "version": "1.0-1.0",
+    "frontmatter": {
+      "title": "Производственный аудит и сдача эпизода E275 (Марс)",
+      "orchestrator": "task-graph",
+      "rules": "Правило №20"
+    }
+  }
+}

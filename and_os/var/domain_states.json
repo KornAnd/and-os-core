@@ -1,0 +1,14 @@
+{
+  "test_domain": {
+    "domain": "test_domain",
+    "status": "ACTIVE",
+    "last_updated": "2026-11-07 23:39",
+    "_provenance": {
+      "source": "unit_test_run",
+      "observed_at": "2026-11-07T20:39:22.746868+00:00",
+      "source_updated_at": "2026-11-07 23:39",
+      "freshness": "VERIFIED"
+    },
+    "test_metric": 100
+  }
+}

@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""
+and_os/bin/git — Hard Binary Interceptor & Security Shim (Rule #67).
+Protects Obsidian Vault & AnD os Core against Git initialization, commits, pushes, and tracking.
+External standalone applications (e.g. Pulsar Space, Xcode) outside the vault remain permitted.
+"""
+
+import sys
+import os
+import subprocess
+
+REAL_GIT = "/usr/bin/git"
+
+VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))
+
+# Subcommands that modify or manage git repositories
+TRACKING_SUBCOMMANDS = {"init", "add", "commit", "push", "remote", "clone", "pull", "fetch"}
+DESTRUCTIVE_SUBCOMMANDS = {"checkout", "reset", "restore", "clean"}
+
+def is_inside_vault(path: str) -> bool:
+    try:
+        resolved = os.path.realpath(path)
+        vault_real = os.path.realpath(VAULT_ROOT)
+        return resolved == vault_real or resolved.startswith(vault_real + os.sep)
+    except Exception:
+        return False
+
+def log_interception(reason: str, cmd_args: list):
+    sys.stderr.write("\n" + "=" * 70 + "\n")
+    sys.stderr.write("🛑 [AnD os SOVEREIGN VAULT SECURITY VIOLATION (Rule #67)]\n")
+    sys.stderr.write(f"Reason: {reason}\n")
+    sys.stderr.write(f"Command intercepted: git {' '.join(cmd_args)}\n")
+    sys.stderr.write("Obsidian Vault & and_os Core are sovereign; Git tracking/push is strictly prohibited.\n")
+    sys.stderr.write("Sovereign backups are managed exclusively by and_os/bin/backup_engine.py (Yandex.Disk).\n")
+    sys.stderr.write("Standalone external apps (Pulsar, Xcode) outside the vault remain permitted on demand.\n")
+    sys.stderr.write("=" * 70 + "\n\n")
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        subprocess.run([REAL_GIT])
+        return
+
+    cwd = os.getcwd()
+
+    subcmd = None
+    for a in args:
+        if not a.startswith("-"):
+            subcmd = a
+            break
+
+    # If invoked inside Obsidian Vault or targeting the vault:
+    if is_inside_vault(cwd):
+        if subcmd in TRACKING_SUBCOMMANDS or subcmd in DESTRUCTIVE_SUBCOMMANDS:
+            log_interception(
+                f"Git '{subcmd}' inside Obsidian Vault / and_os is forbidden by Rule #67.",
+                args
+            )
+            sys.exit(1)
+
+    # For standalone external directories outside the vault, allow normal git usage
+    ret = subprocess.run([REAL_GIT] + args)
+    sys.exit(ret.returncode)
+
+if __name__ == "__main__":
+    main()

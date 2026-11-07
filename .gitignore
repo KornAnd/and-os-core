@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions & dynamic libs
+*.so
+*.dylib
+
+# Database journals & locks
+*.db-shm
+*.db-wal
+*.lock
+events.jsonl
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
