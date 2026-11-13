@@ -13,6 +13,9 @@ __pycache__/
 *.lock
 events.jsonl
 
+# Runtime state (never part of the open-source package)
+and_os/var/
+
 # macOS system files
 .DS_Store
 .AppleDouble

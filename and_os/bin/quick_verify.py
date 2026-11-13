@@ -42,8 +42,12 @@ SECRET_PATTERNS = [
 
 # Canonical Vault Root Directories (Rule #4, #7, #27)
 # Creating any directory in Vault root outside this set is strictly forbidden.
+# F5: .git is whitelisted because the published open-source package is a git
+# checkout - the VCS metadata directory at the root of a fresh clone is
+# legitimate and must not fail the flagship pre-flight gate (Rules #4/#7
+# govern the hermetic Obsidian Vault, where the air-gap invariant forbids git).
 CANONICAL_ROOT_DIRECTORIES = frozenset({
-    ".archive", ".makemd", ".obsidian", ".opencode", ".smart-env", ".space", ".trash", "Trash",
+    ".archive", ".git", ".makemd", ".obsidian", ".opencode", ".smart-env", ".space", ".trash", "Trash",
     "Book", "CG_core", "Clippings", "Industry", "Nero", "Product", "Story", "Ta-Bu", "Tags", "Tasks", "Studio",
     "and_os"
 })
