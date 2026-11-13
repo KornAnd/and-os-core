@@ -13,10 +13,10 @@ tags:
   - quality
   - dod
 links:
-[[|  - "[[SYSTEM.md]]"
-[[|  - "[[and_os/etc/SYSTEM_MAP.md]]"
-[[|  - "[[AGENTS.md]]"
-[[|  - "[[.opencode/rules.md]]"
+  - "[[SYSTEM.md]]"
+  - "[[and_os/etc/SYSTEM_MAP.md]]"
+  - "[[AGENTS.md]]"
+  - "[[.opencode/rules.md]]"
 ---
 
 # 🛠️ DEV_PROTOCOL — Engineering Code of Conduct & Rigorous Debugging Protocol (v1.1)

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-task_db_engine.py — Локальный Движок БД Задач и Индексации Vault (SQLite Engine).
-Принцип: Think in Code (Правило №16), Zero-Token Querying.
+task_db_engine.py — Local Task Database and Vault Indexing Engine (SQLite Engine).
+Principle: Think in Code (Rule #16), Zero-Token Querying.
 
-Функционал:
-  1. Сканирует Obsidian Vault (каталоги Tasks/, Nero/, Product/, Story/, Ta-Bu/).
-  2. Извлекает чек-боксы (- [ ] / - [x]), теги #task, #deadline, #urgent и даты.
-  3. Индексирует в невидимую локальную базу данных and_os/var/task_vault.db.
-  4. Генерирует нативный наглядный холст Nero/Dashboard.canvas.
+Features:
+  1. Scans the Obsidian Vault (the Tasks/, Nero/, Product/, Story/, Ta-Bu/ catalogs).
+  2. Extracts the checkboxes (- [ ] / - [x]), the tags #task, #deadline, #urgent and the dates.
+  3. Indexes them into the hidden local database and_os/var/task_vault.db.
+  4. Generates the native visual canvas Nero/Dashboard.canvas.
 
-Использование:
-  python3 task_db_engine.py --index               # Полнотекстовая индексация vault в SQLite
-  python3 task_db_engine.py --query-pending        # Быстрый вывод незавершенных задач в JSON
-  python3 task_db_engine.py --build-canvas         # Генерация visual Canvas-дашборда
+Usage:
+  python3 task_db_engine.py --index               # Full-text indexing of the vault into SQLite
+  python3 task_db_engine.py --query-pending        # Fast JSON output of the unfinished tasks
+  python3 task_db_engine.py --build-canvas         # Generation of the visual Canvas dashboard
 """
 
 import os
@@ -188,10 +188,10 @@ def generate_dashboard_canvas():
 
 def main():
     parser = argparse.ArgumentParser(description="Task DB & Canvas Engine")
-    parser.add_argument("--index", action="store_true", help="Проиндексировать все задачи Vault в SQLite")
-    parser.add_argument("--query-pending", action="store_true", help="Вывести незавершенные задачи в JSON")
-    parser.add_argument("--domain", type=str, help="Фильтр по домену")
-    parser.add_argument("--build-canvas", action="store_true", help="Сгенерировать Dashboard.canvas")
+    parser.add_argument("--index", action="store_true", help="Index all Vault tasks into SQLite")
+    parser.add_argument("--query-pending", action="store_true", help="Print the unfinished tasks as JSON")
+    parser.add_argument("--domain", type=str, help="Filter by domain")
+    parser.add_argument("--build-canvas", action="store_true", help="Generate the Dashboard.canvas")
 
     args = parser.parse_args()
 

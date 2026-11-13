@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-security_guard.py — Automated Security Sentinel & Secret Leak Guard (AnD os v8.1).
+security_guard.py — Automated Security Sentinel & Secret Leak Guard (AnD os v1.0.0).
 Core subsystem (and_os/lib/core/).
 Rule #6: Secrets via macOS Keychain only (@@K:key), plaintext tokens forbidden in codebase.
 
@@ -20,9 +20,9 @@ VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")
 AND_OS_ROOT = os.path.join(VAULT_ROOT, "and_os")
 try:
     from and_os.lib.core.root_config import resolve_pulsar_root
-    PULSAR_ROOT = resolve_pulsar_root() or os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+    PULSAR_ROOT = resolve_pulsar_root() or os.path.expanduser("./pulsar")
 except Exception:
-    PULSAR_ROOT = os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+    PULSAR_ROOT = os.path.expanduser("./pulsar")
 
 # Regular expressions for secret leak detection
 LEAK_PATTERNS = [
@@ -36,7 +36,7 @@ LEAK_PATTERNS = [
 
 IGNORE_DIRS = {
     ".git", "__pycache__", "node_modules", ".cache", ".tmp.drive",
-    "venv", ".venv", "dist", "build", ".DS_Store"
+    "venv", ".venv", "dist", "build", ".build", ".DS_Store"
 }
 
 IGNORE_FILES = {
@@ -104,7 +104,7 @@ def scan_system_secrets() -> Dict[str, Any]:
         "details": all_findings
     }
 
-def main():
+def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description="AnD os Secret Sentinel & Leak Guard")
     parser.add_argument("--json", action="store_true", help="Output JSON")

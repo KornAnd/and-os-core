@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
 dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer.
-AnD os v8.1 (Pillar II & VI: Full Information Dependency & Automatic Propagation Gate).
+AnD os v1.0.0 (Pillar II & VI: Full Information Dependency & Automatic Propagation Gate).
 
-Назначение:
-1. Построение полного графа информационных и функциональных зависимостей (Directed Dependency Graph):
-   - Манифесты (SYSTEM.md, AGENTS.md, SYSTEM_MAP.md, etc.)
-   - Острова и контексты (CONTEXT.md)
-   - 50 Скиллов (SKILL.md) и их симлинки
-   - Модули и CLI-скрипты
-   - Базы знаний (quick_knowledge_db.json, SQLite tasks)
-   - Контуры здоровья и продакшна
-2. Детекция циклических зависимостей и устаревших метаданных по mtime.
-3. Каскадное автоматическое обновление зависимых файлов (Cascade Propagation):
-   при изменении источника (Source) автоматически обновляет всех потребителей (Consumers).
-4. Экспорт полного Mermaid-графа и отчета в and_os/etc/SYSTEM_DEPENDENCIES_GRAPH.md.
+Purpose:
+1. The building of the full graph of the informational and the functional dependencies (Directed Dependency Graph):
+   - The manifests (SYSTEM.md, AGENTS.md, SYSTEM_MAP.md, etc.)
+   - The Islands and the contexts (CONTEXT.md)
+   - The 50 Skills (SKILL.md) and their symlinks
+   - The modules and the CLI scripts
+   - The knowledge bases (quick_knowledge_db.json, the SQLite tasks)
+   - The health and the production contours
+2. The detection of the cyclic dependencies and the stale metadata by the mtime.
+3. The cascading automatic update of the dependent files (Cascade Propagation):
+   on the change of the source (Source) it automatically updates all the consumers (Consumers).
+4. The export of the full Mermaid graph and the report into and_os/etc/SYSTEM_DEPENDENCIES_GRAPH.md.
 
-Использование:
+Usage:
   python3 and_os/bin/dependency_engine.py [--check] [--propagate] [--mermaid] [--json]
 """
 
@@ -42,10 +42,10 @@ REGISTRY_PATH = ETC_DIR / "SYSTEM_GRAPH_REGISTRY.json"
 OUTPUT_GRAPH_MD = ETC_DIR / "SYSTEM_DEPENDENCIES_GRAPH.md"
 
 # ==============================================================================
-# Каноническая матрица зависимостей (Source of Truth -> Consumers)
+# The canonical matrix of the dependencies (Source of Truth -> Consumers)
 # ==============================================================================
 SYSTEM_DEPENDENCY_SPEC = {
-    # 1. Ядерные манифесты
+    # 1. The kernel manifests
     "SYSTEM.md": {
         "role": "Master Manifest",
         "category": "Core Manifest",
@@ -89,7 +89,7 @@ SYSTEM_DEPENDENCY_SPEC = {
         "affects": []
     },
 
-    # 2. Движок скиллов
+    # 2. The skills engine
     "and_os/lib/skills/README.md": {
         "role": "Skills Registry (50 Active)",
         "category": "Skill Registry",
@@ -109,7 +109,7 @@ SYSTEM_DEPENDENCY_SPEC = {
         "affects": []
     },
 
-    # 3. Инфраструктура и рантайм
+    # 3. The infrastructure and the runtime
     "and_os/etc/SYSTEM_TOOLCHAIN.json": {
         "role": "Canonical Toolchain State",
         "category": "Toolchain",
@@ -123,7 +123,7 @@ SYSTEM_DEPENDENCY_SPEC = {
         "affects": ["and_os/bin/bootstrap_system.py"]
     },
 
-    # 4. База знаний и индекс поиска
+    # 4. The knowledge base and the search index
     "Clippings/quick_knowledge_db.json": {
         "role": "Fast Retrieval Index",
         "category": "Knowledge Index",
@@ -131,7 +131,7 @@ SYSTEM_DEPENDENCY_SPEC = {
         "affects": ["and_os/bin/quick_find.py", "and_os/etc/SYSTEM_MAP.md"]
     },
 
-    # 5. Контур здоровья и Продакшна (Holistic Health-Production Bridge)
+    # 5. The health and the Production contour (Holistic Health-Production Bridge)
     "Nero/profile/health/my/health_diagnostics.md": {
         "role": "Single Source of Clinical Truth",
         "category": "Health Truth",
@@ -161,8 +161,8 @@ SYSTEM_DEPENDENCY_SPEC = {
 def get_system_metadata():
     """Dynamically extracts system version and rules count from system.json."""
     sys_json = VAULT_ROOT / "and_os" / "etc" / "system.json"
-    ver = "7.3.0"
-    rules_n = 65
+    ver = "1.0.0"
+    rules_n = 75
     if sys_json.exists():
         try:
             with open(sys_json, "r", encoding="utf-8") as f:
@@ -220,7 +220,7 @@ def generate_mermaid_diagram():
         "    classDef health fill:#3b0764,stroke:#ec4899,stroke-width:2px,color:#fff;",
         "    classDef tool fill:#064e3b,stroke:#14b8a6,stroke-width:2px,color:#fff;",
         "",
-        "    subgraph CORE_LAYER[\"🏛️ Ядро и Манифесты (Core Controls)\"]",
+        "    subgraph CORE_LAYER[\"🏛️ The Core and the Manifests (Core Controls)\"]",
         "        RULES[\".opencode/rules.md (Pillars I-VI)\"]:::core",
         "        SYS[\"SYSTEM.md (Master Manifest)\"]:::core",
         "        JSON[\"system.json (Machine Spec)\"]:::core",
@@ -228,29 +228,29 @@ def generate_mermaid_diagram():
         "        AGENTS[\"AGENTS.md (Bootstrap)\"]:::core",
         "    end",
         "",
-        "    subgraph SKILL_LAYER[\"⚡ Движок Скиллов (49 Active Skills)\"]",
+        "    subgraph SKILL_LAYER[\"⚡ The Skills Engine (49 Active Skills)\"]",
         "        ROUTING[\"ROUTING.md (Domain Router)\"]:::router",
         "        SK_README[\"skills/README.md (49 Skills)\"]:::router",
         "        SK_CTX[\"skills/CONTEXT.md\"]\n    end",
         "",
-        "    subgraph GRAPH_LAYER[\"📊 Архитектурные Графы (Topology)\"]",
+        "    subgraph GRAPH_LAYER[\"📊 The Architectural Graphs (Topology)\"]",
         "        ARCH_GRAPH[\"SYSTEM_ARCHITECTURE_GRAPH.md\"]:::graph",
         "        ISLAND_GRAPH[\"KNOWLEDGE_ISLANDS_GRAPH.md\"]:::graph",
         "    end",
         "",
-        "    subgraph TOOLCHAIN_LAYER[\"🛠️ Рантайм и Переносимость (Portability)\"]",
+        "    subgraph TOOLCHAIN_LAYER[\"🛠️ The Runtime and the Portability (Portability)\"]",
         "        TC_JSON[\"SYSTEM_TOOLCHAIN.json\"]:::tool",
         "        REQ[\"requirements.txt (52 pkgs)\"]:::tool",
         "        BOOT[\"bootstrap_system.py\"]:::tool",
         "    end",
         "",
-        "    subgraph HEALTH_LAYER[\"🧬 Контур Здоровья (Health Intelligence)\"]",
+        "    subgraph HEALTH_LAYER[\"🧬 The Health Contour (Health Intelligence)\"]",
         "        DIAG[\"health_diagnostics.md (Clinical Truth)\"]:::health",
         "        DASH[\"health.md (High-Level Dashboard)\"]:::health",
         "        GATE[\"medical_gate.md (Sport Gate)\"]:::health",
         "    end",
         "",
-        "    %% Связи ядра",
+        "    %% The core links",
         "    RULES --> SYS",
         "    SYS --> JSON",
         "    SYS --> MAP",
@@ -259,17 +259,17 @@ def generate_mermaid_diagram():
         "    MAP --> ARCH_GRAPH",
         "    MAP --> ISLAND_GRAPH",
         "",
-        "    %% Связи скиллов",
+        "    %% The skills links",
         "    ROUTING --> SK_README",
         "    SK_README --> SK_CTX",
         "    SK_README --> MAP",
         "    SK_README --> SYS",
         "",
-        "    %% Связи переносимости",
+        "    %% The portability links",
         "    TC_JSON --> REQ",
         "    REQ --> BOOT",
         "",
-        "    %% Связи здоровья",
+        "    %% The health links",
         "    DIAG --> DASH",
         "    DIAG --> GATE",
         "```"
@@ -293,7 +293,7 @@ def propagate_updates():
         (VAULT_ROOT / "and_os/lib/skills/ROUTING.md", r"\d+ скилл[а-я]*", f"{actual_skills_count} скиллов"),
         (VAULT_ROOT / "and_os/CONTEXT.md", r"\d+ active skills", f"{actual_skills_count} active skills"),
         (VAULT_ROOT / "and_os/README.md", r"\d+ active skills", f"{actual_skills_count} active skills"),
-        (VAULT_ROOT / "and_os/bin/system_dashboard.py", r"\d+ скилл[а-я]*", f"{actual_skills_count} скиллов"),
+        (VAULT_ROOT / "and_os/bin/system_dashboard.py", r"\d+ skills?", f"{actual_skills_count} skills"),
         (VAULT_ROOT / "and_os/bin/bootstrap_system.py", r"\d+ скилл[а-я]*", f"{actual_skills_count} скиллов")
     ]
     
@@ -305,7 +305,7 @@ def propagate_updates():
                 new_content = re.sub(pat, repl, content)
                 with open(fpath, "w", encoding="utf-8") as f:
                     f.write(new_content)
-                log.append(f"Каскадно обновлен: {fpath.name} -> {actual_skills_count} скиллов")
+                log.append(f"The cascading update was applied: {fpath.name} -> {actual_skills_count} skills")
 
     # 2. Update SYSTEM_GRAPH_REGISTRY.json with latest metadata
     if REGISTRY_PATH.exists():
@@ -317,9 +317,9 @@ def propagate_updates():
             reg_data["manifests"] = SYSTEM_DEPENDENCY_SPEC
             with open(REGISTRY_PATH, "w", encoding="utf-8") as f:
                 json.dump(reg_data, f, indent=2, ensure_ascii=False)
-            log.append("Актуализирован реестр графа: and_os/etc/SYSTEM_GRAPH_REGISTRY.json")
+            log.append("The graph registry was actualized: and_os/etc/SYSTEM_GRAPH_REGISTRY.json")
         except Exception as e:
-            log.append(f"Ошибка обновления SYSTEM_GRAPH_REGISTRY.json: {e}")
+            log.append(f"The error of the update of the SYSTEM_GRAPH_REGISTRY.json: {e}")
 
     # 3. Generate SYSTEM_DEPENDENCIES_GRAPH.md
     mermaid_code = generate_mermaid_diagram()
@@ -348,32 +348,32 @@ updated: {now_str}
 
 ---
 
-## 📋 2. Управляющая матрица каскадных связей (Cross-Matrix)
+## 📋 2. The controlling matrix of the cascading links (Cross-Matrix)
 
-| Источник (Source of Truth) | Роль в системе | Зависит от (Inputs) | Каскадно влияет на (Consumers) |
+| The Source (Source of Truth) | The role in the system | Depends on (Inputs) | The cascading influence on (Consumers) |
 | :--- | :--- | :--- | :--- |
-| **`SYSTEM.md`** | Главный манифест ОС | `.opencode/rules.md`, `system.json` | `AGENTS.md`, `SYSTEM_MAP.md`, `SYSTEM_ARCHITECTURE_GRAPH.md`, `CONTEXT.md` |
-| **`.opencode/rules.md`** | Единый свод правил (№0–№64) | — (Коренной закон) | `SYSTEM.md`, `SYSTEM_MAP.md`, `AGENTS.md` |
-| **`SYSTEM_MAP.md`** | Генеральный атлас маршрутизации | `SYSTEM.md`, `skills/README.md` | `AGENTS.md`, `KNOWLEDGE_ISLANDS_GRAPH.md` |
-| **`skills/README.md`** | Реестр 50 скиллов | `ROUTING.md` | `SYSTEM.md`, `SYSTEM_MAP.md`, `AGENTS.md` |
-| **`SYSTEM_TOOLCHAIN.json`** | Спецификация рантаймов | `system_tools_map.py` | `requirements.txt`, `SYSTEM_TOOLCHAIN.md` |
-| **`requirements.txt`** | Переносимые pip-зависимости | `SYSTEM_TOOLCHAIN.json` | `bootstrap_system.py` |
-| **`health_diagnostics.md`** | Клинический источник правды | Лаборатория, telemetry_sync, InBody | `health.md`, `medical_gate.md`, тренировочный план |
+| **`SYSTEM.md`** | The main manifest of the OS | `.opencode/rules.md`, `system.json` | `AGENTS.md`, `SYSTEM_MAP.md`, `SYSTEM_ARCHITECTURE_GRAPH.md`, `CONTEXT.md` |
+| **`.opencode/rules.md`** | The unified code of the rules (#0-#64) | — (The root law) | `SYSTEM.md`, `SYSTEM_MAP.md`, `AGENTS.md` |
+| **`SYSTEM_MAP.md`** | The general atlas of the routing | `SYSTEM.md`, `skills/README.md` | `AGENTS.md`, `KNOWLEDGE_ISLANDS_GRAPH.md` |
+| **`skills/README.md`** | The registry of the 50 skills | `ROUTING.md` | `SYSTEM.md`, `SYSTEM_MAP.md`, `AGENTS.md` |
+| **`SYSTEM_TOOLCHAIN.json`** | The specification of the runtimes | `system_tools_map.py` | `requirements.txt`, `SYSTEM_TOOLCHAIN.md` |
+| **`requirements.txt`** | The portable pip dependencies | `SYSTEM_TOOLCHAIN.json` | `bootstrap_system.py` |
+| **`health_diagnostics.md`** | The clinical source of the truth | The laboratory, telemetry_sync, InBody | `health.md`, `medical_gate.md`, the training plan |
 
 ---
-[[SYSTEM_MAP|← Назад к SYSTEM_MAP.md]] | [[SYSTEM|← Назад к SYSTEM.md]]
+[[SYSTEM_MAP|← Back to SYSTEM_MAP.md]] | [[SYSTEM|← Back to SYSTEM.md]]
 """
     with open(OUTPUT_GRAPH_MD, "w", encoding="utf-8") as f:
         f.write(md_content)
-    log.append(f"Сгенерирован и сохранен мастер-граф зависимостей: {OUTPUT_GRAPH_MD.name}")
+    log.append(f"The master graph of the dependencies was generated and saved: {OUTPUT_GRAPH_MD.name}")
 
     return log
 
 def main():
     parser = argparse.ArgumentParser(description="AnD os Dependency Engine")
-    parser.add_argument("--propagate", action="store_true", help="Выполнить каскадное обновление всех зависимостей")
-    parser.add_argument("--mermaid", action="store_true", help="Вывести Mermaid-код графа")
-    parser.add_argument("--json", action="store_true", help="Вывод в JSON")
+    parser.add_argument("--propagate", action="store_true", help="Perform the cascading update of all the dependencies")
+    parser.add_argument("--mermaid", action="store_true", help="Print the Mermaid code of the graph")
+    parser.add_argument("--json", action="store_true", help="The output in the JSON")
     args = parser.parse_args()
 
     scan = scan_physical_elements()
@@ -386,7 +386,7 @@ def main():
             print("=== 🕸️ CASCADE PROPAGATION COMPLETED ===")
             for l in logs:
                 print(f"  ⚡ {l}")
-            print(f"🟢 Все связанные манифесты и графы актуализированы ({scan['active_skills_count']} скиллов).")
+            print(f"🟢 All the linked manifests and the graphs were actualized ({scan['active_skills_count']} skills).")
             print("========================================")
     elif args.mermaid:
         print(generate_mermaid_diagram())
@@ -394,18 +394,18 @@ def main():
         if args.json:
             print(json.dumps(scan, indent=2, ensure_ascii=False))
         else:
-            print("=== 🕸️ AnD os v8.1 DEPENDENCY ANALYSIS ===")
-            print(f"📦 Управляемых ключевых узлов: {scan['total_managed_nodes']}")
-            print(f"⚡ Активных скиллов: {scan['active_skills_count']}")
-            print(f"📁 Навигаторов CONTEXT.md: {scan['contexts_count']}")
+            print("=== 🕸️ AnD os v1.0.0 DEPENDENCY ANALYSIS ===")
+            print(f"📦 The managed key nodes: {scan['total_managed_nodes']}")
+            print(f"⚡ The active skills: {scan['active_skills_count']}")
+            print(f"📁 The CONTEXT.md navigators: {scan['contexts_count']}")
             print("------------------------------------------")
             if scan["stale_relations"]:
-                print(f"⚠️ Обнаружено {len(scan['stale_relations'])} потенциально устаревших связей:")
+                print(f"⚠️ The potentially stale relations were detected: {len(scan['stale_relations'])}:")
                 for sr in scan["stale_relations"]:
-                    print(f"   - {sr['consumer']} отстает от {sr['producer']} на {sr['delta_seconds']}с")
-                print("\n💡 Запустите с флагом --propagate для каскадного авто-обновления.")
+                    print(f"   - {sr['consumer']} lags behind {sr['producer']} by {sr['delta_seconds']}s")
+                print("\n💡 Launch with the --propagate flag for the cascading auto update.")
             else:
-                print("✅ Все информационные зависимости синхронизированы!")
+                print("✅ All the informational dependencies were synchronized!")
             print("==========================================")
 
 if __name__ == "__main__":

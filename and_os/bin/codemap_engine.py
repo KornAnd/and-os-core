@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-codemap_engine.py — Генератор сверхлегких архитектурных карт кода (Codemaps Engine).
-AnD os v8.4 — Остров 8 (Kernel & System Compiler).
+codemap_engine.py — Ultra-lightweight architectural code map generator (Codemaps Engine).
+AnD os v1.0.0 — Island 8 (Kernel & System Compiler).
 
-Обеспечивает 95% токеноэкономию при изучении структуры проектов:
-1. Сканирует AST (Abstract Syntax Tree) исходников Python (.py) и Swift (.swift).
-2. Извлекает только заголовки классов, структуры, экспортируемые функции, методы и их сигнатуры.
-3. Игнорирует тела функций и детали реализации.
-4. Формирует компактную иерархическую Markdown-карту (Codemap) для:
-   - `and_os/opt/apps/cg_workspace/` (3D/CG-модули);
-   - `Nero/xcode/EscPlanet/` (Swift-архитектура игры);
-   - `and_os/bin/` (Системные фасады ядра).
+Provides ~95% token economy when studying project structure:
+1. Scans the AST (Abstract Syntax Tree) of Python (.py) and Swift (.swift) sources.
+2. Extracts only class and struct headers, exported functions, methods and their signatures.
+3. Ignores function bodies and implementation details.
+4. Builds a compact hierarchical Markdown map (Codemap) for:
+   - `and_os/opt/apps/cg_workspace/` (3D/CG modules);
+   - `Nero/xcode/EscPlanet/` (game Swift architecture);
+   - `and_os/bin/` (kernel system facades).
 """
 
 import os
@@ -23,7 +23,7 @@ from typing import Dict, Any, List
 VAULT_ROOT = os.getenv("AND_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 def parse_python_file(file_path: str) -> Dict[str, Any]:
-    """Извлекает классы и функции из Python файла без чтения реализации."""
+    """Extracts classes and functions from a Python file without reading the implementation."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             tree = ast.parse(f.read(), filename=file_path)
@@ -43,13 +43,13 @@ def parse_python_file(file_path: str) -> Dict[str, Any]:
         return {"classes": [], "functions": [], "error": str(e)}
 
 def parse_swift_file(file_path: str) -> Dict[str, Any]:
-    """Извлекает структуры, классы и функции из Swift файла через regex."""
+    """Extracts structs, classes and functions from a Swift file via regex."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         classes = []
-        # Находим class/struct
+        # Find class/struct
         for match in re.finditer(r'(?:public\s+|final\s+)?(class|struct|enum)\s+([A-Za-z0-9_]+)', content):
             entity_type, name = match.group(1), match.group(2)
             classes.append({"name": f"{entity_type} {name}", "methods": []})
@@ -63,14 +63,14 @@ def parse_swift_file(file_path: str) -> Dict[str, Any]:
         return {"classes": [], "functions": [], "error": str(e)}
 
 def generate_codemap(target_dir: str, title: str = "Codemap") -> str:
-    """Генерирует компактную Markdown карту архитектуры каталога."""
-    lines = [f"# 🗺️ Архитектурная Карта (Codemap): {title}\n"]
-    lines.append(f"> **Каталог**: `{target_dir}` | **Статус**: 🟢 Auto-Generated (0-Token)\n")
+    """Generates a compact Markdown architecture map of a directory."""
+    lines = [f"# 🗺️ Architecture Map (Codemap): {title}\n"]
+    lines.append(f"> **Directory**: `{target_dir}` | **Status**: 🟢 Auto-Generated (0-Token)\n")
 
     for root, dirs, files in sorted(os.walk(target_dir)):
         dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ["__pycache__", "node_modules", "Tests"]]
         rel_dir = os.path.relpath(root, target_dir)
-        header = f"### 📂 {rel_dir}" if rel_dir != "." else "### 📂 Корень проекта"
+        header = f"### 📂 {rel_dir}" if rel_dir != "." else "### 📂 Project root"
         
         dir_content = []
         for f in sorted(files):

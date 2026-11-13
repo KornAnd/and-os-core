@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-dev_flow.py — Модульный CLI-оркестратор строгой поэтапной разработки AnD os.
-Управляет сессией разработки через детерминированный FSM и временный .dev_session.json.
+dev_flow.py — Modular CLI orchestrator for strict step-by-step development in AnD os.
+Manages the development session via a deterministic FSM and a temporary .dev_session.json.
 
-Команды:
-  init         -- Инициализировать сессию задачи
-  lock-spec    -- Зафиксировать инварианты ТЗ (цель, запреты, приёмка)
-  plan         -- Загрузить и провалидировать DAG этапов
-  step-begin   -- Начать выполнение шага (создаёт снимок для отката)
-  step-verify  -- Выполнить тест/проверку шага (с защитой Circuit Breaker Stop-on-3)
-  step-finish  -- Завершить шаг и перейти к следующему
-  rollback     -- Немедленный откат файлов текущего шага из снимка
-  status       -- Показать текущее состояние сессии
-  finish       -- Завершить задачу и сгенерировать честный отчёт DEV_PROTOCOL
+Commands:
+  init         -- Initialize the task session
+  lock-spec    -- Freeze spec invariants (goal, prohibitions, acceptance)
+  plan         -- Load and validate the phase DAG
+  step-begin   -- Start step execution (creates a snapshot for rollback)
+  step-verify  -- Run the step test/check (Circuit Breaker Stop-on-3 protection)
+  step-finish  -- Finish the step and move to the next
+  rollback     -- Immediate rollback of the current step's files from the snapshot
+  status       -- Show the current session state
+  finish       -- Complete the task and generate an honest DEV_PROTOCOL report
 """
 
 import sys
@@ -28,7 +28,7 @@ import json
 import argparse
 from typing import Dict, Any, List
 
-# Подключение модулей
+# Module imports
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 AND_OS_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 DEV_FLOW_LIB = os.path.join(AND_OS_ROOT, "lib", "dev_flow")

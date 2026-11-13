@@ -68,7 +68,7 @@ def scan_md_backlinks() -> Dict[str, List[str]]:
 
 def run_asset_indexing():
     """Main indexing logic."""
-    print("🔍 Сканирование ассетов и сбор контекстных связей...")
+    print("🔍 Scanning assets and collecting contextual links...")
     backlinks = scan_md_backlinks()
 
     assets = []
@@ -147,9 +147,9 @@ def run_asset_indexing():
         conn.commit()
         conn.close()
 
-    print(f"✅ Успешно проиндексировано {len(assets)} ассетов!")
-    print(f"📊 Найдено 'сиротских' ассетов без ссылок: {manifest['total_orphans']}")
-    print(f"📁 Файл манифеста сохранен: and_os/var/asset_manifest.json")
+    print(f"✅ Successfully indexed {len(assets)} assets!")
+    print(f"📊 Found {manifest['total_orphans']} 'orphan' assets without links")
+    print(f"📁 Manifest file saved: and_os/var/asset_manifest.json")
     return manifest
 
 if __name__ == "__main__":

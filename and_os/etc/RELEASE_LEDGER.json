@@ -1,22 +1,54 @@
 {
-  "activeVersion": "9.5.0",
-  "releaseDate": "2026-11-07",
+  "activeVersion": "1.0.0",
+  "releaseDate": "2026-11-12",
   "status": "PRODUCTION_RELEASE",
   "releases": [
     {
+      "version": "1.0.0",
+      "release_date": "2026-11-12",
+      "release_type": "MAJOR",
+      "summary": "AnD os 1.0 — the first stable release; the 9.x development series is closed (audit R4 fully closed: P1-P12 + B1/B2/B3)",
+      "changes": [
+        "Single canonical version across every projection (kernel banners, runtime fallbacks, user-facing displays, TUI API)",
+        "CG Production Skeleton relocated into the physical kernel zone and_os/lib/core/cg/; I-1 is now one zone",
+        "Full test suite is a single pytest process (242 tests); R4-VER-2 full-text version contract",
+        "CC triage phase-2 closed (IPC failure declared, texel density error recorded)"
+      ],
+      "git_commit_sha": "sovereign_vault",
+      "affected_components": "core"
+    },
+    {
+      "version": "9.6.0",
+      "release_date": "2026-11-09",
+      "release_type": "MINOR",
+      "summary": "Модульная архитектура микроядра sys_cli (Git-style Subcommands), SHA-256 хеш-целостность Ftrack и Coupled GC, изоляция сбоев доменов и Fast-Path диспетчеризация",
+      "changes": [
+        "Декомпозиция монолита sys_cli.py (4155 -> 2000 строк) на 8 изолированных доменных подсистем в and_os/bin/cli_subsystems/",
+        "Внедрение UNIX Git-style Targeted Fast-Path диспетчеризации (ускорение этапа парсинга с 58 мс до 4.26 мс)",
+        "Удаление 253 строк мертвого кода и неиспользуемых обработчиков cmd_*",
+        "Реализация двусторонней SHA-256 хеш-целостности между CSV-срезами и SQLite projection_cache.db",
+        "Автоматический атомарный Coupled Garbage Collection (Rule #62): синхронное удаление проекции при удалении или устаревании сырого среза",
+        "Изоляция сбоев: ошибка синтаксиса или зависимостей в одном домене больше не блокирует остальные субкоманды ядра",
+        "Внедрение базового набора регрессионного замораживания test_sys_cli_contract_freeze.py и test_ftrack_contours_contract.py",
+        "100% обратная совместимость со всеми 66 скиллами и 723 зависимыми файлами хранилища"
+      ],
+      "git_commit_sha": "sovereign_vault",
+      "affected_components": "and_os/bin/sys_cli.py,and_os/bin/cli_subsystems,and_os/lib/core/ftrack_pipeline.py,and_os/tests"
+    },
+    {
       "version": "9.5.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-06",
       "release_type": "MINOR",
       "summary": "Hermetic Production Toolchain, Python 3.12.11 LTS via uv, Rule #68 Environment Parity Invariant, and Phase 0 Pre-Flight Gate",
       "changes": [
         "Пересобран и очищен Telegram-бот gorashie_nogi_bot с переходом на Python 3.12.11 и aiogram 3.31.0"
       ],
       "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "affected_components": "and_os/lib/core/toolchain.py,quick_verify.py,rules.md,toolchain.lock.json,pyproject.toml,requirements.lock,gorashie_nogi_bot"
     },
     {
       "version": "9.4.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-06",
       "release_type": "MINOR",
       "summary": "Monolithic Obsidian Vault Engine (and_os/lib/vault/), Zero-Breakage Shims, MCP vault_move atomic link cascade, vfs_sentinel WebDAV hygiene hook, and Phase 3 verification guard.",
       "changes": [
@@ -32,7 +64,7 @@
     },
     {
       "version": "9.3.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-05",
       "release_type": "MINOR",
       "summary": "Unified 65 Skills Mesh, Remotely Save WebDAV exclusion, and trailing dot/space duplicate safe isolation.",
       "changes": [
@@ -41,12 +73,12 @@
         "Isolated 43 trailing dot broken duplicate files to .trash/ preserving note integrity under Rule #53 Safe-Trash Policy",
         "Renamed 5 trailing whitespace notes and atomically refactored incoming wikilinks via sys_cli vault patch"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "9.2.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-04",
       "release_type": "MINOR",
       "summary": "Sovereign Systems Architect Engine and Domain Anchor Beacons.",
       "changes": [
@@ -54,12 +86,12 @@
         "Established 5 Domain Anchor Beacons (Core, Knowledge Vault, Pulsar, Xcode, ComfyUI) in system prompt",
         "Formalized Rule #61 Zero-Blind-Assumptions verification protocol"
       ],
-      "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "git_commit_sha": "5563b66",
+      "affected_components": "architect, beacons"
     },
     {
       "version": "9.1.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-04",
       "release_type": "MINOR",
       "summary": "Automated Telegram Channels Ingestion Engine and Executive Career Radar.",
       "changes": [
@@ -67,13 +99,13 @@
         "Implemented Executive Market Radar & Opportunity Matcher (career_radar.py)",
         "Bound career ingestion pipelines to official protocol Rule #59"
       ],
-      "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "git_commit_sha": "5563b66",
+      "affected_components": "career_radar, telegram"
     },
     {
       "version": "9.0.0",
-      "release_date": "2026-11-07",
-      "release_type": "MINOR",
+      "release_date": "2026-11-03",
+      "release_type": "MAJOR",
       "summary": "Universal Session Gate, Hardware PreToolUse Hook, and Subagent Handoff Protocol.",
       "changes": [
         "Deployed Universal Session Gate (session_gate.py) acting as SessionStart lifecycle hook for LLM agents",
@@ -81,12 +113,12 @@
         "Standardized Subagent Handoff Protocol (handoff) for deterministic task transfer between agents",
         "Integrated APFS CoW checkpoints engine (sys_cli checkpoint)"
       ],
-      "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "git_commit_sha": "5563b66",
+      "affected_components": "session_gate, hooks, handoff"
     },
     {
       "version": "8.5.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-11-01",
       "release_type": "MINOR",
       "summary": "ECC Deep Integration & Autonomous Infrastructure Expansion: Continuous Learning Engine, Context Budget Guard, Build Error Resolver, Ring 5 DoD Gate, and Apple/CG Engineering Tooling.",
       "changes": [
@@ -99,12 +131,12 @@
         "Added Project Skeleton Generator (and_os/bin/project_skeleton.py + sys_cli skeleton): standardized scaffolding for iOS SpriteKit (EscPlanet) and CG Workspace pipelines",
         "Added Statusline Beacon (and_os/bin/statusline.py + sys_cli statusline): single-line terminal runtime status beacon monitoring vault health, git branch, and 9/9 Island mesh connectivity"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "8.4.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-10-31",
       "release_type": "MINOR",
       "summary": "Context Budget Guard, Build Error Resolver, Codemap AST Engine, and Video QC Harness.",
       "changes": [
@@ -113,13 +145,13 @@
         "Added Codemap AST Engine (codemap_engine.py) for 0-token Swift and Python code hierarchy visualization",
         "Added Video Harness Tool (video_harness.py) for mod-2 and 24 FPS playblast QC"
       ],
-      "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "git_commit_sha": "5563b66",
+      "affected_components": "kernel, codemap, video"
     },
     {
       "version": "8.3.1",
-      "release_date": "2026-11-07",
-      "release_type": "MINOR",
+      "release_date": "2026-10-29",
+      "release_type": "PATCH",
       "summary": "Master Security & Vault Access Invariant Remediation: unified safe I/O gateway, prompt guard integration, clean architecture across opt/apps, and GDrive purge.",
       "changes": [
         "Implemented and_os/lib/core/vault_safe_io.py with atomic temp-swap, YAML frontmatter integrity, and payload ceiling control",
@@ -130,12 +162,12 @@
         "Sanitized non-table broken escaped wikilinks (\\|) bringing Ring 1 Knowledge Graph to 100% PASS",
         "Completely decommissioned and unlinked external obsidian-drive-sync, setting canonical active skill registry to 59"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "8.3.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-10-28",
       "release_type": "MINOR",
       "summary": "Full ecosystem Clean Architecture overhaul (unclebob/ub-mode): zero silent exceptions, core supervisor IPC decomposition, and automated evolution gate.",
       "changes": [
@@ -146,12 +178,12 @@
         "Added Evolutionary Release Gate to Ring 3 (manifest_probe.py): enforces automatic ledger increment whenever core architecture modifications occur",
         "Maintained 100% APFS Zero-Cost CoW snapshot safety barriers in and_os/var/vault_shadow/"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "8.2.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-10-27",
       "release_type": "MINOR",
       "summary": "Integration of mcp-vault-guard and hybrid animatic director with Target Framework Gate.",
       "changes": [
@@ -163,12 +195,12 @@
         "Added Hermetic Workspace Boundary check in fs_syntax_probe.py (Ring 0) blocking rogue scripts in ~/Downloads",
         "Established RELEASE_LEDGER.json as authoritative evolution state record"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "8.1.0",
-      "release_date": "2026-11-07",
+      "release_date": "2026-10-16",
       "release_type": "MINOR",
       "summary": "Full release with Rules #0-#64, 50 skills, and multi-project decoupled architecture.",
       "changes": [
@@ -176,13 +208,13 @@
         "Added Rules #55-#64",
         "Unified 8 Islands and terminal web console"
       ],
-      "git_commit_sha": "sovereign_vault",
+      "git_commit_sha": "5563b66",
       "affected_components": "core"
     },
     {
       "version": "7.6.0",
-      "release_date": "2026-11-07",
-      "release_type": "MINOR",
+      "release_date": "2026-10-10",
+      "release_type": "MAJOR",
       "summary": "Foundational AnD os Architecture: Initial 9-Island topology, native macOS FSEvents VFS Sentinel, SQLite metadata indexing, and Pulsar ecosystem baseline.",
       "changes": [
         "Architected initial 9 logical islands across user knowledge and system core",
@@ -190,8 +222,8 @@
         "Deployed local SQLite VFS metadata index (and_os/var/vfs_state.db)",
         "Established Pulsar workspace (:8080-:8099) and PWA AND_Terminal console"
       ],
-      "git_commit_sha": "sovereign_vault",
-      "affected_components": "core"
+      "git_commit_sha": "5563b66",
+      "affected_components": "vfs, daemon, pulsar"
     }
   ]
 }

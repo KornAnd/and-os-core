@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-context_mode_manager.py - Context Mode Switcher for AnD os v8.5.
+context_mode_manager.py - Context Mode Switcher for AnD os v1.0.0.
 Manages active behavioral presets (dev, research, review) for LLM agents.
 """
 
@@ -29,7 +29,8 @@ class ContextModeManager:
                 with open(self.state_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     return data.get("active_mode", "dev")
-            except Exception:
+            except (OSError, ValueError):
+                # Missing or corrupt state file is an expected pre-init condition.
                 pass
         return "dev"
 
@@ -69,27 +70,27 @@ def main():
 
     if args.action == "get":
         cur = mgr.get_current_mode()
-        print(f"🎯 Текущий активный режим контекста: {cur.upper()}")
+        print(f"🎯 Current active context mode: {cur.upper()}")
     elif args.action == "set":
         if not args.mode:
-            print("❌ Укажите режим: dev, research или review", file=sys.stderr)
+            print("❌ Specify a mode: dev, research or review", file=sys.stderr)
             sys.exit(1)
         try:
             res = mgr.set_mode(args.mode)
-            print(f"✅ Режим контекста переключен на: {res['active_mode'].upper()} ({res['updated_at']})")
+            print(f"✅ Context mode switched to: {res['active_mode'].upper()} ({res['updated_at']})")
         except ValueError as err:
             print(f"❌ {err}", file=sys.stderr)
             sys.exit(1)
     elif args.action == "show":
         cur = mgr.get_current_mode()
         instr = mgr.get_mode_instruction(args.mode)
-        print(f"--- [АКТИВНЫЙ ПРЕСЕТ: {cur.upper()}] ---\n")
+        print(f"--- [ACTIVE PRESET: {cur.upper()}] ---\n")
         print(instr)
     elif args.action == "list":
         cur = mgr.get_current_mode()
-        print("📋 ДОСТУПНЫЕ РЕЖИМЫ КОНТЕКСТА:")
+        print("📋 AVAILABLE CONTEXT MODES:")
         for m in VALID_MODES:
-            mark = "🟢 (АКТИВЕН)" if m == cur else "⚪"
+            mark = "🟢 (ACTIVE)" if m == cur else "⚪"
             print(f"  • {m:<10} {mark}")
 
 

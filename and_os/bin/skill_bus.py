@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v8.1)
+skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.0.0)
 Universal gateway for all 58 system skills:
   - inspect: zero-token architecture summary and bindings introspection
   - run: uniform execution of skill engine scripts with telemetry logging
@@ -227,7 +227,7 @@ def pipe_skills(producer_name: str, consumer_name: str, initial_args: List[str])
     return c_res.returncode
 
 def main():
-    parser = argparse.ArgumentParser(description="Microkernel Skill Bus (AnD os v8.1)")
+    parser = argparse.ArgumentParser(description="Microkernel Skill Bus (AnD os v1.0.0)")
     subparsers = parser.add_subparsers(dest="action", help="Action to perform")
 
     # list

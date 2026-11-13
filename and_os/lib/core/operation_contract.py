@@ -1,6 +1,6 @@
 """
 operation_contract.py — Immutable Operation Contracts & Schema Validation
-AnD os v8.1 — Core Architecture Layer (Unix-Grade Microkernel Contracts)
+AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Contracts)
 
 Defines:
   - Capability (allowlisted permissions: fs.read, fs.write, state.read, state.write, ipc.emit, proc.exec)

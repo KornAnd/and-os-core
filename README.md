@@ -88,6 +88,28 @@ Instead of dumping large files into the prompt, the agent generates deterministi
 
 ---
 
+## 🛠️ Installation
+
+AnD os Core is a **zero-dependency** Python package: no `pip install`, no external services, no network access.
+
+| Requirement | Minimum | Notes |
+| :--- | :--- | :--- |
+| Python | 3.10+ (3.12 LTS recommended) | Standard library only — `dependencies = []` in `pyproject.toml` |
+| Git | 2.x | Clone & version control |
+| OS | macOS / Linux | Developed and verified on macOS (Apple Silicon) |
+
+```bash
+git clone https://github.com/KornAnd/and-os-core.git
+cd and-os-core
+
+# Sanity check: the kernel verifies itself in a few seconds
+python3 and_os/bin/quick_verify.py
+```
+
+That's it — the microkernel is live. No build step, no daemon, no configuration file to edit.
+
+---
+
 ## 🚀 Quickstart (Under 2 Minutes)
 
 ### 1. Clone & Inspect
@@ -103,19 +125,19 @@ python3 and_os/bin/quick_verify.py
 *Output:*
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  🔍 Quick Verification Loop (Pre-Flight 9-Phase)  1.22s    │
+│  🔍 Quick Verification Loop (Pre-Flight 9-Phase)  2.56s   │
 ├─────────────────────────────────────────────────────────────┤
 │  Overall Status   : 🟢 ALL PHASES PASSED                     │
-│  Files Scanned    : 106                                     │
+│  Files Scanned    : 158                                     │
 ├─────────────────────────────────────────────────────────────┤
 │  Phase 0: Toolchain Parity : 🟢 PASS (3.12.11 LTS)             │
 │  Phase 1: Syntax & Build   : 🟢 PASS                           │
-│  Phase 2: Types & Lint     : 🟢 PASS                           │
+│  Phase 2: Types & Lint     : 🟡 182 warnings                  │
 │  Phase 3: Clean Code Guard : 🟢 PASS                           │
 │  Phase 4: Targeted Tests   : 🟢 7 run                          │
 │  Phase 5: Security Scan    : 🟢 PASS                           │
-│  Phase 6: Diff Delta       : 🟢 Clean                          │
-│  Phase 7: Memory Loop      : 🟢 PASS                           │
+│  Phase 6: Diff Delta       : 158 files (+0/-0)                │
+│  Phase 7: Memory Loop      : 🟢 PASS (0 items)                │
 │  Phase 8: Rules Freshness  : 🟢 PASS                           │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -127,7 +149,7 @@ python3 and_os/bin/sys_cli.py skills --probe
 *Output:*
 ```text
 =================================================================
-🚀 SOS Parallel Multi-Core Skill Auditor (AnD os v8.1)
+🚀 SOS Parallel Multi-Core Skill Auditor (AnD os v1.0.0)
 ⚡ Audited 9 skills in 159 ms across all CPU cores
 =================================================================
 ✅ ALL 9 ACTIVE SKILLS VALID, HERMETIC AND HEALTHY!
@@ -135,10 +157,57 @@ python3 and_os/bin/sys_cli.py skills --probe
 
 ---
 
+## 🔌 Integration: Connecting Your Agent
+
+AnD os plugs into any LLM coding agent (Claude Code, Gemini CLI, Opencode, Cursor) through **two files and one CLI** — no plugins, no MCP server to host.
+
+### 1. Entry-point document (one-time setup)
+Create an `AGENTS.md` at the root of your repository — the contract every agent reads first:
+
+```markdown
+# AGENTS.md — entry point
+1. Read `system.json` (machine-readable manifest: version, rules, capabilities).
+2. Read `and_os/etc/rules_fast_index.json` (<450 tokens: all canonical invariants).
+3. Before code changes: run `python3 and_os/bin/quick_verify.py` and fix red phases.
+4. After a fix: log the outcome via `and_os/bin/telemetry_logger.py` (closed-loop memory).
+```
+
+### 2. The verification & audit CLI
+| Command | What it does |
+| :--- | :--- |
+| `python3 and_os/bin/quick_verify.py` | 9-Phase Pre-Flight Gate (syntax, lint, clean code, targeted tests, secret scan, freshness) |
+| `python3 and_os/bin/sys_cli.py audit` | Full Health Grid: 8-ring audit (filesystem, knowledge graph, AST contracts, clean code, manifests, skills, runtime, DoD) |
+| `python3 and_os/bin/sys_cli.py skills --probe` | SOS multi-core canary probe of all registered skills (<1 s) |
+| `python3 and_os/bin/validate_system.py` | Standalone Health Grid runner (same 8 rings, JSON payload output) |
+| `python3 and_os/bin/run_tests.py` | Deterministic unit-test runner (zero bytecode artifacts) |
+
+### 3. Skills (optional)
+Skills are declarative modules under `and_os/lib/skills/` following the **Skill Module ABI v2.1**. Copy the reference skills into your project, or author new ones from `_TEMPLATE-skill.md`. Every skill ships a hermetic `probe_cmd`, so the SOS auditor re-verifies each one on every pre-flight.
+
+### Standalone mode
+The package is self-contained: when `quick_verify.py` detects a bare repository (no knowledge vault mounted), it automatically skips the vault-specific Phase 7 while keeping Phases 0–6 and 8 at full strictness.
+
+---
+
+## 🎯 When to Use AnD os
+
+| Scenario | How the kernel helps |
+| :--- | :--- |
+| Agent-driven development in a shared repo | Deterministic pre-flight gate stops "hallucinated success": nothing is declared done until the phases pass |
+| Long autonomous agent sessions | Rules fast index + Think-in-Code filters keep context stable across 100+ turns (up to 98.8% token reduction) |
+| Skill & tool sprawl | Declarative skill ABI + SOS multi-core audit: every tool is registered, probed, and versioned |
+| Legacy codebases with silent bugs | Clean Code Guard AST gate: zero bare `except`, zero swallowed errors |
+| Air-gapped / sovereign environments | Zero external network dependencies; mathematically verified leak-isolation on export |
+
+---
+
 ## 📦 What's Inside
 
-- `and_os/bin/`: Unified CLI facades (`sys_cli.py`, `quick_verify.py`, `sos_auditor.py`, `rules_compiler.py`).
+- `and_os/bin/`: Unified CLI facades (`sys_cli.py` + the `cli_subsystems/` module set, `quick_verify.py`, `sos_auditor.py`, `rules_compiler.py`).
 - `and_os/lib/core/`: Event bus, atomic operations contracts, and release ledger.
+- `and_os/lib/health_grid/`: The 8-ring audit probes (filesystem & syntax, knowledge graph, AST contracts & governance, clean code, manifests & security, skills, runtime, DoD).
+- `and_os/lib/vault/`: Document graph, naming hygiene, and context engine.
+- `and_os/lib/pulsar/`, `and_os/lib/xcode/`: Workspace inspectors and passport synchronizers.
 - `and_os/lib/skills/`: Reference implementation of canonical system skills:
   - `clean-code-guardian`: Uncle Bob Clean Code enforcement.
   - `dev-flow`: Systematic development pipeline.

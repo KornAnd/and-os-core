@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 """
-doc_analyze.py — универсальный анализатор документов, таблиц, PDF и изображений.
-Реализует принцип Think in Code (Правило №16) и Context Budget (Правило №9).
+doc_analyze.py — The universal analyzer of the documents, the tables, the PDF and the images.
+Implements the Think in Code principle (Rule #16) and the Context Budget (Rule #9).
 
-Поддерживаемые форматы:
-  - PDF (.pdf): структура, страницы, извлечение таблиц в Markdown (через pdfplumber / pdftotext)
-  - Excel (.xlsx, .xls): листы, формулы, структура, конвертация в Markdown (через openpyxl)
-  - Word (.docx): структура разделов, параграфы, таблицы (через встроенный zip/xml)
-  - Изображения (.png, .jpg, .webp): метаданные, размеры, OCR-распознавание текста (tesseract rus+eng)
+The supported formats:
+  - PDF (.pdf): the structure, the pages, the extraction of the tables into the Markdown (via the pdfplumber / pdftotext)
+  - Excel (.xlsx, .xls): the sheets, the formulas, the structure, the conversion into the Markdown (via the openpyxl)
+  - Word (.docx): the structure of the sections, the paragraphs, the tables (via the embedded zip/xml)
+  - The images (.png, .jpg, .webp): the metadata, the sizes, the OCR recognition of the text (tesseract rus+eng)
 
-Использование:
-  python3 doc_analyze.py <файл>                          # Компактный паспорт файла (< 250 токенов)
-  python3 doc_analyze.py <файл.pdf> --pages 1-3          # Извлечение текста конкретных страниц
-  python3 doc_analyze.py <файл.pdf> --tables             # Извлечение всех таблиц в Markdown
-  python3 doc_analyze.py <файл.pdf> --search "термин"    # Поиск страниц с совпадениями
-  python3 doc_analyze.py <файл.xlsx> --sheet "Смета"     # Превью конкретного листа в Markdown
-  python3 doc_analyze.py <файл.xlsx> --formulas          # Поиск формул и связей
-  python3 doc_analyze.py <картинка> --ocr                # OCR-распознавание текста
-  python3 doc_analyze.py <файл.docx> --text              # Извлечение структурированного текста
+Usage:
+  python3 doc_analyze.py <file>                          # The compact passport of the file (< 250 tokens)
+  python3 doc_analyze.py <file.pdf> --pages 1-3          # The extraction of the text of the specific pages
+  python3 doc_analyze.py <file.pdf> --tables             # The extraction of all the tables into the Markdown
+  python3 doc_analyze.py <file.pdf> --search "term"      # The search of the pages with the matches
+  python3 doc_analyze.py <file.xlsx> --sheet "Budget"    # The preview of the specific sheet in the Markdown
+  python3 doc_analyze.py <file.xlsx> --formulas          # The search of the formulas and the links
+  python3 doc_analyze.py <picture> --ocr                 # The OCR recognition of the text
+  python3 doc_analyze.py <file.docx> --text              # The extraction of the structured text
 """
 
 import os
@@ -69,21 +69,21 @@ def analyze_pdf(path, args):
             
             # 1. Info / Passport
             if not args.pages and not args.tables and not args.search:
-                print(f"📄 [PDF Паспорт] {os.path.basename(path)}")
-                print(f"• Размер: {format_size(os.path.getsize(path))}")
-                print(f"• Страниц: {total_pages}")
-                if meta.get("Title"): print(f"• Заголовок: {meta.get('Title')}")
-                if meta.get("Author"): print(f"• Автор: {meta.get('Author')}")
-                if meta.get("CreationDate"): print(f"• Создан: {meta.get('CreationDate')}")
+                print(f"📄 [PDF Passport] {os.path.basename(path)}")
+                print(f"• Size: {format_size(os.path.getsize(path))}")
+                print(f"• Pages: {total_pages}")
+                if meta.get("Title"): print(f"• Title: {meta.get('Title')}")
+                if meta.get("Author"): print(f"• Author: {meta.get('Author')}")
+                if meta.get("CreationDate"): print(f"• Created: {meta.get('CreationDate')}")
                 
                 # Sample first page header / outline
                 p1_text = pdf.pages[0].extract_text() or ""
                 first_lines = [line.strip() for line in p1_text.splitlines() if line.strip()][:5]
                 if first_lines:
-                    print("• Начало документа:")
+                    print("• The beginning of the document:")
                     for l in first_lines:
                         print(f"    {l[:100]}")
-                print("\n💡 Для извлечения: --pages 1-3, --tables или --search 'текст'")
+                print("\n💡 For the extraction: --pages 1-3, --tables or --search 'text'")
                 return
 
             # 2. Search
@@ -94,22 +94,22 @@ def analyze_pdf(path, args):
                     txt = page.extract_text() or ""
                     if query in txt.lower():
                         matches.append(idx)
-                print(f"🔍 Поиск '{args.search}' в {os.path.basename(path)}: найдено на страницах: {matches or 'не найдено'}")
+                print(f"🔍 The search of '{args.search}' in {os.path.basename(path)}: found on the pages: {matches or 'not found'}")
                 return
 
             # 3. Extract text from pages
             if args.pages:
                 pages_to_extract = parse_page_range(args.pages, total_pages)
-                print(f"=== Выжимка текста (стр. {', '.join(map(str, pages_to_extract))}) ===")
+                print(f"=== The text extract (p. {', '.join(map(str, pages_to_extract))}) ===")
                 for p_num in pages_to_extract:
                     page = pdf.pages[p_num - 1]
-                    txt = page.extract_text() or "(нет текста / скан)"
-                    print(f"\n--- [Страница {p_num} / {total_pages}] ---")
+                    txt = page.extract_text() or "(no text / scan)"
+                    print(f"\n--- [Page {p_num} / {total_pages}] ---")
                     print(txt.strip())
 
             # 4. Extract tables to Markdown
             if args.tables:
-                print(f"=== Таблицы из {os.path.basename(path)} ===")
+                print(f"=== The tables from {os.path.basename(path)} ===")
                 table_found = False
                 target_pages = parse_page_range(args.pages, total_pages) if args.pages else range(1, total_pages + 1)
                 for p_num in target_pages:
@@ -117,7 +117,7 @@ def analyze_pdf(path, args):
                     tables = page.extract_tables()
                     for t_idx, tbl in enumerate(tables, 1):
                         table_found = True
-                        print(f"\n📊 [Таблица {t_idx} на стр. {p_num}]:")
+                        print(f"\n📊 [Table {t_idx} on the p. {p_num}]:")
                         # Format as markdown
                         cleaned_rows = []
                         for row in tbl:
@@ -129,9 +129,9 @@ def analyze_pdf(path, args):
                             for r in cleaned_rows[1:]:
                                 print("| " + " | ".join(r) + " |")
                 if not table_found:
-                    print("Таблицы не обнаружены.")
+                    print("The tables were not detected.")
     except Exception as e:
-        print(f"❌ Ошибка анализа PDF: {e}")
+        print(f"❌ The PDF analysis error: {e}")
 
 # ── EXCEL ANALYZER ──────────────────────────────────────────────────────
 def analyze_xlsx(path, args):
@@ -141,18 +141,18 @@ def analyze_xlsx(path, args):
         
         # 1. Info / Passport
         if not args.sheet and not args.formulas and not args.tables:
-            print(f"📊 [Excel Паспорт] {os.path.basename(path)}")
-            print(f"• Размер: {format_size(os.path.getsize(path))}")
-            print(f"• Листы ({len(wb.sheetnames)}): {', '.join(wb.sheetnames)}")
+            print(f"📊 [Excel Passport] {os.path.basename(path)}")
+            print(f"• Size: {format_size(os.path.getsize(path))}")
+            print(f"• Sheets ({len(wb.sheetnames)}): {', '.join(wb.sheetnames)}")
             for name in wb.sheetnames[:3]:
                 ws = wb[name]
-                print(f"  - Лист '{name}': {ws.max_row} строк × {ws.max_column} колонок")
-            print("\n💡 Для извлечения: --sheet '<имя>' [--tables] или --formulas")
+                print(f"  - Sheet '{name}': {ws.max_row} rows x {ws.max_column} columns")
+            print("\n💡 For the extraction: --sheet '<name>' [--tables] or --formulas")
             return
 
         # 2. Formulas inspection
         if args.formulas:
-            print(f"=== Формулы в {os.path.basename(path)} ===")
+            print(f"=== The formulas in {os.path.basename(path)} ===")
             target_sheets = [args.sheet] if args.sheet else wb.sheetnames
             for sname in target_sheets:
                 if sname not in wb.sheetnames: continue
@@ -162,7 +162,7 @@ def analyze_xlsx(path, args):
                     for cell in row:
                         if isinstance(cell.value, str) and cell.value.startswith('='):
                             formulas.append(f"{cell.coordinate}: {cell.value}")
-                print(f"\nЛист '{sname}': найдено формул: {len(formulas)}")
+                print(f"\nSheet '{sname}': the formulas were found: {len(formulas)}")
                 for f in formulas[:15]:
                     print(f"  • {f}")
             return
@@ -171,12 +171,12 @@ def analyze_xlsx(path, args):
         if args.sheet or args.tables:
             sheet_name = args.sheet if args.sheet else wb.sheetnames[0]
             if sheet_name not in wb.sheetnames:
-                print(f"❌ Лист '{sheet_name}' не найден в файле.")
+                print(f"❌ The sheet '{sheet_name}' was not found in the file.")
                 return
             ws = wb[sheet_name]
             max_r = min(ws.max_row or 1, 50)
             max_c = min(ws.max_column or 1, 15)
-            print(f"=== Лист '{sheet_name}' ({max_r} строк × {max_c} колонок в Markdown) ===")
+            print(f"=== The sheet '{sheet_name}' ({max_r} rows x {max_c} columns in the Markdown) ===")
             rows = []
             for row in ws.iter_rows(max_row=max_r, max_col=max_c, values_only=True):
                 r_vals = [str(c if c is not None else '').replace('\n', ' ').strip() for c in row]
@@ -189,9 +189,9 @@ def analyze_xlsx(path, args):
                 for r in rows[1:]:
                     print("| " + " | ".join(r) + " |")
             if (ws.max_row or 0) > max_r or (ws.max_column or 0) > max_c:
-                print(f"\n⚠️ Превью обрезано до {max_r} строк × {max_c} колонок (всего {ws.max_row}×{ws.max_column}).")
+                print(f"\n⚠️ The preview was trimmed to {max_r} rows x {max_c} columns (total {ws.max_row}x{ws.max_column}).")
     except Exception as e:
-        print(f"❌ Ошибка анализа Excel: {e}")
+        print(f"❌ The Excel analysis error: {e}")
 
 # ── IMAGE / OCR ANALYZER ────────────────────────────────────────────────
 def analyze_image(path, args):
@@ -202,12 +202,12 @@ def analyze_image(path, args):
             fmt = img.format
             mode = img.mode
         
-        print(f"🖼️ [Изображение] {os.path.basename(path)}")
-        print(f"• Размер: {w} × {h} px | Формат: {fmt} ({mode}) | Вес: {format_size(os.path.getsize(path))}")
+        print(f"🖼️ [Image] {os.path.basename(path)}")
+        print(f"• Size: {w} x {h} px | Format: {fmt} ({mode}) | Weight: {format_size(os.path.getsize(path))}")
         
         # Run OCR if requested or by default if image
         if args.ocr or not args.info_only:
-            print("\n📝 [OCR Текст (tesseract rus+eng)]:")
+            print("\n📝 [OCR Text (tesseract rus+eng)]:")
             res = subprocess.run(
                 ["tesseract", path, "-", "-l", "rus+eng"],
                 capture_output=True, text=True, timeout=30
@@ -215,20 +215,20 @@ def analyze_image(path, args):
             out = res.stdout.strip()
             if out:
                 lines = out.splitlines()
-                print(f"(Распознано {len(lines)} строк):")
+                print(f"(The lines were recognized: {len(lines)}):")
                 for l in lines:
                     if l.strip():
                         print(f"  {l}")
             else:
-                print("(Текст на изображении не обнаружен)")
+                print("(The text on the image was not detected)")
     except Exception as e:
-        print(f"❌ Ошибка анализа изображения: {e}")
+        print(f"❌ The image analysis error: {e}")
 
 # ── WORD (.docx) ANALYZER ───────────────────────────────────────────────
 def analyze_docx(path, args):
     try:
         if not zipfile.is_zipfile(path):
-            print(f"❌ Файл {path} не является корректным docx.")
+            print(f"❌ The file {path} is not a correct docx.")
             return
         with zipfile.ZipFile(path) as z:
             xml_content = z.read("word/document.xml")
@@ -242,34 +242,34 @@ def analyze_docx(path, args):
             if texts:
                 paragraphs.append("".join(texts).strip())
         
-        print(f"📑 [Word Документ] {os.path.basename(path)}")
-        print(f"• Размер: {format_size(os.path.getsize(path))}")
-        print(f"• Параграфов: {len(paragraphs)}")
+        print(f"📑 [Word Document] {os.path.basename(path)}")
+        print(f"• Size: {format_size(os.path.getsize(path))}")
+        print(f"• Paragraphs: {len(paragraphs)}")
         
         if args.text or len(paragraphs) <= 20:
-            print("\n=== Текст документа ===")
+            print("\n=== The text of the document ===")
             for p in paragraphs:
                 print(p)
         else:
-            print("\n=== Начало документа (первые 10 параграфов) ===")
+            print("\n=== The beginning of the document (the first 10 paragraphs) ===")
             for p in paragraphs[:10]:
                 print(f"• {p}")
-            print("\n💡 Для полной выгрузки укажите флаг --text")
+            print("\n💡 For the full export specify the --text flag")
     except Exception as e:
-        print(f"❌ Ошибка анализа docx: {e}")
+        print(f"❌ The docx analysis error: {e}")
 
 # ── MAIN DISPATCHER ─────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="Universal Document & Image Analyzer (Think in Code)")
-    parser.add_argument("path", help="Путь к файлу")
-    parser.add_argument("--pages", help="Диапазон страниц для PDF (напр. 1-3 или 1,5)")
-    parser.add_argument("--tables", action="store_true", help="Извлечь таблицы в Markdown")
-    parser.add_argument("--sheet", help="Имя листа для Excel")
-    parser.add_argument("--formulas", action="store_true", help="Показать формулы Excel")
-    parser.add_argument("--ocr", action="store_true", help="Запустить OCR для картинки")
-    parser.add_argument("--text", action="store_true", help="Полное извлечение текста (docx/pdf)")
-    parser.add_argument("--search", help="Поиск текста в PDF")
-    parser.add_argument("--info-only", action="store_true", help="Только метаданные")
+    parser.add_argument("path", help="The path to the file")
+    parser.add_argument("--pages", help="The range of the pages for the PDF (e.g. 1-3 or 1,5)")
+    parser.add_argument("--tables", action="store_true", help="Extract the tables into the Markdown")
+    parser.add_argument("--sheet", help="The name of the sheet for the Excel")
+    parser.add_argument("--formulas", action="store_true", help="Show the formulas of the Excel")
+    parser.add_argument("--ocr", action="store_true", help="Launch the OCR for the picture")
+    parser.add_argument("--text", action="store_true", help="The full extraction of the text (docx/pdf)")
+    parser.add_argument("--search", help="The text search in the PDF")
+    parser.add_argument("--info-only", action="store_true", help="The metadata only")
     
     if len(sys.argv) < 2:
         parser.print_help()
@@ -279,7 +279,7 @@ def main():
     path = os.path.abspath(args.path)
     
     if not os.path.exists(path):
-        print(f"❌ Файл не найден: {path}")
+        print(f"❌ The file was not found: {path}")
         sys.exit(1)
         
     ext = os.path.splitext(path)[1].lower()
@@ -294,13 +294,13 @@ def main():
         analyze_docx(path, args)
     else:
         # Fallback text preview
-        print(f"📄 [Файл {ext}] {os.path.basename(path)} ({format_size(os.path.getsize(path))})")
+        print(f"📄 [File {ext}] {os.path.basename(path)} ({format_size(os.path.getsize(path))})")
         try:
             with open(path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = [f.readline() for _ in range(20)]
             print("".join(lines))
         except Exception as e:
-            print(f"Двоичный файл: {e}")
+            print(f"The binary file: {e}")
 
 if __name__ == "__main__":
     main()

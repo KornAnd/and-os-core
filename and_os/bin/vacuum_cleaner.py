@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-vacuum_cleaner.py — Системный Санитар и Сборщик Мусора AnD os (v1.0.0).
-Очищает хранилище Obsidian Vault и экосистему Pulsar от мусорных артефактов:
+vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.0.0).
+Cleans the Obsidian Vault and the Pulsar ecosystem from junk artifacts:
   - .DS_Store, Icon\r
-  - Промежуточные бэкапы *.bak, *.tmp, *~
-  - Байткод и кэши Python: __pycache__, *.pyc, *.pyo, .pytest_cache
-  - Временные артефакты сборки
+  - Intermediate backups *.bak, *.tmp, *~
+  - Python bytecode and caches: __pycache__, *.pyc, *.pyo, .pytest_cache
+  - Temporary build artifacts
 
-Использование:
+Usage:
   python3 vacuum_cleaner.py --dry-run
   python3 vacuum_cleaner.py --target [all|vault|pulsar] [--dry-run]
 """
@@ -18,7 +18,7 @@ import shutil
 import argparse
 
 VAULT_ROOT = os.getenv("AND_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-PULSAR_ROOT = os.getenv("PULSAR_ROOT", os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar"))
+PULSAR_ROOT = os.getenv("PULSAR_ROOT", os.path.expanduser("./pulsar"))
 PULSAR_APPS = os.getenv("PULSAR_APPS", os.path.expanduser("~/Pulsar_Apps"))
 
 TRASH_PATTERNS = {

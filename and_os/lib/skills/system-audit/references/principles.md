@@ -29,9 +29,9 @@ tags:
 **Use when:** проектирование или аудит системы знаний для LLM-агента; расширение skill-набора; диагностика «почему система неэффективна»; решение, добавлять ли новый контур.
 **Do not use when:** решение конкретной domain-задачи; аудит студии/компании (там `cg-core-consulting`).
 
-[[|**Related knowledge / sources:** system-audit 28.08.2026; [[and_os/lib/skills/system-audit/references/metrics|metrics.md]][[|; [[and_os/lib/skills/telemetry|telemetry.md]]; `.opencode/rules.md` Правила №9–15; `and_os/lib/skills/README.md`.
+**Related knowledge / sources:** system-audit 28.08.2026; [[and_os/lib/skills/system-audit/references/metrics|metrics.md]]; [[and_os/lib/skills/telemetry|telemetry.md]]; `.opencode/rules.md` Правила №9–15; `and_os/lib/skills/README.md`.
 
 **Status:** active
 
 ---
-[[|[[CONTEXT|← Наверх]]
+[[CONTEXT|← Наверх]]

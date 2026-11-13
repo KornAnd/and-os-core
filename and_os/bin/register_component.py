@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Component Lifecycle & Registration Engine (register_component.py)
-AnD os v8.1 - Modular Architecture Infrastructure
+AnD os v1.0.0 - Modular Architecture Infrastructure
 
-Автоматизированный инструмент для безопасного добавления, обновления и регистрации:
-1. Новых Скиллов (and_os/lib/skills/<name>/SKILL.md -> symlink .opencode/skills/ -> CONTEXT.md -> ROUTING.md)
-2. Новых Скриптов/Модулей в Хабы (and_os/opt/apps/<hub>/modules/ -> modules_registry.json -> <hub>_cli.py)
+The automated tool for the safe addition, the update and the registration:
+1. The New Skills (and_os/lib/skills/<name>/SKILL.md -> the symlink .opencode/skills/ -> CONTEXT.md -> ROUTING.md)
+2. The New Scripts/Modules into the Hubs (and_os/opt/apps/<hub>/modules/ -> modules_registry.json -> <hub>_cli.py)
 
-Обеспечивает 100% консистентность метаданных, валидацию синтаксиса и прохождение всех гейтов.
+Provides the 100% consistency of the metadata, the syntax validation and the passing of all the gates.
 """
 
 import os
@@ -31,12 +31,12 @@ OPENCODE_SKILLS_DIR = os.path.join(VAULT_ROOT, ".opencode", "skills")
 APPS_DIR = os.path.join(VAULT_ROOT, "and_os", "opt", "apps")
 
 def register_skill(name: str, desc: str, domain: str = "General", tags: list = None) -> dict:
-    """Создает шаблон нового скилла, регистрирует symlink и обновляет реестры."""
+    """Creates the template of the new skill, registers the symlink and updates the registries."""
     skill_dir = os.path.join(SKILLS_DIR, name)
     skill_file = os.path.join(skill_dir, "SKILL.md")
     
     if os.path.exists(skill_dir):
-        return {"status": "error", "message": f"Скилл {name} уже существует в {skill_dir}"}
+        return {"status": "error", "message": f"The skill {name} already exists in the {skill_dir}"}
         
     os.makedirs(skill_dir, exist_ok=True)
     tags_list = tags or ["nero", "skills", name]
@@ -55,27 +55,27 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
 
 # {name}
 
-## Назначение
+## Purpose
 {desc}
 
-## Входные данные
-- Опишите входные параметры или файлы.
+## The Input Data
+- Describe the input parameters or the files.
 
-## Алгоритм работы
-1. Шаг 1: Инициализация и валидация.
-2. Шаг 2: Выполнение целевого действия.
-3. Шаг 3: Сохранение артефактов и отчет.
+## The Algorithm
+1. Step 1: The initialization and the validation.
+2. Step 2: The execution of the target action.
+3. Step 3: The saving of the artifacts and the report.
 
-## Выходной артефакт
-- Опишите результат работы (Markdown, JSON, файл).
+## The Output Artifact
+- Describe the result of the work (Markdown, JSON, file).
 
 ---
-[[CONTEXT|Назад к списку скиллов]]
+[[CONTEXT|Back to the list of the skills]]
 """
     with open(skill_file, "w", encoding="utf-8") as f:
         f.write(skill_template)
         
-    # Создание symlink
+    # The creation of the symlink
     os.makedirs(OPENCODE_SKILLS_DIR, exist_ok=True)
     symlink_path = os.path.join(OPENCODE_SKILLS_DIR, name)
     try:
@@ -83,15 +83,15 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
             os.unlink(symlink_path)
         os.symlink(skill_dir, symlink_path)
     except Exception as e:
-        return {"status": "error", "message": f"Ошибка создания symlink: {e}"}
+        return {"status": "error", "message": f"The error of the symlink creation: {e}"}
         
-    # Обновление CONTEXT.md
+    # The update of the CONTEXT.md
     ctx_file = os.path.join(SKILLS_DIR, "CONTEXT.md")
     if os.path.exists(ctx_file):
         with open(ctx_file, "a", encoding="utf-8") as f:
             f.write(f"\n- [[{name}/SKILL|{name}]] — {desc}")
 
-    # 1. Авто-регистрация в skills/README.md
+    # 1. The auto-registration in the skills/README.md
     readme_file = os.path.join(SKILLS_DIR, "README.md")
     if os.path.exists(readme_file):
         with open(readme_file, "r", encoding="utf-8") as rf:
@@ -105,7 +105,7 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
             with open(readme_file, "w", encoding="utf-8") as rf:
                 rf.write(rc)
 
-    # 2. Авто-регистрация в skills/ROUTING.md (Section 3 Meta/Domain)
+    # 2. The auto-registration in the skills/ROUTING.md (Section 3 Meta/Domain)
     routing_file = os.path.join(SKILLS_DIR, "ROUTING.md")
     if os.path.exists(routing_file):
         with open(routing_file, "r", encoding="utf-8") as rtf:
@@ -117,7 +117,7 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
             with open(routing_file, "w", encoding="utf-8") as rtf:
                 rtf.write(rtc)
 
-    # 3. Синхронизация глобальных манифестов (Rule #54 & #55)
+    # 3. The synchronization of the global manifests (Rule #54 & #55)
     actual_skills_count = len([
         d for d in os.listdir(SKILLS_DIR)
         if os.path.isdir(os.path.join(SKILLS_DIR, d)) and os.path.exists(os.path.join(SKILLS_DIR, d, "SKILL.md"))
@@ -140,7 +140,7 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
                 with open(m_path, "w", encoding="utf-8") as mf:
                     mf.write(new_mc)
 
-    # 4. Обновление SKILL_BINDINGS.json
+    # 4. The update of the SKILL_BINDINGS.json
     bindings_file = os.path.join(VAULT_ROOT, "and_os", "etc", "SKILL_BINDINGS.json")
     if os.path.exists(bindings_file):
         try:
@@ -158,12 +158,12 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
         except (OSError, TypeError) as e:
             sys.stderr.write(f"[register_component] Warning writing bindings: {e}\n")
 
-    # 5. Каскадное распространение зависимостей (Rule #54)
+    # 5. The cascading propagation of the dependencies (Rule #54)
     dep_script = os.path.join(VAULT_ROOT, "and_os", "bin", "dependency_engine.py")
     if os.path.exists(dep_script):
         subprocess.run([sys.executable, dep_script, "--propagate"], capture_output=True, text=True)
 
-    # 6. Запуск Health Grid аудита (Triple Green Protocol)
+    # 6. The launch of the Health Grid audit (Triple Green Protocol)
     val_script = os.path.join(VAULT_ROOT, "and_os", "bin", "validate_system.py")
     val_res = subprocess.run([sys.executable, val_script, "--check"], capture_output=True, text=True)
     
@@ -179,19 +179,19 @@ created: {datetime.datetime.now().strftime('%d.%m.%Y')}
     }
 
 def register_module(hub: str, name: str, source_file: str, role: str, commands: list) -> dict:
-    """Регистрирует новый python-модуль в целевой фасадный хаб (doc_hub, tracker_hub, cg_workspace, terminal)."""
+    """Registers the new python module into the target facade hub (doc_hub, tracker_hub, cg_workspace, terminal)."""
     try:
         from and_os.lib.core.root_config import resolve_pulsar_root
-        pulsar_root = resolve_pulsar_root() or os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+        pulsar_root = resolve_pulsar_root() or os.path.expanduser("./pulsar")
     except Exception:
-        pulsar_root = os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+        pulsar_root = os.path.expanduser("./pulsar")
     if hub in ["terminal", "and_terminal"]:
         hub_dir = os.path.join(pulsar_root, "AND_Terminal")
     else:
         hub_dir = os.path.join(APPS_DIR, hub)
         
     if not os.path.exists(hub_dir):
-        return {"status": "error", "message": f"Хаб {hub} не найден в {APPS_DIR} или {pulsar_root}"}
+        return {"status": "error", "message": f"The hub {hub} was not found in the {APPS_DIR} or the {pulsar_root}"}
         
     modules_dir = os.path.join(hub_dir, "modules")
     os.makedirs(modules_dir, exist_ok=True)
@@ -200,12 +200,12 @@ def register_module(hub: str, name: str, source_file: str, role: str, commands: 
     target_mod_path = os.path.join(modules_dir, filename)
     
     if not os.path.exists(source_file):
-        return {"status": "error", "message": f"Исходный файл {source_file} не найден"}
+        return {"status": "error", "message": f"The source file {source_file} was not found"}
         
     try:
         py_compile.compile(source_file, doraise=True)
     except py_compile.PyCompileError as e:
-        return {"status": "error", "message": f"Ошибка синтаксиса в {source_file}: {e}"}
+        return {"status": "error", "message": f"The syntax error in the {source_file}: {e}"}
         
     with open(source_file, "r", encoding="utf-8") as sf:
         code = sf.read()
@@ -266,23 +266,23 @@ def register_module(hub: str, name: str, source_file: str, role: str, commands: 
     }
 
 def main():
-    parser = argparse.ArgumentParser(description="AnD os v8.1 Component Registrar")
+    parser = argparse.ArgumentParser(description="AnD os v1.0.0 Component Registrar")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     
     # 1. new-skill
-    p_sk = subparsers.add_parser("new-skill", help="Создать и зарегистрировать новый скилл")
-    p_sk.add_argument("--name", required=True, help="Имя скилла (kebab-case, напр. my-tool)")
-    p_sk.add_argument("--desc", required=True, help="Краткое описание назначения")
-    p_sk.add_argument("--domain", default="General", help="Домен скилла")
-    p_sk.add_argument("--tags", help="Теги через запятую")
+    p_sk = subparsers.add_parser("new-skill", help="Create and register the new skill")
+    p_sk.add_argument("--name", required=True, help="The name of the skill (kebab-case, e.g. my-tool)")
+    p_sk.add_argument("--desc", required=True, help="The brief description of the purpose")
+    p_sk.add_argument("--domain", default="General", help="The domain of the skill")
+    p_sk.add_argument("--tags", help="The tags separated by a comma")
     
     # 2. new-module
-    p_mod = subparsers.add_parser("new-module", help="Зарегистрировать новый скрипт в модульный хаб")
-    p_mod.add_argument("--hub", choices=["doc_hub", "tracker_hub", "cg_workspace", "terminal"], required=True, help="Целевой хаб")
-    p_mod.add_argument("--name", required=True, help="Имя модуля (snake_case)")
-    p_mod.add_argument("--src", required=True, help="Путь к исходному .py файлу")
-    p_mod.add_argument("--role", required=True, help="Описание роли модуля")
-    p_mod.add_argument("--commands", default="", help="Команды через запятую")
+    p_mod = subparsers.add_parser("new-module", help="Register the new script into the module hub")
+    p_mod.add_argument("--hub", choices=["doc_hub", "tracker_hub", "cg_workspace", "terminal"], required=True, help="The target hub")
+    p_mod.add_argument("--name", required=True, help="The name of the module (snake_case)")
+    p_mod.add_argument("--src", required=True, help="The path to the source .py file")
+    p_mod.add_argument("--role", required=True, help="The description of the role of the module")
+    p_mod.add_argument("--commands", default="", help="The commands separated by a comma")
     
     args = parser.parse_args()
     

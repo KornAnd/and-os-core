@@ -1,6 +1,6 @@
 """
 test_root_and_state_provenance.py — Unit Tests for C4A (Roots & Provenance State)
-AnD os v8.1 — Core Architecture Verification
+AnD os v1.0.0 — Core Architecture Verification
 """
 
 import os

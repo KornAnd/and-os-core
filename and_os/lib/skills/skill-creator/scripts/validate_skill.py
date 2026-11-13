@@ -179,7 +179,7 @@ if __name__ == "__main__":
                     sys.stderr.write(f"   • {e}\n")
             sys.exit(1)
         else:
-            sys.stdout.write(f"✅ ВСЕ {total} скиллов на 100% соответствуют эталонному ABI и спецификации!\n")
+            sys.stdout.write(f"✅ ALL {total} skills are 100% compliant with the reference ABI and specification!\n")
             sys.exit(0)
 
     target_path = Path(sys.argv[1]).resolve()

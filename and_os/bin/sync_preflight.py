@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-sync_preflight.py — Пре-полетный сканер изменений и синхронизатор структуры AnD os.
-Правило №47: Pre-Flight Context & Cross-Chat Delta Synchronization Gate.
+sync_preflight.py — Pre-flight scanner of changes and structure synchronizer of AnD os.
+Rule #47: Pre-Flight Context & Cross-Chat Delta Synchronization Gate.
 
-Сканирует:
-1. Новые и модифицированные файлы в Obsidian Vault и Pulsar за последние N часов.
-2. Дельту между and_os/opt/terminal и WORK/pulsar/AND_Terminal (код терминала).
-3. Актуальность файлов состояния в and_os/proc/.
-4. Сводный компактный отчет (<300 токенов) для агента перед запуском задачи.
+Scans:
+1. New and modified files in the Obsidian Vault and Pulsar over the last N hours.
+2. The delta between and_os/opt/terminal and WORK/pulsar/AND_Terminal (terminal code).
+3. The freshness of the state files in and_os/proc/.
+4. A compact summary report (<300 tokens) for the agent before launching a task.
 """
 
 import os
@@ -21,9 +21,9 @@ VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 AND_OS_ROOT = os.path.join(VAULT_ROOT, "and_os")
 try:
     from and_os.lib.core.root_config import resolve_pulsar_root
-    PULSAR_ROOT = resolve_pulsar_root() or os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+    PULSAR_ROOT = resolve_pulsar_root() or os.path.expanduser("./pulsar")
 except Exception:
-    PULSAR_ROOT = os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+    PULSAR_ROOT = os.path.expanduser("./pulsar")
 
 IGNORE_SUBSTR = [
     ".git", "__pycache__", "node_modules", ".cache", ".tmp.drive",
@@ -32,7 +32,7 @@ IGNORE_SUBSTR = [
 ]
 
 def scan_recent_modifications(hours: float = 12.0) -> Dict[str, List[Dict[str, Any]]]:
-    """Сканирует недавно измененные файлы во всех ключевых пространствах."""
+    """Scans recently modified files across all the key spaces."""
     now = time.time()
     cutoff = now - (hours * 3600)
     results = {
@@ -83,7 +83,7 @@ def scan_recent_modifications(hours: float = 12.0) -> Dict[str, List[Dict[str, A
     return results
 
 def sync_terminal_delta() -> List[str]:
-    """Синхронизирует дельту Терминала между Pulsar и and_os/opt/terminal по mtime."""
+    """Synchronizes the Terminal delta between Pulsar and and_os/opt/terminal by mtime."""
     src = os.path.join(PULSAR_ROOT, "AND_Terminal")
     dst = os.path.join(AND_OS_ROOT, "opt/terminal")
     if not (os.path.exists(src) and os.path.exists(dst)):
@@ -115,7 +115,7 @@ def sync_terminal_delta() -> List[str]:
     return synced
 
 def generate_preflight_summary(hours: float = 12.0) -> Dict[str, Any]:
-    """Генерирует лаконичную сводку состояния для агента."""
+    """Generates a concise state summary for the agent."""
     synced = sync_terminal_delta()
     mods = scan_recent_modifications(hours)
     
@@ -155,13 +155,13 @@ def main():
     else:
         print("=== 🛰️ PRE-FLIGHT DELTA & STRUCTURE SCAN (Rule №47) ===")
         if summary["synced_terminal_files"]:
-            print(f"🔄 Синхронизировано файлов терминала: {len(summary['synced_terminal_files'])}")
+            print(f"🔄 Terminal files synchronized: {len(summary['synced_terminal_files'])}")
             for s in summary["synced_terminal_files"]:
                 print(f"   • {s}")
         else:
-            print("🟢 Терминал синхронизирован: дельта между Pulsar и and_os/opt/terminal нулевая.")
+            print("🟢 Terminal synchronized: the delta between Pulsar and and_os/opt/terminal is zero.")
 
-        print(f"📊 Всего измененных файлов за {args.hours}ч: {summary['recent_modifications_count']}")
+        print(f"📊 Total files modified in {args.hours}h: {summary['recent_modifications_count']}")
         for cat, flist in summary["hot_files"].items():
             if flist:
                 print(f"  📁 {cat}: {', '.join(flist)}")
@@ -182,9 +182,9 @@ def main():
                     except OSError as e:
                         sys.stderr.write(f"[sync_preflight] Warning checking rules in {fp}: {e}\n")
         if rule_issues == 0:
-            print("⚖️ Правила модулей и чатов согласованы с Глобальным Ядром (Правило №41: PASS).")
+            print("⚖️ Module and chat rules are aligned with the Global Kernel (Rule #41: PASS).")
         else:
-            print(f"⚠️ ВНИМАНИЕ: Найдено {rule_issues} коллизий в локальных правилах (Правило №41: WARN)!")
+            print(f"⚠️ WARNING: {rule_issues} collisions found in the local rules (Rule #41: WARN)!")
 
         # Rule №54: Holistic Component Binding Check (<5ms)
         skills_dir = os.path.join(AND_OS_ROOT, "lib/skills")
@@ -196,9 +196,9 @@ def main():
                 active_skills = [d for d in os.listdir(skills_dir) if os.path.isdir(os.path.join(skills_dir, d)) and not d.startswith(".") and d not in ["scripts", "references"]]
                 orphans = [s for s in active_skills if s not in rtxt]
                 if not orphans:
-                    print(f"🔗 Связность компонентов: 100% (все {len(active_skills)} скиллов и модулей подключены к ядру, Правило №54: PASS).")
+                    print(f"🔗 Component connectivity: 100% (all {len(active_skills)} skills and modules are connected to the kernel, Rule #54: PASS).")
                 else:
-                    print(f"⚠️ ВНИМАНИЕ: Обнаружено {len(orphans)} изолированных скиллов: {orphans} (Правило №54: WARN)!")
+                    print(f"⚠️ WARNING: {len(orphans)} isolated skills detected: {orphans} (Rule #54: WARN)!")
             except (KeyError, TypeError, OSError) as e:
                 sys.stderr.write(f"[sync_preflight] Warning inspecting orphans: {e}\n")
         print("==========================================================")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-safe_snapshot.py — Управление снимками состояния системы (APFS Local Snapshot & State Snapshots).
-Принципы: APFS Native CoW (Правило №42, №43), Kernel Panic Recovery, Идемпотентность.
+safe_snapshot.py — Management of system state snapshots (APFS Local Snapshot & State Snapshots).
+Principles: APFS Native CoW (Rule #42, #43), Kernel Panic Recovery, Idempotency.
 """
 
 import os
@@ -16,38 +16,38 @@ VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 SNAPSHOT_DIR = os.path.join(VAULT_ROOT, ".archive/snapshots")
 
 def create_apfs_snapshot(comment=""):
-    """Создаёт нативный APFS snapshot тома через tmutil."""
-    print("📸 Создание аппаратного APFS Local Snapshot (Copy-on-Write)...")
+    """Creates a native APFS volume snapshot via tmutil."""
+    print("📸 Creating the hardware APFS Local Snapshot (Copy-on-Write)...")
     try:
         res = subprocess.run(["tmutil", "localsnapshot"], capture_output=True, text=True)
         if res.returncode == 0:
             lines = res.stdout.strip().split("\n")
             snap_tag = lines[-1] if lines else "OK"
-            print(f"  [OK] APFS снимок успешно создан: {snap_tag}")
+            print(f"  [OK] APFS snapshot created successfully: {snap_tag}")
             if comment:
-                print(f"  [NOTE] Комментарий к снимку: {comment}")
+                print(f"  [NOTE] Snapshot comment: {comment}")
             return True, snap_tag
         else:
-            print(f"  [WARN] Ошибка создания APFS снимка: {res.stderr.strip()}")
+            print(f"  [WARN] APFS snapshot creation error: {res.stderr.strip()}")
             return False, res.stderr.strip()
     except Exception as e:
-        print(f"  [!] Исключение tmutil: {e}")
+        print(f"  [!] tmutil exception: {e}")
         return False, str(e)
 
 def list_apfs_snapshots():
-    """Выводит список существующих локальных APFS снимков."""
+    """Prints the list of existing local APFS snapshots."""
     try:
         res = subprocess.run(["tmutil", "listlocalsnapshots", "/"], capture_output=True, text=True)
         if res.returncode == 0:
-            print("=== 📋 Список локальных снимков APFS (диск /) ===")
+            print("=== 📋 List of local APFS snapshots (disk /) ===")
             print(res.stdout.strip())
         else:
-            print(f"  [WARN] Не удалось получить список: {res.stderr.strip()}")
+            print(f"  [WARN] Failed to fetch the list: {res.stderr.strip()}")
     except Exception as e:
-        print(f"  [!] Ошибка: {e}")
+        print(f"  [!] Error: {e}")
 
 def create_manifest_snapshot(comment=""):
-    """Создает быстрый микро-снимок критических манифестов ядра (.archive/snapshots)."""
+    """Creates a fast micro-snapshot of the critical kernel manifests (.archive/snapshots)."""
     os.makedirs(SNAPSHOT_DIR, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     target_backup_dir = os.path.join(SNAPSHOT_DIR, f"snap_{ts}")
@@ -77,13 +77,13 @@ def create_manifest_snapshot(comment=""):
     with open(os.path.join(target_backup_dir, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
         
-    print(f"💾 Микро-снимок манифестов сохранён: .archive/snapshots/snap_{ts} ({copied} файлов).")
+    print(f"💾 Manifest micro-snapshot saved: .archive/snapshots/snap_{ts} ({copied} files).")
     return target_backup_dir
 
 def main():
-    parser = argparse.ArgumentParser(description="APFS & Core State Snapshot Manager (AnD os v8.1)")
-    parser.add_argument("action", choices=["create", "list", "micro"], help="Действие со снимком")
-    parser.add_argument("--comment", "-m", type=str, default="", help="Описание снимка")
+    parser = argparse.ArgumentParser(description="APFS & Core State Snapshot Manager (AnD os v1.0.0)")
+    parser.add_argument("action", choices=["create", "list", "micro"], help="Snapshot action")
+    parser.add_argument("--comment", "-m", type=str, default="", help="Snapshot description")
     args = parser.parse_args()
 
     if args.action == "create":

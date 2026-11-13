@@ -1,5 +1,5 @@
 """
-vault_safe_io.py — Centralized Safe I/O Gateway for Obsidian Vault Notes (AnD os v8.3)
+vault_safe_io.py — Centralized Safe I/O Gateway for Obsidian Vault Notes (AnD os v1.0.0)
 Complies with Vault Access Invariant (Rule #19) and Clean Code protocol (ub-mode).
 Provides atomic writes, YAML frontmatter validation, link corruption prevention,
 and payload ceiling checks.

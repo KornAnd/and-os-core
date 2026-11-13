@@ -1,6 +1,6 @@
 """
 test_operation_contract.py — Comprehensive Unit Test Suite for Operation Contracts
-AnD os v8.1 — Core Architecture Verification (C3 Gate)
+AnD os v1.0.0 — Core Architecture Verification (C3 Gate)
 """
 
 import unittest

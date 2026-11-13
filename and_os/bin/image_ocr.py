@@ -1,39 +1,30 @@
 #!/usr/bin/env python3
-"""OCR-анализатор изображений через tesseract.
+"""image_ocr.py - Thin facade delegating to the canonical hub module.
 
-Использует tesseract OCR с языковыми пакетами rus+eng.
-Установка: brew install tesseract tesseract-lang
+Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in two
+live copies (and_os/bin/ and the opt hubs) that drifted apart, so the
+two consumers saw different behavior. The business logic now lives in
+exactly one place:
 
-Запуск: python3 image_ocr.py <путь к изображению или папке>
+  and_os/opt/apps/doc_hub/modules/image_ocr.py
+
+This shim keeps the public entry point stable for the sys_cli
+dispatcher (run_script), the skill probe commands and the shell
+consumers. CLI arguments are forwarded unchanged.
 """
 
-import subprocess
-import sys
 import os
+import runpy
 
-def ocr_file(path: str) -> str:
-    result = subprocess.run(
-        ["tesseract", path, "-", "-l", "rus+eng"],
-        capture_output=True, text=True, timeout=30
-    )
-    return result.stdout.strip()
+HUB_MODULE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "opt",
+    "apps",
+    "doc_hub",
+    "modules",
+    "image_ocr.py",
+)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 image_ocr.py <path>")
-        sys.exit(1)
-    
-    path = sys.argv[1]
-    
-    if os.path.isfile(path):
-        print(f"📷 {os.path.basename(path)}")
-        print(ocr_file(path))
-    elif os.path.isdir(path):
-        for fn in sorted(os.listdir(path)):
-            if fn.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
-                fp = os.path.join(path, fn)
-                print(f"\n=== {fn} ===")
-                print(ocr_file(fp))
-    else:
-        print(f"❌ {path} not found")
-        sys.exit(1)
+    runpy.run_path(HUB_MODULE, run_name="__main__")

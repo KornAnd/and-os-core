@@ -69,7 +69,7 @@ Ensure the following files are present and complete in the staged directory root
 - `system.json` & `and_os/etc/rules_fast_index.json` (Machine-readable system specifications).
 
 ### Step 5: Clean Git Packaging & Author Metadata Neutralization
-Before running git commands, configure a clean public author to eliminate local workstation hostname leaks (`MacKorn.local`):
+Before running git commands, configure a clean public author to eliminate local workstation hostname leaks (`<your-hostname>.local`):
 ```bash
 git init -b main
 git config user.name "System Architect"

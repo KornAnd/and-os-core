@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vault_guard_hook.py — Hardware-Level PreToolUse Governance Hook (AnD os v9.0).
+vault_guard_hook.py — Hardware-Level PreToolUse Governance Hook.
 Implements Dual-Speed Governance (Rule #19 Invariant):
 - Fast-Track (Core, Skills, System Manifests, External Projects): Allowed natively for 100% speed and token efficiency.
 - Vault Guard (User Knowledge Islands: Nero/, Product/, Story/, Ta-Bu/, Book/, Clippings/, Tasks/):
@@ -23,8 +23,8 @@ def _load_core_beacons():
             with open(RULES_FAST_INDEX, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return data.get("domain_beacons", {})
-    except Exception:
-        pass
+    except (OSError, ValueError) as err:
+        sys.stderr.write(f"[vault_guard_hook] Notice: fast index unavailable, static fallbacks used: {err}\n")
     return {}
 
 _BEACONS = _load_core_beacons()
@@ -45,7 +45,7 @@ FAST_TRACK_PREFIXES = (
     os.path.join(VAULT_ROOT, ".opencode/"),
     os.path.join(VAULT_ROOT, ".gemini/"),
     os.path.join(VAULT_ROOT, ".trash/"),
-    "~/Yandex.Disk.localized/WORK/",
+    "~/ExternalDrive/WORK/",
     "~/Documents/ComfyUI/",
     "/tmp/",
     "~/.gemini/",

@@ -1,6 +1,6 @@
 """
 operations.py — Canonical Microkernel Built-in Operations
-AnD os v8.1 — Core Architecture Layer (Unix-Grade Microkernel Operations)
+AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Operations)
 
 Defines and registers core operations conforming strictly to OperationSpec:
   - system.ping (v1.0.0): Diagnostics & round-trip check

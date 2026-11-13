@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-sync_service.py — Высокоскоростной сервис инициализации сессии (Fast Session Init Service v2.0).
-Выполняет прямые импорты модулей в едином Python-процессе для снижения latency с 2.0 сек до ~0.6 сек.
+sync_service.py — High-speed session initialization service (Fast Session Init Service v2.0).
+Runs direct module imports in a single Python process to cut latency from 2.0 s to ~0.6 s.
 """
 
 import os
@@ -107,21 +107,21 @@ def run_session_init(fix=True, json_output=False):
     if json_output:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:
-        print(f"🚀 [Sync Service] Стартовая инициализация сессии завершена за {summary['duration_seconds']} сек.")
+        print(f"🚀 [Sync Service] Startup session initialization completed in {summary['duration_seconds']} s.")
         print(f"  ├─ CONTEXT.md & Quick DB: {'✅ OK' if results['sync_context']['success'] else '⚠️ WARN'}")
-        print(f"  ├─ Состояния доменов: {'✅ OK' if results['domain_states']['success'] else '⚠️ WARN'}")
-        print(f"  ├─ Индекс задач SQLite: {'✅ OK' if results['task_db']['success'] else '⚠️ WARN'}")
-        print(f"  ├─ Картография инструментов: {'✅ OK' if results['toolchain_map']['success'] else '⚠️ WARN'}")
-        print(f"  ├─ Реестр контекстов SQLite: {'✅ OK' if results['context_router']['success'] else '⚠️ WARN'}")
-        print(f"  └─ 13-векторный системный аудит: {'✅ OK' if results['system_audit']['success'] else '⚠️ WARN'}")
+        print(f"  ├─ Domain states: {'✅ OK' if results['domain_states']['success'] else '⚠️ WARN'}")
+        print(f"  ├─ SQLite task index: {'✅ OK' if results['task_db']['success'] else '⚠️ WARN'}")
+        print(f"  ├─ Toolchain map: {'✅ OK' if results['toolchain_map']['success'] else '⚠️ WARN'}")
+        print(f"  ├─ SQLite context registry: {'✅ OK' if results['context_router']['success'] else '⚠️ WARN'}")
+        print(f"  └─ 13-vector system audit: {'✅ OK' if results['system_audit']['success'] else '⚠️ WARN'}")
 
     return summary
 
 def main():
     parser = argparse.ArgumentParser(description="Fast Session Init Service v2.0")
-    parser.add_argument("--fix", action="store_true", default=True, help="Авто-исправление расхождений")
-    parser.add_argument("--check-only", action="store_true", help="Только диагностика без исправлений")
-    parser.add_argument("--json", action="store_true", help="Вывод в JSON для IPC")
+    parser.add_argument("--fix", action="store_true", default=True, help="Auto-repair mismatches")
+    parser.add_argument("--check-only", action="store_true", help="Diagnostics only, no repairs")
+    parser.add_argument("--json", action="store_true", help="JSON output for IPC")
 
     args = parser.parse_args()
     fix_flag = not args.check_only

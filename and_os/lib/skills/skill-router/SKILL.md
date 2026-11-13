@@ -3,6 +3,8 @@ name: skill-router
 description: "Use when arbitrating between competing domain skills and routing complex multi-step user prompts to the single primary skill."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: QUICK

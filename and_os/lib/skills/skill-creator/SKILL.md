@@ -3,6 +3,8 @@ name: skill-creator
 description: "Use when creating, validating, linting, or updating skills in AnD os. Enforces SKILL_MODULE_ABI v2.1, 8-Island architectural binding, clean code standards (0 silent excepts, depth at most 4), and atomic synchronization across all system manifests."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: VOLATILE
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: WORK
@@ -14,7 +16,7 @@ probe_cmd: "python3 and_os/lib/skills/skill-creator/scripts/validate_skill.py an
 
 # Skill Creator & Architectural Validator (Ring 0 Meta-Skill)
 
-A canonical meta-skill for creating and validating modular skills across the **AnD os v8.3** ecosystem.
+A canonical meta-skill for creating and validating modular skills across the **AnD os v1.0.0** ecosystem.
 
 ## 1. Architectural Intent & Scope
 - **Classification**: Ring 0 Core Meta-Skill.

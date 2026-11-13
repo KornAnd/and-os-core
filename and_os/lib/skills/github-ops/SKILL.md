@@ -3,6 +3,8 @@ name: github-ops
 description: "Use when searching GitHub repositories, inspecting issues, analyzing pull requests, checking CI/CD workflow runs, reading remote code, or tracking releases."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: engineering
 island: 8
 context_tier: WORK
@@ -11,6 +13,7 @@ modality: DECLARATIVE_KNOWLEDGE
 allowed-tools: ["Bash", "Read", "Grep", "Glob"]
 probe_cmd: "test -x /opt/homebrew/bin/gh || which gh > /dev/null"
 ---
+
 # 🐙 GitHub Operations Skill (`github-ops`)
 
 > 💡 **TL;DR:** Sovereign, token-efficient GitHub integration using the official GitHub CLI (`gh`). Adheres strictly to **Rule #16 (Think in Code / Terminal Filtering)**, **Rule #44 (Context Bundling & Stream Trimming)**, and **Rule #59 (Official Toolchain Gate)**. Replaces heavy raw JSON dumps with precise `--json` and `--jq` filtering to reduce LLM context consumption by $\ge 95\%$.
@@ -41,8 +44,8 @@ Detailed projection patterns, jq recipes, and release invariants are codified in
 
 ---
 
-### 🌐 КОНТУР А: Оперативное взаимодействие (Daily Operations & Telemetry)
-*Применяется для быстрого токеноэффективного анализа открытых репозиториев, PR, задач и CI/CD.*
+### 🌐 CONTOUR A: Operational Interaction (Daily Operations & Telemetry)
+*Applied for fast, token-efficient analysis of open repositories, PRs, issues, and CI/CD.*
 
 - **Mode 1: Fast Repository & Code Discovery:**
   ```bash
@@ -64,26 +67,26 @@ Detailed projection patterns, jq recipes, and release invariants are codified in
 
 ---
 
-### 🛡️ КОНТУР Б: Регламент безопасной публикации ядра (Zero-Leak Release Pipeline)
-*Применяется строго при экспорте и выкладке модулей из хранилища в открытый доступ на GitHub.*
+### 🛡️ CONTOUR B: Core Safe-Publication Protocol (Zero-Leak Release Pipeline)
+*Applies strictly when exporting and publishing modules from the Vault to open access on GitHub.*
 
-1. **Тотальные локи приватных каталогов (Vault Red Zone):**
-   - 🔒 `Nero/` (Здоровье, анализы, семья, биометрия telemetry_sync, личные цели) — **ЗАПРЕЩЕНО К ЭКСПОРТУ**.
-   - 🔒 `Product/`, `Studio/`, `Tasks/` (Студийные проекты полнометражной анимации, NDA, сметы) — **ЗАПРЕЩЕНО**.
-   - 🔒 `Ta-Bu/`, `Story/`, `Book/` (Сценарии, книги, питчи стартапа) — **ЗАПРЕЩЕНО**.
-   - 🔒 `Industry/`, `Clippings/` (Выжимки книг, приватный консалтинг) — **ЗАПРЕЩЕНО**.
-   - 🔒 `and_os/var/`, `and_os/backups/` (Реальные базы SQLite, токены сессий) — **ЗАПРЕЩЕНО**.
-2. **Адаптация путей и связей (Autonomous Portability):**
-   - Замена абсолютных путей `~/...` на относительные `./`.
-   - Замена персональных/студийных имен на системные псевдонимы (`System Architect`, `Studio`).
-   - Проверка отсутствия битых ссылок (Zero-Dangling Links) через `link_guard.py`.
-3. **Многоуровневый фильтр качества в staged-каталоге:**
-   - Шаг 1: `and_os/.venv/bin/python3 and_os/bin/export_kernel.py` (0 утечек).
-   - Шаг 2: `quick_verify.py` внутри staged-каталога (`🟢 ALL PHASES PASSED`, 0 critical defects).
-   - Шаг 3: `sys_cli skills --probe` (100% канареек здоровы).
-   - Шаг 4: Наличие витрины (`README.md`, `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`).
-4. **Финальный гейт публикации:**
-   - Публикация разрешена **строго после явного подтверждения Андрея** командой:
+1. **Total locks on private catalogs (Vault Red Zone):**
+   - 🔒 `Nero/` (health, medical records, family, telemetry_sync biometrics, personal goals) — **EXPORT FORBIDDEN**.
+   - 🔒 `Product/`, `Studio/`, `Tasks/` (studio full-length animation projects, NDAs, cost estimates) — **FORBIDDEN**.
+   - 🔒 `Ta-Bu/`, `Story/`, `Book/` (screenplays, books, startup pitches) — **FORBIDDEN**.
+   - 🔒 `Industry/`, `Clippings/` (book summaries, private consulting) — **FORBIDDEN**.
+   - 🔒 `and_os/var/`, `and_os/backups/` (real SQLite databases, session tokens) — **FORBIDDEN**.
+2. **Path and link adaptation (Autonomous Portability):**
+   - Replace absolute paths `~/...` with relative `./`.
+   - Replace personal/studio names with system aliases (`System Architect`, `Studio`).
+   - Verify the absence of dangling links (Zero-Dangling Links) via `link_guard.py`.
+3. **Multi-level quality filter in the staged catalog:**
+   - Step 1: `and_os/.venv/bin/python3 and_os/bin/export_kernel.py` (0 leaks).
+   - Step 2: `quick_verify.py` inside the staged catalog (`🟢 ALL PHASES PASSED`, 0 critical defects).
+   - Step 3: `sys_cli skills --probe` (100% canaries healthy).
+   - Step 4: Storefront presence (`README.md`, `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`).
+4. **Final publication gate:**
+   - Publication is allowed **strictly after Andrey's explicit confirmation** via the command:
      ```bash
      /opt/homebrew/bin/gh repo create <owner>/<repo> --public --source=<path> --push --description "<desc>"
      ```
@@ -92,15 +95,15 @@ Detailed projection patterns, jq recipes, and release invariants are codified in
 
 ## 📋 Definition of Done Checklist
 
-Перед завершением любой операции через скилл `github-ops`:
-- [ ] **Контур А (Повседневный):** Вывод отфильтрован через `--jq` (никаких портянок терминала $> 50$ строк).
-- [ ] **Контур Б (Релизный):**
-  - [ ] Ни один файл из Red Zone (`Nero/`, `Product/`, `Ta-Bu/`, `Story/`, `Clippings/`) не попал в git.
-  - [ ] Пути адаптированы, абсолютные пути `~` полностью нейтрализованы.
-  - [ ] Пакетные манифесты присутствуют: `.gitignore`, `pyproject.toml`, `README.md`, `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`.
-  - [ ] Байткод (`__pycache__`, `*.pyc`), логи тестов (`events.jsonl`) и артефакты БД очищены.
-  - [ ] Авторство коммита нейтрализовано: `System Architect <noreply@github.com>` (без локальных хостов).
-  - [ ] `quick_verify.py` вернул `🟢 ALL PHASES PASSED`.
-  - [ ] Канарейки скиллов `sys_cli skills --probe` подтвердили 100% здоровье.
-  - [ ] Рабочее дерево `git status --porcelain` кристально чистое (0 untracked/dirty файлов).
-  - [ ] Любое создание репозитория или `push` явно подтверждены пользователем.
+Before completing any operation through the `github-ops` skill:
+- [ ] **Contour A (Everyday):** Output filtered through `--jq` (no terminal dumps $> 50$ lines).
+- [ ] **Contour B (Release):**
+  - [ ] No file from the Red Zone (`Nero/`, `Product/`, `Ta-Bu/`, `Story/`, `Clippings/`) ended up in git.
+  - [ ] Paths adapted; absolute `~` paths fully neutralized.
+  - [ ] Package manifests present: `.gitignore`, `pyproject.toml`, `README.md`, `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`.
+  - [ ] Bytecode (`__pycache__`, `*.pyc`), test logs (`events.jsonl`), and DB artifacts cleaned.
+  - [ ] Commit authorship neutralized: `System Architect <noreply@github.com>` (no local hosts).
+  - [ ] `quick_verify.py` returned `🟢 ALL PHASES PASSED`.
+  - [ ] Skill canaries `sys_cli skills --probe` confirmed 100% health.
+  - [ ] Working tree `git status --porcelain` is crystal clean (0 untracked/dirty files).
+  - [ ] Any repository creation or `push` is explicitly confirmed by the user.

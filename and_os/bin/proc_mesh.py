@@ -1,106 +1,107 @@
 #!/usr/bin/env python3
 """
-proc_mesh.py — Генерация и чтение виртуального пространства состояния (/proc mesh).
-Принцип: Think in Code (Правило №16), 0-Token State Reading, Linux-style proc files.
+proc_mesh.py — Generation and reading of the virtual state space (/proc mesh).
+Principle: Think in Code (Rule #16), 0-Token State Reading, Linux-style proc files.
 
-Файлы генерируются в and_os/proc/:
-  - sys.stat      : Версия OS, свободное место APFS, статус 18 векторов
-  - daemons.stat  : Статус LaunchAgents и сокетов :8087, :8092
-  - islands.stat  : Матрица связности 7 логических островов
-  - tasks.stat    : Сводка незавершенных задач по доменам
+On-demand service (Andrey's decision 13.11, audit F1): run via
+`sys_cli daemon trigger proc_mesh` — the 60s cron cadence is retired.
+
+Files are generated in and_os/proc/ (single canonical writer — the kernel
+update_procfs() is composed for the shared files, this script adds its own):
+  - sys.stat      : kernel — canonical version, rules count, disk, daemons
+  - daemons.stat  : kernel — live :8087/:8092/:8099 sockets status
+  - islands.stat  : kernel — islands state matrix
+  - tasks.stat    : this script — live pending task count (task_vault.db)
+  - env.stat      : this script — runtime standard + live SKILL.md count
 """
 
 import os
 import sys
-import json
-import shutil
-import socket
 import sqlite3
 import argparse
-import subprocess
 from datetime import datetime
 
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if VAULT_ROOT not in sys.path:
+    sys.path.insert(0, VAULT_ROOT)
 PROC_DIR = os.path.join(VAULT_ROOT, "and_os/proc")
 
-def get_disk_free_gb():
+def count_skills():
+    """The live SKILL.md count under and_os/lib/skills/ (0-token metric)."""
+    skills_dir = os.path.join(VAULT_ROOT, "and_os", "lib", "skills")
     try:
-        return round(shutil.disk_usage(VAULT_ROOT).free / (1024 ** 3), 1)
-    except Exception:
-        return 0.0
+        return sum(
+            1
+            for entry in os.scandir(skills_dir)
+            if entry.is_dir()
+            and os.path.isfile(os.path.join(entry.path, "SKILL.md"))
+        )
+    except OSError as err:
+        sys.stderr.write(f"[proc_mesh] Warning counting skills: {err}\n")
+        return 0
 
-def get_port_status(port):
+
+def count_pending_tasks(db_path):
+    """Counts pending tasks in task_vault.db (audit R4, P2, R4-PROC-2).
+
+    The live schema marks completion with `is_completed INTEGER`
+    (0 = pending, 1 = done); the legacy `status = 'pending'` column
+    does not exist and failed every sync with "no such column: status".
+    A missing database returns 0 silently; a read error is announced on
+    stderr (never silent) and also returns 0.
+    """
+    if not os.path.exists(db_path):
+        return 0
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.3)
-        res = s.connect_ex(("127.0.0.1", port))
-        s.close()
-        return "LISTEN" if res == 0 else "DOWN"
-    except Exception:
-        return "ERR"
+        conn = sqlite3.connect(db_path)
+        try:
+            c = conn.cursor()
+            c.execute("SELECT count(*) FROM tasks WHERE is_completed = 0")
+            return int(c.fetchone()[0])
+        finally:
+            conn.close()
+    except (sqlite3.Error, OSError) as e:
+        sys.stderr.write(f"[proc_mesh] Warning reading pending tasks: {e}\n")
+        return 0
 
-def generate_proc_files():
-    """Генерирует легковесные текстовые файлы состояния."""
+def generate_proc_files() -> bool:
+    """Generates the virtual /proc mesh (on-demand service, 13.11).
+
+    Single canonical writer: composes on the kernel update_procfs()
+    (sys.stat / daemons.stat / islands.stat — the kernel is the only
+    generator that reads the version and the rules count from the
+    canonical SSoT; before the 13.11 on-demand decision this script was a
+    second writer with hardcoded 7.x literals that overwrote the kernel
+    output every 60s, audit F1). Adds the two files the kernel does not
+    write: tasks.stat (live pending count) and env.stat (runtime standard
+    + the live SKILL.md count).
+    """
     os.makedirs(PROC_DIR, exist_ok=True)
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 1. sys.stat
-    free_gb = get_disk_free_gb()
-    sys_content = f"OS=AnD_os_7.3\nSTATUS=PASS\nDISK_FREE_GB={free_gb}\nDISK_FLOOR_OK={'TRUE' if free_gb >= 3.0 else 'FALSE'}\nSKILLS_COUNT=50\nMODULES=5\nVECTORS=25\nUPDATED={now_str}\n"
-    with open(os.path.join(PROC_DIR, "sys.stat"), "w", encoding="utf-8") as f:
-        f.write(sys_content)
+    try:
+        from and_os.lib.core.procfs import update_procfs
+        update_procfs()
+    except (ImportError, OSError, ValueError) as err:
+        sys.stderr.write(f"[proc_mesh] Error: kernel procfs generation failed: {err}\n")
+        return False
 
-    # 2. daemons.stat
-    mars_port = get_port_status(8087)
-    kot_port = get_port_status(8092)
-    chk_launchctl = subprocess.run(["launchctl", "list"], capture_output=True, text=True)
-    mars_loaded = "com.pulsar.mars_gantt" in chk_launchctl.stdout
-    kot_loaded = "com.pulsar.kot_gantt" in chk_launchctl.stdout
-    daemon_content = f"MARS_GANTT: loaded={mars_loaded}, port_8087={mars_port}\nKOT_GANTT: loaded={kot_loaded}, port_8092={kot_port}\nUPDATED={now_str}\n"
-    with open(os.path.join(PROC_DIR, "daemons.stat"), "w", encoding="utf-8") as f:
-        f.write(daemon_content)
-
-    # 3. islands.stat
-    islands = [
-        ("1", "Clippings", "Clippings/CONTEXT.md"),
-        ("2", "CG_core", "CG_core/CONTEXT.md"),
-        ("3", "Ta-Bu", "Ta-Bu/CONTEXT.md"),
-        ("4", "Story", "Story/CONTEXT.md"),
-        ("5", "Product", "Product/CONTEXT.md"),
-        ("6", "Nero", "Nero/CONTEXT.md"),
-        ("7", "Pulsar", "Nero/pulsar/INDEX.md"),
-        ("8", "Terminal", "Terminal/CONTEXT.md")
-    ]
-    isl_lines = ["ISLANDS_TOTAL=8", "ISOLATION=0%"]
-    for num, name, p in islands:
-        ok = os.path.exists(os.path.join(VAULT_ROOT, p))
-        isl_lines.append(f"ISLAND_{num}:{name}={'OK' if ok else 'MISSING'}")
-    isl_lines.append(f"UPDATED={now_str}")
-    with open(os.path.join(PROC_DIR, "islands.stat"), "w", encoding="utf-8") as f:
-        f.write("\n".join(isl_lines) + "\n")
-
-    # 4. tasks.stat
-    db_path = os.path.join(VAULT_ROOT, "and_os/var/task_vault.db")
-    pending_tasks = 0
-    if os.path.exists(db_path):
-        try:
-            conn = sqlite3.connect(db_path)
-            c = conn.cursor()
-            c.execute("SELECT count(*) FROM tasks WHERE status = 'pending'")
-            pending_tasks = c.fetchone()[0]
-            conn.close()
-        except (sqlite3.Error, OSError) as e:
-            sys.stderr.write(f"[proc_mesh] Warning reading pending tasks: {e}\n")
+    # 1. tasks.stat (proc_mesh-only file)
+    db_path = os.path.join(VAULT_ROOT, "and_os", "var", "task_vault.db")
+    pending_tasks = count_pending_tasks(db_path)
     tasks_content = f"TASKS_PENDING={pending_tasks}\nDB=task_vault.db\nUPDATED={now_str}\n"
     with open(os.path.join(PROC_DIR, "tasks.stat"), "w", encoding="utf-8") as f:
         f.write(tasks_content)
 
-    # 5. env.stat (Runtime & Languages standard)
+    # 2. env.stat (Runtime & Languages standard + live skill count)
     import platform
     import importlib.metadata
     py_ver = platform.python_version()
     pkg_count = len(list(importlib.metadata.distributions()))
-    env_content = f"PYTHON_VER={py_ver}\nPYTHON_PACKAGES_COUNT={pkg_count}\nTARGET_STANDARD=>=3.11\nUPDATED={now_str}\n"
+    env_content = (
+        f"PYTHON_VER={py_ver}\nPYTHON_PACKAGES_COUNT={pkg_count}\n"
+        f"SKILLS_COUNT={count_skills()}\nTARGET_STANDARD=>=3.11\nUPDATED={now_str}\n"
+    )
     with open(os.path.join(PROC_DIR, "env.stat"), "w", encoding="utf-8") as f:
         f.write(env_content)
 
@@ -116,7 +117,7 @@ def cat_proc(name=None):
             with open(target, "r", encoding="utf-8") as f:
                 print(f.read().strip())
         else:
-            print(f"[!] Файл proc/{name} не найден")
+            print(f"[!] proc/{name} file not found")
     else:
         print("=== 📂 /proc Virtual Mesh (Zero-Token State Files) ===")
         for fn in sorted(os.listdir(PROC_DIR)):
@@ -128,14 +129,16 @@ def cat_proc(name=None):
 
 def main():
     parser = argparse.ArgumentParser(description="Virtual /proc mesh generator & reader")
-    parser.add_argument("--sync", action="store_true", help="Сгенерировать/актуализировать файлы /proc")
-    parser.add_argument("--cat", type=str, help="Прочитать конкретный файл (sys, daemons, islands, tasks)")
+    parser.add_argument("--sync", action="store_true", help="Generate/update the /proc files")
+    parser.add_argument("--cat", type=str, help="Read a specific file (sys, daemons, islands, tasks)")
     args = parser.parse_args()
 
     if args.sync or not os.path.exists(PROC_DIR):
-        generate_proc_files()
+        if not generate_proc_files():
+            print("[!] /proc mesh generation failed (notice on stderr)")
+            sys.exit(1)
         if args.sync:
-            print("⚡ /proc mesh успешно сгенерирован и синхронизирован.")
+            print("⚡ /proc mesh generated and synchronized successfully.")
             return
 
     if args.cat:

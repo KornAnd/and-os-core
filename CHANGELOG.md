@@ -1,8 +1,22 @@
 # AnD os System Changelog & Version History
 
-> Single Source of Truth: `and_os/var/system_ledger.db` | Dual-Speed Projection: `RELEASE_LEDGER.json`
+> Single Source of Truth: `and_os/etc/RELEASE_LEDGER.json` (15 entries, versioned) | This file: public storefront projection.
 
-**Current Production Version:** `v9.5.0` (2026-11-07)
+**Current Production Version:** `v1.0.0` (2026-11-13)
+
+---
+
+## v1.0.0 — 2026-11-13 (MAJOR)
+**Summary:** First production release of the AnD os microkernel. The 9.x development series is closed; versioning resets to the stable 1.0.0 line.
+*Components:* `core`, `bin`, `lib`, `skills`
+
+### Key Changes:
+- **Self-contained functional package:** `and_os/bin/cli_subsystems/` (12 modules) and the kernel libraries (`and_os/lib/health_grid/`, `and_os/lib/vault/`, `and_os/lib/pulsar/`, `and_os/lib/xcode/`, `i1_zones.py`, `release_pipeline.py`, `apfs_shadow.py`) now ship with the release — every `and_os.*` import in the package resolves inside the package (AST-verified)
+- **`quick_verify.py` runs green from a fresh clone:** standalone mode auto-skips the vault-specific Phase 7 while Phases 0–6 and 8 keep full strictness
+- **`sys_cli.py audit`** runs the full 8-ring Health Grid (filesystem & syntax, knowledge graph, AST contracts & governance, clean code, manifests & security, skills, runtime, DoD)
+- **76 canonical rules** (#0–#71) with compiled fast index, plus the I-1 kernel immutability zone SSoT (`and_os/etc/i1_kernel_zones.json`)
+- **Privacy hardening (Zero-Leak Protocol):** the local air-gap `git` interceptor and stray runtime `and_os/var/` state artifacts removed from the public package; personal cloud-volume paths fully sanitized; exporter leak patterns extended
+- **Storefront:** new README sections (Installation, Integration, When to Use AnD os), root-level CHANGELOG, version aligned across `pyproject.toml`, `system.json` and `RELEASE_LEDGER.json`
 
 ---
 

@@ -1,6 +1,6 @@
 """
 bus.py — High-Performance, Atomic & Append-Only Event Journal for AnD os
-AnD os v8.1 — Core Architecture Layer (Unix-Grade Concurrency & Events)
+AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Concurrency & Events)
 
 Features:
   - Atomic concurrent appends using POSIX advisory locks (fcntl.flock)

@@ -30,7 +30,7 @@ VAULT_ROOT = os.getenv("AND_ROOT", os.path.abspath(os.path.join(SCRIPT_DIR, "../
 if VAULT_ROOT not in sys.path:
     sys.path.insert(0, VAULT_ROOT)
 
-IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".archive", "var", "vault_shadow", "__pycache__", ".venv"}
+IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".archive", "var", "vault_shadow", "__pycache__", ".venv", ".build"}
 
 # Patterns for secret scan (strictly alphanumeric keys)
 SECRET_PATTERNS = [
@@ -39,6 +39,16 @@ SECRET_PATTERNS = [
     re.compile(r"AKIA[0-9A-Z]{16}"),
     re.compile(r"password\s*=\s*['\"][^'\"]{8,}['\"]", re.IGNORECASE)
 ]
+
+# Canonical Vault Root Directories (Rule #4, #7, #27)
+# Creating any directory in Vault root outside this set is strictly forbidden.
+CANONICAL_ROOT_DIRECTORIES = frozenset({
+    ".archive", ".makemd", ".obsidian", ".opencode", ".smart-env", ".space", ".trash", "Trash",
+    "Book", "CG_core", "Clippings", "Industry", "Nero", "Product", "Story", "Ta-Bu", "Tags", "Tasks", "Studio",
+    "and_os"
+})
+
+
 
 
 class QuickVerifier:
@@ -57,6 +67,15 @@ class QuickVerifier:
             "phase7_memory": {"passed": True, "errors": [], "items_count": 0}
         }
 
+    def _walk_code_files(self, dir_path: str, extensions: tuple) -> List[str]:
+        """Recursively collects files with the given extensions under dir_path."""
+        resolved = []
+        for root, _, files in os.walk(dir_path):
+            for name in files:
+                if name.endswith(extensions):
+                    resolved.append(os.path.join(root, name))
+        return resolved
+
     def get_staged_or_modified_files(self) -> List[str]:
         if self.target_paths:
             resolved = []
@@ -64,10 +83,7 @@ class QuickVerifier:
                 full = os.path.abspath(p) if os.path.isabs(p) else os.path.abspath(os.path.join(self.root_dir, p))
                 if os.path.exists(full):
                     if os.path.isdir(full):
-                        for root, _, files in os.walk(full):
-                            for f in files:
-                                if f.endswith(('.py', '.swift', '.json', '.md')):
-                                    resolved.append(os.path.join(root, f))
+                        resolved.extend(self._walk_code_files(full, (".py", ".swift", ".json", ".md")))
                     else:
                         resolved.append(full)
             return resolved
@@ -87,24 +103,32 @@ class QuickVerifier:
                             files.append(full)
                 if files:
                     return files
-        except Exception:
-            pass
+        except (OSError, subprocess.SubprocessError) as err:
+            # Sovereign vault is git-less by policy (Rule #67): the mtime
+            # fallback below becomes the source of truth.
+            sys.stderr.write(
+                f"[quick_verify] Notice: git status unavailable ({err.__class__.__name__}); using mtime scan\n"
+            )
 
         # Fallback to scanning recently modified files in and_os
         candidates = []
+        skipped = []
         now = time.time()
-        for sub in ["and_os/bin", "and_os/lib", "Nero/xcode"]:
+        for sub in ["and_os/bin", "and_os/lib", "and_os/tests", "Nero/xcode"]:
             full_sub = os.path.join(self.root_dir, sub)
             if os.path.exists(full_sub):
-                for root, _, files in os.walk(full_sub):
-                    for f in files:
-                        if f.endswith((".py", ".swift")):
-                            fp = os.path.join(root, f)
-                            try:
-                                if now - os.path.getmtime(fp) < 3600 * 24:
-                                    candidates.append(fp)
-                            except OSError:
-                                pass
+                for fp in self._walk_code_files(full_sub, (".py", ".swift")):
+                    try:
+                        mtime = os.path.getmtime(fp)
+                    except OSError:
+                        skipped.append(fp)
+                        continue
+                    if now - mtime < 3600 * 24:
+                        candidates.append(fp)
+        if skipped:
+            sys.stderr.write(
+                f"[quick_verify] Notice: {len(skipped)} file(s) unreadable during mtime scan, skipped\n"
+            )
         return candidates
 
     def run_phase0_toolchain(self) -> None:
@@ -162,12 +186,29 @@ class QuickVerifier:
                                 self.results["phase2_types"]["warnings"].append(
                                     f"{rel}:{node.lineno}: Function '{node.name}' lacks return type annotation"
                                 )
-                except Exception:
-                    pass
+                except (SyntaxError, ValueError, OSError, RecursionError) as err:
+                    self.results["phase2_types"]["warnings"].append(
+                        f"{os.path.relpath(f, self.root_dir)}: AST annotation scan skipped: {err.__class__.__name__}: {err}"
+                    )
 
     def run_phase3_clean_code(self, files: List[str]) -> None:
-        """Phase 3: Clean Code & Band-Aid Guard (Rule #19 & DEV_PROTOCOL) + WebDAV Hygiene Guard."""
-        # 1. WebDAV / File naming hygiene guard (<0.005s)
+        """Phase 3: Clean Code & Band-Aid Guard (Rule #19 & DEV_PROTOCOL) + Vault Root Hygiene Guard (Rule #4, #7)."""
+        # 1. Vault Root Directory Whitelist Guard (<0.001s)
+        try:
+            for entry in os.listdir(self.root_dir):
+                full_p = os.path.join(self.root_dir, entry)
+                if os.path.isdir(full_p):
+                    if entry not in CANONICAL_ROOT_DIRECTORIES:
+                        self.results["phase3_clean_code"]["passed"] = False
+                        self.results["phase3_clean_code"]["errors"].append(
+                            f"Vault Root Hygiene Violation: Unauthorized directory '{entry}/' found in Vault root. "
+                            f"Rule #4 & #7 forbid creating folders in root. Tests belong strictly in 'and_os/tests/' "
+                            f"or 'and_os/opt/apps/<app>/tests/'."
+                        )
+        except Exception as e:
+            self.results["phase3_clean_code"]["warnings"].append(f"Root whitelist scan error: {e}")
+
+        # 2. WebDAV / File naming hygiene guard (<0.005s)
         try:
             from and_os.lib.vault.hygiene import validate_name
             for f in files:
@@ -179,8 +220,21 @@ class QuickVerifier:
                     self.results["phase3_clean_code"]["errors"].append(
                         f"{rel}: WebDAV naming violation: {', '.join(errs)}"
                     )
-        except Exception:
-            pass
+        except (OSError, ValueError) as err:
+            self.results["phase3_clean_code"]["warnings"].append(
+                f"WebDAV naming scan partially failed: {err.__class__.__name__}: {err}"
+            )
+
+        # 3. Hardware Token Barrier (Rule #16 & Rule #24 Invariant)
+        for f in files:
+            norm_f = f.replace("\\", "/")
+            if ("/analytic_" in norm_f and "/raw_" in norm_f and norm_f.endswith(".csv")) or (norm_f.endswith("mars_data.json") or norm_f.endswith("kot_data.json")):
+                if os.path.exists(f) and os.path.getsize(f) > 1024 * 500:  # > 500 KB
+                    rel = os.path.relpath(f, self.root_dir)
+                    self.results["phase3_clean_code"]["warnings"].append(
+                        f"Rule #16/24 Token Guard: {rel} ({os.path.getsize(f)//1024} KB) is a heavy data asset. "
+                        f"Direct inspection is forbidden; aggregate via 'sys_cli track ftrack --summary'."
+                    )
 
         # 2. Python clean code AST checks
         for f in files:
@@ -204,24 +258,39 @@ class QuickVerifier:
                                     self.results["phase3_clean_code"]["warnings"].append(
                                         f"{rel}:{node.lineno}: Silent exception swallowing (except: pass) detected"
                                     )
-                except Exception:
-                    pass
+                except (SyntaxError, ValueError, OSError, RecursionError) as err:
+                    self.results["phase3_clean_code"]["warnings"].append(
+                        f"{os.path.relpath(f, self.root_dir)}: clean-code AST scan skipped: {err.__class__.__name__}: {err}"
+                    )
 
     def run_phase4_tests(self, files: List[str]) -> None:
-        """Phase 4: Run targeted tests if any test files are associated."""
-        test_files = [f for f in files if "test" in os.path.basename(f) and f.endswith(".py")]
+        """Phase 4: Run targeted tests if any test files are associated.
+
+        Only files following the suite convention (test_*.py under
+        and_os/tests) are executed — runners/utilities (e.g. run_tests.py)
+        are never invoked as tests. The hermetic venv interpreter is used
+        so the suite runs on the Golden Stack regardless of how verify
+        itself was launched.
+        """
+        test_files = [
+            f for f in files
+            if os.path.basename(f).startswith("test_") and f.endswith(".py")
+        ]
         test_env = os.environ.copy()
         test_env["PYTHONPATH"] = f"{self.root_dir}:{test_env.get('PYTHONPATH', '')}"
+        test_env["PYTHONDONTWRITEBYTECODE"] = "1"
+        venv_python = os.path.join(self.root_dir, "and_os", ".venv", "bin", "python")
+        interpreter = venv_python if os.path.exists(venv_python) else sys.executable
         for tf in test_files:
             try:
-                cmd = [sys.executable, tf]
-                p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10, env=test_env, cwd=self.root_dir)
+                cmd = [interpreter, tf]
+                p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60, env=test_env, cwd=self.root_dir)
                 self.results["phase4_tests"]["tests_run"] += 1
                 if p.returncode != 0:
                     self.results["phase4_tests"]["passed"] = False
                     rel = os.path.relpath(tf, self.root_dir)
                     self.results["phase4_tests"]["errors"].append(f"{rel}: Test run failed with code {p.returncode}")
-            except Exception as e:
+            except (OSError, subprocess.SubprocessError) as e:
                 self.results["phase4_tests"]["passed"] = False
                 self.results["phase4_tests"]["errors"].append(f"{tf}: Execution error: {e}")
 
@@ -278,10 +347,14 @@ class QuickVerifier:
                                                 self.results["phase5_security"]["errors"].append(
                                                     f"{rel}:{node.lineno}: Unsafe dynamic shell=True subprocess invocation"
                                                 )
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                    except (IndexError, AttributeError, TypeError) as err:
+                        sys.stderr.write(
+                            f"[quick_verify] Notice: security AST scan partial failure ({rel}): {err.__class__.__name__}\n"
+                        )
+            except (SyntaxError, ValueError, OSError, RecursionError) as err:
+                sys.stderr.write(
+                    f"[quick_verify] Notice: security AST scan skipped for {rel}: {err.__class__.__name__}\n"
+                )
 
     def run_phase6_diff(self) -> None:
         """Phase 6: Diff Hygiene & Size Analysis (Sovereign Vault Aware)."""
@@ -302,8 +375,10 @@ class QuickVerifier:
                     if m_del:
                         self.results["phase6_diff"]["lines_removed"] = int(m_del.group(1))
                     return
-            except Exception:
-                pass
+            except (OSError, subprocess.SubprocessError, ValueError) as err:
+                sys.stderr.write(
+                    f"[quick_verify] Notice: git diff --stat failed ({err.__class__.__name__}); diff metrics skipped\n"
+                )
 
         # Fallback for sovereign vault: count recent files in and_os modified in last 24h
         try:
@@ -311,8 +386,10 @@ class QuickVerifier:
             self.results["phase6_diff"]["files_changed"] = recent_count
             self.results["phase6_diff"]["lines_added"] = 0
             self.results["phase6_diff"]["lines_removed"] = 0
-        except Exception:
-            pass
+        except OSError as err:
+            sys.stderr.write(
+                f"[quick_verify] Notice: diff fallback count failed ({err.__class__.__name__}); files_changed=0\n"
+            )
 
     def run_phase7_memory(self) -> None:
         """Phase 7: Closed-Loop Memory & Knowledge Integrity Guard."""
@@ -398,8 +475,12 @@ class QuickVerifier:
             if not ok:
                 self.results["phase8_rules"]["passed"] = False
                 self.results["phase8_rules"]["errors"].append(f"Release Ledger Parity Violation: {parity_msg}")
-        except Exception:
-            pass
+        except (ImportError, OSError, ValueError) as err:
+            # Fail-closed: a parity gate that cannot run is reported, not silently passed.
+            self.results["phase8_rules"]["passed"] = False
+            self.results["phase8_rules"]["errors"].append(
+                f"Release Ledger Parity check unavailable: {err.__class__.__name__}: {err}"
+            )
 
     def verify(self) -> Dict[str, Any]:
         t0 = time.time()

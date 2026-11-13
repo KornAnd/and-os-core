@@ -3,6 +3,8 @@ name: obsidian-bases
 description: "Use when creating, validating, and maintaining Obsidian Bases (.base files) with views, reactive filters, formulas, and summaries for database-like tables across vault notes."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: WORK

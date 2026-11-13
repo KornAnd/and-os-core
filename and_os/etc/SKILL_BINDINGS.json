@@ -328,6 +328,13 @@
     "path": "and_os/lib/skills/prompt-improver",
     "has_references": true
   },
+  "reverse-engineer-anything": {
+    "name": "reverse-engineer-anything",
+    "modality": "EXECUTABLE_ENGINE",
+    "engine": "and_os/lib/core/rea_engine.py",
+    "path": "and_os/lib/skills/reverse-engineer-anything",
+    "has_references": false
+  },
   "script-bible-extractor": {
     "name": "script-bible-extractor",
     "modality": "EXECUTABLE_ENGINE",

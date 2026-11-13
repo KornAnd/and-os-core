@@ -3,6 +3,8 @@ name: task-graph
 description: "Use when querying the SQLite task index, managing priority blockers, and computing dependency DAGs across all vault markdown TODOs."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: WORK

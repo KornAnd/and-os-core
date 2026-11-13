@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-audit_tags_links.py — проверка и доставка тегов каталога и навигационных ссылок CONTEXT.
-Принцип: Think in Code (Правило №16) и Правило №1 (режим «проверять и доставлять»).
+audit_tags_links.py — check and delivery of catalog tags and CONTEXT navigation links.
+Principle: Think in Code (Rule #16) and Rule #1 (check-and-deliver mode).
 
-Использование:
-  python3 audit_tags_links.py --check             # Диагностика по всему хранилищу
-  python3 audit_tags_links.py --check --path Nero # Диагностика одного каталога
-  python3 audit_tags_links.py --fix --path Tasks  # Доставка тегов и линков в каталоге Tasks
+Usage:
+  python3 audit_tags_links.py --check             # Diagnostics across the whole Vault
+  python3 audit_tags_links.py --check --path Nero # Diagnostics for a single catalog
+  python3 audit_tags_links.py --fix --path Tasks  # Deliver tags and links in the Tasks catalog
 """
 
 import os
@@ -165,18 +165,18 @@ def fix_file(analysis):
     return changed
 
 def main():
-    parser = argparse.ArgumentParser(description="Аудит и доставка тегов и обратных навигационных ссылок")
-    parser.add_argument("--check", action="store_true", help="Только проверка")
-    parser.add_argument("--fix", action="store_true", help="Применить автоматическую доставку")
-    parser.add_argument("--path", type=str, default="", help="Ограничить каталогом")
+    parser = argparse.ArgumentParser(description="Audit and delivery of tags and reverse navigation links")
+    parser.add_argument("--check", action="store_true", help="Check only")
+    parser.add_argument("--fix", action="store_true", help="Apply automatic delivery")
+    parser.add_argument("--path", type=str, default="", help="Restrict to a catalog")
     args = parser.parse_args()
 
     target = os.path.join(VAULT_ROOT, args.path) if args.path else VAULT_ROOT
     if not os.path.exists(target):
-        print(f"Ошибка: {target} не существует.")
+        print(f"Error: {target} does not exist.")
         sys.exit(1)
 
-    print(f"Сканирование заметок в: {target}")
+    print(f"Scanning notes in: {target}")
     total_files = 0
     missing_links_count = 0
     missing_tags_count = 0
@@ -197,21 +197,21 @@ def main():
                         if res["missing_tags"]:
                             missing_tags_count += 1
 
-    print(f"Всего проверено заметок: {total_files}")
-    print(f"Файлов без обратной ссылки на CONTEXT/индекс: {missing_links_count}")
-    print(f"Файлов с неполными тегами каталога: {missing_tags_count}")
-    print(f"Всего файлов, требующих нормализации: {len(to_fix)}")
+    print(f"Total notes checked: {total_files}")
+    print(f"Files without a backlink to CONTEXT/index: {missing_links_count}")
+    print(f"Files with incomplete catalog tags: {missing_tags_count}")
+    print(f"Total files requiring normalization: {len(to_fix)}")
 
     if args.fix:
-        print("\nЗапуск доставки тегов и навигационных ссылок (--fix)...")
+        print("\nStarting delivery of tags and navigation links (--fix)...")
         fixed_count = 0
         for item in to_fix:
             if fix_file(item):
                 fixed_count += 1
-        print(f"Готово! Успешно обновлено заметок: {fixed_count}.")
+        print(f"Done! Notes updated successfully: {fixed_count}.")
     elif not args.check:
-        print("\nДля автоматического исправления запустите с флагом --fix:")
-        print(f"python3 \"{os.path.abspath(__file__)}\" --fix [--path <каталог>]")
+        print("\nTo fix automatically, run with the --fix flag:")
+        print(f"python3 \"{os.path.abspath(__file__)}\" --fix [--path <catalog>]")
 
 if __name__ == "__main__":
     main()

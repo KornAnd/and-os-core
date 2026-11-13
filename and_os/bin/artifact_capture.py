@@ -68,8 +68,10 @@ def rotate_artifacts(directory: Path, keep_limit: int = MAX_ARTIFACTS):
                     mf.unlink()
                 if png_file.exists():
                     png_file.unlink()
-    except Exception:
-        pass
+    except Exception as e:
+        # Best-effort housekeeping: rotation failure must not break capture,
+        # but it is announced (never silent — clean-code-guardian, R4-P4)
+        sys.stderr.write(f"[artifact_capture] Notice: artifact rotation failed ({e})\n")
 
 def capture(reason: str = "Test failure or runtime crash", command: str = "") -> Dict[str, Any]:
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)

@@ -10,7 +10,7 @@ color: ""
 
 # REGISTRY.md — Unified Skill Registry
 
-[[|**Назначение:** единый источник истины по статусу каждого скилла. Заменяет необходимость держать lifecycle-поле в каждом отдельном SKILL.md (см. [[and_os/lib/skills/GOVERNANCE|GOVERNANCE.md]]).
+**Назначение:** единый источник истины по статусу каждого скилла. Заменяет необходимость держать lifecycle-поле в каждом отдельном SKILL.md (см. [[and_os/lib/skills/GOVERNANCE|GOVERNANCE.md]]).
 
 **Статусы:** `ACTIVE` (используется) · `EXPERIMENTAL` (новый, не обкатан) · `REVIEW` (нужна проверка — устарел или не используется) · `DEPRECATED` (заменён/не нужен) · `ARCHIVED` (сохранён для истории)
 

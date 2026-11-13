@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-backup_engine.py — Enterprise Backup Engine for AnD os v8.5.
+backup_engine.py — Enterprise Backup Engine for AnD os v1.0.0.
 Features:
   - 100% Full Obsidian Vault backup (All knowledge domains, configs, core).
   - Cross-Platform & Cloud-Ready universal ZIP format (Deflated level 6, Bit 11 UTF-8).
   - Unicode NFC Normalization: eliminates macOS NFD decomposition and '???' mojibake in Yandex.Disk / Windows / Linux.
   - POSIX file modes (0755/0644) & Unix symlinks preservation.
-  - Hard 3.0 GB Quota Enforcer with strict FIFO pruning.
+  - Hard 5.0 GB Quota Enforcer with strict FIFO pruning.
   - Zero Contamination: strictly one-way Source -> Target operations.
   - Pre-flight safety gates, atomic archive creation (.tmp_* -> target), SHA-256 verification.
   - Post-creation 4-phase self-audit: ZIP CRC32 test + Cyrillic integrity probe.
@@ -38,11 +38,11 @@ elif _default_vault.exists():
 else:
     VAULT_ROOT = ENGINE_DIR.parent.parent.resolve()
 
-TARGET_BACKUP_DIR = Path("~/Yandex.Disk.localized/WORK/Backups/Obsidian_Vault")
+TARGET_BACKUP_DIR = Path("~/ExternalDrive/WORK/Backups/Obsidian_Vault")
 LOG_FILE = VAULT_ROOT / "and_os" / "var" / "log" / "backup.jsonl"
 STATE_FILE = VAULT_ROOT / "and_os" / "var" / "backup_state.json"
 LOCK_FILE = Path("/tmp/and_os_backup.lock")
-MAX_STORAGE_BYTES = 3 * 1024 * 1024 * 1024  # 3.0 GB Hard Quota
+MAX_STORAGE_BYTES = 5 * 1024 * 1024 * 1024  # 5.0 GB Hard Quota (audit R4, P6, R4-BACKUP-1: Andrey's decision 12.11)
 
 # Exclusions (clean transient caches only, preserve all vault content)
 EXCLUDE_DIRS = {
@@ -82,7 +82,7 @@ def calculate_sha256(filepath: Path) -> str:
 
 def preflight_check() -> tuple[bool, str]:
     """Execute pre-flight safety gates."""
-    target_work = Path("~/Yandex.Disk.localized/WORK")
+    target_work = Path("~/ExternalDrive/WORK")
     if not target_work.exists() or not os.access(target_work, os.W_OK):
         return False, "Target backup path /WORK is not mounted or not writable."
     
@@ -108,7 +108,7 @@ def should_exclude(rel_path: Path) -> bool:
     return False
 
 def enforce_quota(target_dir: Path) -> list[str]:
-    """Prune oldest backups strictly when total size exceeds 3.0 GB."""
+    """Prune oldest backups strictly when total size exceeds 5.0 GB."""
     pruned = []
     while True:
         archives = sorted(
@@ -167,7 +167,7 @@ def verify_archive(archive_path: Path) -> tuple[bool, str, int]:
         return False, f"Archive verification exception: {e}", 0
 
 def run_backup() -> dict:
-    """Run full atomic vault backup with universal ZIP format and 3GB quota."""
+    """Run full atomic vault backup with universal ZIP format and 5GB quota."""
     start_time = time.time()
     
     # Check Lock
@@ -266,7 +266,7 @@ def run_backup() -> dict:
         temp_archive_path.replace(final_archive_path)
         archive_size_mb = final_archive_path.stat().st_size / (1024 * 1024)
 
-        # Enforce 3.0 GB quota via FIFO
+        # Enforce 5.0 GB quota via FIFO
         pruned_files = enforce_quota(TARGET_BACKUP_DIR)
         
         # Total remaining size calculation
@@ -283,14 +283,14 @@ def run_backup() -> dict:
             "sha256": checksum,
             "pruned_archives": pruned_files,
             "total_quota_used_mb": round(total_quota_used_mb, 2),
-            "max_quota_mb": 3072.0,
+            "max_quota_mb": MAX_STORAGE_BYTES / (1024 * 1024),
             "elapsed_sec": elapsed
         }
         
         log_event("BACKUP_SUCCESS", summary)
-        print(f"✅ [AnD os Backup] Complete in {elapsed}s | Size: {archive_size_mb:.1f} MB | Quota: {total_quota_used_mb:.1f}/3072 MB")
+        print(f"✅ [AnD os Backup] Complete in {elapsed}s | Size: {archive_size_mb:.1f} MB | Quota: {total_quota_used_mb:.1f}/{MAX_STORAGE_BYTES / (1024 * 1024):.0f} MB")
         if pruned_files:
-            print(f"🗑️ [AnD os Backup] FIFO Pruned (exceeded 3GB): {', '.join(pruned_files)}")
+            print(f"🗑️ [AnD os Backup] FIFO Pruned (exceeded 5GB): {', '.join(pruned_files)}")
             
         return summary
 

@@ -67,8 +67,8 @@ class CheckpointManager:
             try:
                 with open(self.metadata_file, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except (OSError, json.JSONDecodeError) as err:
+                sys.stderr.write(f"[checkpoint_manager] Notice: the metadata is unreadable: {err}\n")
         return {"checkpoints": []}
 
     def _save_metadata(self, data: Dict[str, Any]):
@@ -89,8 +89,8 @@ class CheckpointManager:
                 p_st = subprocess.run(["git", "status", "--porcelain"], cwd=self.vault_root, stdout=subprocess.PIPE, text=True)
                 if p_st.returncode == 0:
                     info["dirty_files"] = [line[3:].strip() for line in p_st.stdout.splitlines() if len(line) > 3]
-            except Exception:
-                pass
+            except (OSError, subprocess.SubprocessError) as err:
+                sys.stderr.write(f"[checkpoint_manager] Notice: the git info was unavailable: {err}\n")
         return info
 
     def create(self, name: str, targets: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -108,6 +108,7 @@ class CheckpointManager:
             "and_os/etc",
             "and_os/opt",
             "and_os/docs",
+            "and_os/sbin",
             "Nero/xcode"
         ]
         cloned_paths = []
@@ -142,6 +143,27 @@ class CheckpointManager:
         self._save_metadata(meta)
         return cp_record
 
+    def _diff_tree(self, original_dir: str, cloned_dir: str) -> tuple:
+        """Collects the (added, modified) files of original_dir against the snapshot."""
+        added = []
+        modified = []
+        for root, _, files in os.walk(original_dir):
+            if any(ig in root for ig in [".git", "var/checkpoints", "__pycache__"]):
+                continue
+            for f in files:
+                curr_file = os.path.join(root, f)
+                rel = os.path.relpath(curr_file, original_dir)
+                snap_file = os.path.join(cloned_dir, rel)
+                if os.path.exists(snap_file):
+                    try:
+                        if os.path.getmtime(curr_file) != os.path.getmtime(snap_file):
+                            modified.append(os.path.relpath(curr_file, self.vault_root))
+                    except OSError as err:
+                        sys.stderr.write(f"[checkpoint_manager] Notice: the mtime of the {rel} was unavailable: {err}\n")
+                else:
+                    added.append(os.path.relpath(curr_file, self.vault_root))
+        return added, modified
+
     def verify(self, name: str) -> Dict[str, Any]:
         meta = self._load_metadata()
         record = next((c for c in meta["checkpoints"] if c["name"] == name), None)
@@ -158,21 +180,9 @@ class CheckpointManager:
             original_dir = os.path.join(self.vault_root, target)
             cloned_dir = os.path.join(snap_dir, target.replace("/", "__"))
             if os.path.exists(original_dir) and os.path.exists(cloned_dir):
-                for root, _, files in os.walk(original_dir):
-                    if any(ig in root for ig in [".git", "var/checkpoints", "__pycache__"]):
-                        continue
-                    for f in files:
-                        curr_file = os.path.join(root, f)
-                        rel = os.path.relpath(curr_file, original_dir)
-                        snap_file = os.path.join(cloned_dir, rel)
-                        if not os.path.exists(snap_file):
-                            added.append(os.path.relpath(curr_file, self.vault_root))
-                        else:
-                            try:
-                                if os.path.getmtime(curr_file) != os.path.getmtime(snap_file):
-                                    modified.append(os.path.relpath(curr_file, self.vault_root))
-                            except OSError:
-                                pass
+                target_added, target_modified = self._diff_tree(original_dir, cloned_dir)
+                added.extend(target_added)
+                modified.extend(target_modified)
 
         return {
             "checkpoint_name": name,
@@ -210,19 +220,26 @@ class CheckpointManager:
         meta = self._load_metadata()
         return meta.get("checkpoints", [])
 
-    def clear(self, keep_last: int = 5) -> int:
+    def clear(self, keep_last: int = 5, names: Optional[List[str]] = None) -> int:
+        """Removes checkpoints by name (audit R4, P6) or, legacy, keeps only
+        the keep_last freshest. Returns the number of removed checkpoints."""
         meta = self._load_metadata()
         cps = meta.get("checkpoints", [])
-        if len(cps) > keep_last:
+        if names:
+            to_remove = [c for c in cps if c.get("name") in names]
+            meta["checkpoints"] = [c for c in cps if c.get("name") not in names]
+        elif len(cps) > keep_last:
             to_remove = cps[keep_last:]
             meta["checkpoints"] = cps[:keep_last]
-            for r in to_remove:
-                snap_dir = os.path.join(self.storage_dir, r["safe_name"])
-                if os.path.exists(snap_dir):
-                    shutil.rmtree(snap_dir)
+        else:
+            return 0
+        for r in to_remove:
+            snap_dir = os.path.join(self.storage_dir, r["safe_name"])
+            if os.path.exists(snap_dir):
+                shutil.rmtree(snap_dir)
+        if to_remove:
             self._save_metadata(meta)
-            return len(to_remove)
-        return 0
+        return len(to_remove)
 
 
 def main() -> None:
@@ -230,24 +247,26 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # create
-    p_c = subparsers.add_parser("create", help="Создать мгновенный APFS CoW снимок")
-    p_c.add_argument("name", help="Название контрольной точки")
-    p_c.add_argument("--targets", nargs="*", help="Целевые подкаталоги для клонирования")
+    p_c = subparsers.add_parser("create", help="Create an instant APFS CoW snapshot")
+    p_c.add_argument("name", help="Checkpoint name")
+    p_c.add_argument("--targets", nargs="*", help="Target subcatalogs to clone")
 
     # verify
-    p_v = subparsers.add_parser("verify", help="Проверить дельту с момента контрольной точки")
-    p_v.add_argument("name", help="Название контрольной точки")
+    p_v = subparsers.add_parser("verify", help="Verify the delta since the checkpoint")
+    p_v.add_argument("name", help="Checkpoint name")
 
     # rollback
-    p_r = subparsers.add_parser("rollback", help="Откатить состояние до контрольной точки")
-    p_r.add_argument("name", help="Название контрольной точки")
+    p_r = subparsers.add_parser("rollback", help="Roll the state back to the checkpoint")
+    p_r.add_argument("name", help="Checkpoint name")
 
     # list
-    subparsers.add_parser("list", help="Список активных контрольных точек")
+    subparsers.add_parser("list", help="List of active checkpoints")
 
     # clear
-    p_cl = subparsers.add_parser("clear", help="Очистить старые контрольные точки")
-    p_cl.add_argument("--keep", type=int, default=5, help="Сколько последних снимков сохранить")
+    p_cl = subparsers.add_parser("clear", help="Clear old checkpoints")
+    p_cl.add_argument("--keep", type=int, default=5, help="How many latest snapshots to keep")
+    p_cl.add_argument("--name", action="append", default=None, metavar="NAME",
+                      help="Remove specific checkpoints by name (repeatable; audit R4, P6)")
 
     args = parser.parse_args()
     vault_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -280,14 +299,14 @@ def main() -> None:
     elif args.subcommand == "list":
         cps = mgr.list_checkpoints()
         if not cps:
-            print("ℹ️ Нет активных контрольных точек.")
+            print("ℹ️ No active checkpoints.")
         else:
-            print(f"📋 АКТИВНЫЕ КОНТРОЛЬНЫЕ ТОЧКИ ({len(cps)}):")
+            print(f"📋 ACTIVE CHECKPOINTS ({len(cps)}):")
             for c in cps:
                 print(f"  • [{c['created_at']}] {c['name']:<20} | SHA: {c['git_sha']} | Cloned: {', '.join(c['cloned_targets'])}")
     elif args.subcommand == "clear":
-        removed = mgr.clear(keep_last=args.keep)
-        print(f"🧹 Очищено устаревших контрольных точек: {removed}")
+        removed = mgr.clear(keep_last=args.keep, names=args.name)
+        print(f"🧹 Outdated checkpoints removed: {removed}")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# 🧩 SKILL_MODULE_ABI — Universal Skill & Module Specification (AnD os v8.1)
+# 🧩 SKILL_MODULE_ABI — Universal Skill & Module Specification (AnD os v1.0.0)
 
 > 💡 **TL;DR:** Canonical Application Binary Interface (ABI) for all 58 system skills in AnD os. Standardizes execution contracts, declarative reference extraction, pipeline chaining, and atomic registration across all 8 islands.  
 > 📅 **Revision Date:** 2026-10-23 | **Status:** CANONICAL | **Rule Alignment:** Rules #16, #40, #42, #50, #51, #54, #55
@@ -94,4 +94,4 @@ The addition of any new skill module MUST be atomic and transactional:
 6. In case of any probe failure, an automatic rollback (revert) is triggered immediately.
 
 ---
-[[|[[Vault|← Vault]]
+[[Vault|← Vault]]

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-video_harness.py — Автономный валидатор технического ОТК видео и пассов (Video E2E Harness).
-AnD os v8.4 — Остров 7 & 5 (Pulsar & CG Production).
+video_harness.py — Autonomous technical QC validator for video and passes (Video E2E Harness).
+AnD os v1.0.0 — Island 7 & 5 (Pulsar & CG Production).
 
-Обеспечивает сквозной технический контроль артефактов шотного пайплайна:
-1. Валидация сырых плейбластов (Blender Viewport Playblast) и видео-пассов глубины.
-2. Проверка соответствия студийным спецификациям (FPS 24.0, H.264/ProRes, четность разрешения 1920x1080 / 1280x720).
-3. Проверка совпадения таймингов и количества кадров между плейбластом и пассами.
-4. Вычисление дельты ключевых кадров (Start/End frame diff) для выявления скачков и разрывов.
-5. Запись результатов ОТК в `shot.meta.json` перед передачей в ComfyUI.
+Provides end-to-end technical control of shot pipeline artifacts:
+1. Validation of raw playblasts (Blender Viewport Playblast) and depth video passes.
+2. Studio spec compliance check (FPS 24.0, H.264/ProRes, even resolution 1920x1080 / 1280x720).
+3. Timing and frame-count match check between playblast and passes.
+4. Keyframe delta computation (Start/End frame diff) to detect jumps and breaks.
+5. QC result write into `shot.meta.json` before hand-off to ComfyUI.
 """
 
 import os
@@ -27,7 +27,7 @@ def get_ffprobe_bin() -> str:
     return "ffprobe"
 
 def probe_stream(file_path: str) -> Dict[str, Any]:
-    """Извлекает технические параметры видео через ffprobe."""
+    """Extracts video technical parameters via ffprobe."""
     if not os.path.exists(file_path):
         return {"status": "error", "message": f"File not found: {file_path}"}
 
@@ -48,7 +48,7 @@ def probe_stream(file_path: str) -> Dict[str, Any]:
         v_stream = info.get("streams", [{}])[0]
         fmt = info.get("format", {})
 
-        # Парсинг FPS из рационального числа "24/1" -> 24.0
+        # Parse FPS from a rational number "24/1" -> 24.0
         fps_str = v_stream.get("r_frame_rate", "24/1")
         try:
             num, den = fps_str.split("/")
@@ -75,11 +75,11 @@ def probe_stream(file_path: str) -> Dict[str, Any]:
 
 def validate_shot_passes(playblast_path: str, depth_path: Optional[str] = None, expected_fps: float = 24.0) -> Dict[str, Any]:
     """
-    Выполняет комплексное ОТК плейбласта и пасса глубины:
-    - Проверка существования файлов
-    - Проверка частоты кадров (FPS == 24.0)
-    - Проверка совпадения геометрии кадра (Width/Height)
-    - Проверка синхронности хронометража (Frame Count Diff == 0)
+    Runs a full QC pass over the playblast and the depth pass:
+    - File existence check
+    - Frame rate check (FPS == 24.0)
+    - Frame geometry match check (Width/Height)
+    - Runtime synchronization check (Frame Count Diff == 0)
     """
     report = {
         "status": "ok",
@@ -90,7 +90,7 @@ def validate_shot_passes(playblast_path: str, depth_path: Optional[str] = None, 
         "errors": []
     }
 
-    # 1. Проверка плейбласта
+    # 1. Playblast check
     pb_info = probe_stream(playblast_path)
     if pb_info.get("status") != "ok":
         report["passed"] = False
@@ -99,34 +99,34 @@ def validate_shot_passes(playblast_path: str, depth_path: Optional[str] = None, 
 
     report["playblast"] = pb_info
 
-    # Чек FPS
+    # FPS check
     if abs(pb_info["fps"] - expected_fps) > 0.05:
         report["passed"] = False
         report["errors"].append(f"FPS Mismatch: expected {expected_fps}, got {pb_info['fps']}")
     else:
         report["checks"].append(f"FPS Verified: {pb_info['fps']} fps")
 
-    # Чек четности разрешения
+    # Resolution parity check
     if pb_info["width"] % 2 != 0 or pb_info["height"] % 2 != 0:
         report["passed"] = False
         report["errors"].append(f"Odd resolution detected ({pb_info['width']}x{pb_info['height']}), requires mod-2 for video codecs")
     else:
         report["checks"].append(f"Resolution Verified: {pb_info['width']}x{pb_info['height']}")
 
-    # 2. Проверка пасса глубины (если передан)
+    # 2. Depth pass check (if provided)
     if depth_path and os.path.exists(depth_path):
         dp_info = probe_stream(depth_path)
         if dp_info.get("status") == "ok":
             report["depth_pass"] = dp_info
             
-            # Сверка размерностей
+            # Dimension cross-check
             if (dp_info["width"], dp_info["height"]) != (pb_info["width"], pb_info["height"]):
                 report["passed"] = False
                 report["errors"].append(f"Pass dimension mismatch: playblast is {pb_info['width']}x{pb_info['height']}, depth is {dp_info['width']}x{dp_info['height']}")
             else:
                 report["checks"].append("Pass Dimensions Synchronized")
 
-            # Сверка количества кадров
+            # Frame-count cross-check
             if abs(dp_info["frames"] - pb_info["frames"]) > 1:
                 report["passed"] = False
                 report["errors"].append(f"Pass frame count desync: playblast has {pb_info['frames']} frames, depth has {dp_info['frames']} frames")

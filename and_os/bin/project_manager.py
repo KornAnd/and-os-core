@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v8.5.
+project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.0.0.
 Automatically registers new projects in Nero/pulsar (Island 7) or Nero/xcode (Island 9).
 
 Features:
@@ -75,23 +75,23 @@ color: var(--mk-color-turquoise)
 
 # 🚀 {name}
 
-> **Категория:** {category}  
-> **Статус:** {status.upper()}  
-> **Порт / Эндпоинт:** {f":{port}" if port else "Локальный процесс / CLI"}  
-> **Расположение исходников:** `{repo_path or f"~/Yandex.Disk.localized/WORK/pulsar/{name}"}`  
+> **Category:** {category}  
+> **Status:** {status.upper()}  
+> **Port / Endpoint:** {f":{port}" if port else "Local process / CLI"}  
+> **The sources location:** `{repo_path or f"./pulsar/{name}"}`  
 
 ---
 
-## 🎯 Описание и Назначение
+## 🎯 The Description and the Purpose
 
 {description}
 
 ---
 
-## ⚙️ Управление жизненным циклом (AnD os Core)
-- **Запуск:** `sys_cli.py daemon start --target {app_slug}`
-- **Перезапуск:** `sys_cli.py daemon restart --target {app_slug}`
-- **Телеметрия:** отображается в нативном дашборде [[Nero/pulsar/Приложения_Pulsar.base|Приложения Pulsar Base]]
+## ⚙️ The Lifecycle Control (AnD os Core)
+- **The launch:** `sys_cli.py daemon start --target {app_slug}`
+- **The restart:** `sys_cli.py daemon restart --target {app_slug}`
+- **The telemetry:** displayed in the native dashboard [[Nero/pulsar/Приложения_Pulsar.base|Приложения Pulsar Base]]
 """
 
     with open(file_path, "w", encoding="utf-8") as f:
@@ -143,23 +143,23 @@ color: var(--mk-color-purple)
 
 # 🎮 {name}
 
-> **Тип / Жанр:** {genre_or_type}  
-> **Статус проекта:** {status.upper()}  
-> **Рабочий контекст:** Остров 9 (Mobile App & Game Engineering)  
-> **Расположение исходников:** `{src}`  
+> **The Type / Genre:** {genre_or_type}  
+> **The project status:** {status.upper()}  
+> **The working context:** the Island 9 (Mobile App & Game Engineering)  
+> **The sources location:** `{src}`  
 
 ---
 
-## 🎯 Описание и Концепция
+## 🎯 The Description and the Concept
 
 {description}
 
 ---
 
-## 🛠️ Архитектура и Стандарты
-- **Платформа:** iOS (Swift, SwiftUI, SpriteKit)
-- **Правила качества:** Clean Code Guardian (Rule #16), Zero Silent Exceptions
-- **Реестр проектов:** включен в нативную базу [[Nero/xcode/Проекты_Xcode.base|Проекты Xcode Base]]
+## 🛠️ The Architecture and the Standards
+- **The Platform:** iOS (Swift, SwiftUI, SpriteKit)
+- **The quality rules:** Clean Code Guardian (Rule #16), Zero Silent Exceptions
+- **The projects registry:** included in the native base [[Nero/xcode/Проекты_Xcode.base|Проекты Xcode Base]]
 """
 
     with open(file_path, "w", encoding="utf-8") as f:
@@ -179,27 +179,27 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="target_realm", required=True)
 
     # Pulsar subparser
-    p_pulsar = subparsers.add_parser("pulsar", help="Управление сервисами Pulsar Space (Остров 7)")
-    p_pulsar.add_argument("--scan", action="store_true", help="Сканировать приложения в /WORK/pulsar/")
-    p_pulsar.add_argument("--sync", action="store_true", help="Синхронизировать паспорта в Nero/pulsar/")
-    p_pulsar.add_argument("--name", help="Название сервиса")
-    p_pulsar.add_argument("--desc", help="Описание сервиса")
-    p_pulsar.add_argument("--category", default="Web Dashboard", help="Категория сервиса")
-    p_pulsar.add_argument("--port", type=int, help="Сетевой TCP порт")
+    p_pulsar = subparsers.add_parser("pulsar", help="The control of the Pulsar Space services (the Island 7)")
+    p_pulsar.add_argument("--scan", action="store_true", help="Scan the applications in /WORK/pulsar/")
+    p_pulsar.add_argument("--sync", action="store_true", help="Synchronize the passports in Nero/pulsar/")
+    p_pulsar.add_argument("--name", help="The name of the service")
+    p_pulsar.add_argument("--desc", help="The description of the service")
+    p_pulsar.add_argument("--category", default="Web Dashboard", help="The category of the service")
+    p_pulsar.add_argument("--port", type=int, help="The network TCP port")
     p_pulsar.add_argument("--status", choices=["production", "active", "in_development", "concept"], default="active")
-    p_pulsar.add_argument("--repo", help="Путь к репозиторию")
-    p_pulsar.add_argument("--tags", help="Теги через запятую")
+    p_pulsar.add_argument("--repo", help="The path to the repository")
+    p_pulsar.add_argument("--tags", help="The tags separated by a comma")
 
     # Xcode subparser
-    p_xcode = subparsers.add_parser("xcode", help="Управление проектами Xcode & iOS Gamedev (Остров 9)")
-    p_xcode.add_argument("--scan", action="store_true", help="Сканировать проекты в /WORK/xcode/")
-    p_xcode.add_argument("--sync", action="store_true", help="Синхронизировать паспорта в Nero/xcode/")
-    p_xcode.add_argument("--name", help="Название игры или приложения")
-    p_xcode.add_argument("--desc", help="Описание концепции или геймплея")
-    p_xcode.add_argument("--type", default="iOS Game / SpriteKit", help="Жанр или тип приложения")
+    p_xcode = subparsers.add_parser("xcode", help="The control of the Xcode & iOS Gamedev projects (the Island 9)")
+    p_xcode.add_argument("--scan", action="store_true", help="Scan the projects in /WORK/xcode/")
+    p_xcode.add_argument("--sync", action="store_true", help="Synchronize the passports in Nero/xcode/")
+    p_xcode.add_argument("--name", help="The name of the game or the application")
+    p_xcode.add_argument("--desc", help="The description of the concept or the gameplay")
+    p_xcode.add_argument("--type", default="iOS Game / SpriteKit", help="The genre or the type of the application")
     p_xcode.add_argument("--status", choices=["production", "active", "in_development", "concept"], default="in_development")
-    p_xcode.add_argument("--source", help="Путь к каталогу проекта Xcode")
-    p_xcode.add_argument("--tags", help="Теги через запятую")
+    p_xcode.add_argument("--source", help="The path to the Xcode project catalog")
+    p_xcode.add_argument("--tags", help="The tags separated by a comma")
 
     args = parser.parse_args()
 
@@ -208,7 +208,7 @@ def main() -> None:
         if args.scan:
             inspector = PulsarInspector()
             apps = inspector.scan_applications()
-            print(f"=== 🏝️ Pulsar Space Scan (Остров 7) — {len(apps)} сервисов ===")
+            print(f"=== 🏝️ Pulsar Space Scan (the Island 7) — {len(apps)} services ===")
             for a in apps:
                 port_str = f":{a['port']}" if a['port'] else "—"
                 contract_str = "🟢 PROJECT.md" if a['has_contract'] else "🔴 NO CONTRACT"
@@ -218,14 +218,14 @@ def main() -> None:
         if args.sync:
             syncer = PulsarPassportSync()
             res = syncer.sync()
-            print(f"✅ Синхронизация Pulsar Space (Остров 7) завершена:")
-            print(f"   • Всего сервисов: {res['total_apps']}")
-            print(f"   • Создано новых паспортов: {len(res['created'])} ({', '.join(res['created']) or 'нет'})")
-            print(f"   • Обновлено паспортов: {len(res['updated'])} ({', '.join(res['updated']) or 'нет'})")
+            print(f"✅ The Pulsar Space synchronization (the Island 7) was completed:")
+            print(f"   • Total services: {res['total_apps']}")
+            print(f"   • The new passports were created: {len(res['created'])} ({', '.join(res['created']) or 'none'})")
+            print(f"   • The passports were updated: {len(res['updated'])} ({', '.join(res['updated']) or 'none'})")
             return
 
         if not args.name or not args.desc:
-            print("Ошибка: для регистрации нового сервиса требуются флаги --name и --desc (или используйте --scan / --sync).")
+            print("Error: for the registration of the new service the --name and the --desc flags are required (or use the --scan / the --sync).")
             sys.exit(1)
 
         custom_tags = [t.strip() for t in args.tags.split(",")] if args.tags else []
@@ -238,17 +238,17 @@ def main() -> None:
             repo_path=args.repo,
             tags=custom_tags
         )
-        print(f"✅ Сервис успешно зарегистрирован в Pulsar Space:")
-        print(f"   • Имя: {res['name']}")
-        print(f"   • Паспорт: {res['path']}")
-        print(f"   • База данных: Nero/pulsar/Приложения_Pulsar.base (🟢 обновлена реактивно)")
+        print(f"✅ The service was successfully registered in the Pulsar Space:")
+        print(f"   • Name: {res['name']}")
+        print(f"   • Passport: {res['path']}")
+        print(f"   • The database: Nero/pulsar/Приложения_Pulsar.base (🟢 updated reactively)")
 
     elif args.target_realm == "xcode":
         from and_os.lib.xcode import XcodeInspector, XcodePassportSync
         if args.scan:
             inspector = XcodeInspector()
             projs = inspector.scan_projects()
-            print(f"=== 🏝️ Xcode & Gamedev Scan (Остров 9) — {len(projs)} проектов ===")
+            print(f"=== 🏝️ Xcode & Gamedev Scan (the Island 9) — {len(projs)} projects ===")
             for p in projs:
                 contract_str = "🟢 PROJECT.md" if p['has_contract'] else "🔴 NO CONTRACT"
                 print(f"  • {p['id']:28} | {contract_str} | {p['category']} | {p['platform']}")
@@ -257,14 +257,14 @@ def main() -> None:
         if args.sync:
             syncer = XcodePassportSync()
             res = syncer.sync()
-            print(f"✅ Синхронизация Xcode Realm (Остров 9) завершена:")
-            print(f"   • Всего проектов: {res['total_projects']}")
-            print(f"   • Создано новых паспортов: {len(res['created'])} ({', '.join(res['created']) or 'нет'})")
-            print(f"   • Обновлено паспортов: {len(res['updated'])} ({', '.join(res['updated']) or 'нет'})")
+            print(f"✅ The Xcode Realm synchronization (the Island 9) was completed:")
+            print(f"   • Total projects: {res['total_projects']}")
+            print(f"   • The new passports were created: {len(res['created'])} ({', '.join(res['created']) or 'none'})")
+            print(f"   • The passports were updated: {len(res['updated'])} ({', '.join(res['updated']) or 'none'})")
             return
 
         if not args.name or not args.desc:
-            print("Ошибка: для регистрации нового проекта требуются флаги --name и --desc (или используйте --scan / --sync).")
+            print("Error: for the registration of the new project the --name and the --desc flags are required (or use the --scan / the --sync).")
             sys.exit(1)
 
         custom_tags = [t.strip() for t in args.tags.split(",")] if args.tags else []
@@ -276,10 +276,10 @@ def main() -> None:
             source_path=args.source,
             tags=custom_tags
         )
-        print(f"✅ Проект успешно зарегистрирован в Xcode Realm:")
-        print(f"   • Имя: {res['name']}")
-        print(f"   • Паспорт: {res['path']}")
-        print(f"   • База данных: Nero/xcode/Проекты_Xcode.base (🟢 обновлена реактивно)")
+        print(f"✅ The project was successfully registered in the Xcode Realm:")
+        print(f"   • Name: {res['name']}")
+        print(f"   • Passport: {res['path']}")
+        print(f"   • The database: Nero/xcode/Проекты_Xcode.base (🟢 updated reactively)")
 
 
 if __name__ == "__main__":

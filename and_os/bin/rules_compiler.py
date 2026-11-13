@@ -1,30 +1,59 @@
 #!/usr/bin/env python3
 """
-rules_compiler.py — Fast Rules Index Compiler for AnD os v8.5.
-Compiles SYSTEM.md and .opencode/rules.md into a high-density, token-efficient
-JSON index (and_os/etc/rules_fast_index.json) for 0-latency LLM agent injection.
+rules_compiler.py — Fast Rules Index Compiler for AnD os (v2, audit R2 P3).
+
+Compiles the canonical manifest (and_os/etc/system.json — SSoT) into a
+compact, token-efficient JSON index (and_os/etc/rules_fast_index.json)
+for 0-latency LLM session-start injection (OpenCode `instructions`).
+
+v2 design (token economy, finding C1):
+  - rules: 74 ultra-compact titles = canonical one-liner prefix before ':'
+    (the full per-rule text stays lazy in .opencode/rules.md)
+  - source_sha256: sha256 over SYSTEM.md || rules.md || etc/system.json
+    (three-source drift detection, no single-file blind spot)
+  - size self-policing: the compile REFUSES to write when the serialized
+    index exceeds the 6 KB session-start budget (budget is a contract,
+    not a hope — the same check re-runs in verify)
+  - consumer contract preserved: version, rules_count, core_principles,
+    domain_beacons (session_gate.py / vault_guard_hook.py read these keys)
+  - domain beacons use portable paths (no absolute home paths)
+  - CG satellite (cg_rules_fast.json) keeps its {name, essence} shape for
+    the CG app reader; it is not session-injected and has no size budget
 
 Features:
   - Sub-50ms execution time.
-  - Generates SHA256 content hashes to detect manifest drift.
-  - Emits core principles & compact rules dictionary (< 500 tokens).
-  - CLI operations: compile, status, verify.
+  - CLI operations: compile (default), status, verify.
+
+Consumers (do not break):
+  - and_os/lib/core/release_ledger.py  -> compile_rules_index()
+  - and_os/bin/quick_verify.py Phase 8 -> verify_rules_freshness() / compile_rules_index()
+  - and_os/bin/session_gate.py         -> version, rules_count, core_principles, domain_beacons
+  - and_os/bin/vault_guard_hook.py     -> domain_beacons
 """
 
 import os
-import sys
 import re
+import sys
 import json
+import time
 import hashlib
-from datetime import datetime
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 VAULT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "../.."))
 SYSTEM_MD = os.path.join(VAULT_ROOT, "SYSTEM.md")
 OPENCODE_RULES_MD = os.path.join(VAULT_ROOT, ".opencode/rules.md")
-TARGET_JSON = os.path.join(VAULT_ROOT, "and_os/etc/rules_fast_index.json")
-CG_TARGET_JSON = os.path.join(VAULT_ROOT, "and_os/opt/apps/cg_workspace/etc/cg_rules_fast.json")
+CANONICAL_SYSTEM_JSON = os.path.join(VAULT_ROOT, "and_os", "etc", "system.json")
+TARGET_JSON = os.path.join(VAULT_ROOT, "and_os", "etc", "rules_fast_index.json")
+CG_TARGET_JSON = os.path.join(VAULT_ROOT, "and_os", "opt", "apps", "cg_workspace", "etc", "cg_rules_fast.json")
+
+# Session-start injection budget (finding C1, approved 11.11): the index is
+# injected into every session, so its byte size is a hard contract.
+SIZE_BUDGET_BYTES = 6 * 1024
+
+# Three source files defining the index: any change to any of them must
+# invalidate the compiled sha256 (drift detection).
+SHA_SOURCES = (SYSTEM_MD, OPENCODE_RULES_MD, CANONICAL_SYSTEM_JSON)
 
 
 def compute_file_sha256(path: str) -> str:
@@ -38,113 +67,120 @@ def compute_file_sha256(path: str) -> str:
     return h.hexdigest()
 
 
-def parse_rules_from_manifests() -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    """
-    Parses rules table from SYSTEM.md and rules.md with clean fallback.
-    Returns: (core_principles, rules_dict)
-    """
-    core_principles = {
-        "language": "RU: диалог, отчеты, вопросы для Андрея; EN: код, конфиги, context",
-        "workflow": "Retrieval -> Context -> DAG Plan -> Execution -> Memory (Правило №13)",
-        "think_in_code": "Python-скрипт вместо вывода сырых данных в контекст чата (Правило №16)",
-        "governance": "Fast-Track: and_os/opt напрямую; Vault Guard: Nero/ через AST-шлюз (Правило №19)",
-        "safety": "APFS CoW снимки перед правкой + согласование графа перед кодом (Правило №65)"
+def compute_combined_sha256() -> str:
+    """sha256 over the concatenated bytes of all SHA_SOURCES (v2 drift guard)."""
+    h = hashlib.sha256()
+    for path in SHA_SOURCES:
+        with open(path, "rb") as f:
+            while chunk := f.read(65536):
+                h.update(chunk)
+    return h.hexdigest()
+
+
+def rule_title(one_liner: str) -> str:
+    """Ultra-compact rule title: the one-liner prefix before the first ':'."""
+    return one_liner.split(":", 1)[0].strip() if ":" in one_liner else one_liner.strip()
+
+def build_core_principles() -> Dict[str, str]:
+    """Minimal operating principles (consumer: session_gate.py)."""
+    return {
+        "language": "RU: dialogue/reports for Andrey; EN: code/configs (#3)",
+        "workflow": "Retrieval → Context → DAG → Execution → Memory (№13)",
+        "think_in_code": "script instead of raw data in chat (#16)",
+        "governance": "Fast-Track and_os/; Vault Guard Nero/ → sys_cli vault (№19)",
+        "safety": "CoW snapshot before edits (#65); 3 GB disk floor",
+        "discovery": "code audit -> Reuse -> Kernel Immutability (#69)"
     }
 
-    domain_beacons = {
+
+def build_domain_beacons() -> Dict[str, Dict[str, str]]:
+    """The 5 architectural beacons with portable paths (no /Users/...)."""
+    return {
         "1_core": {
             "name": "Core & System",
-            "path": os.path.join(VAULT_ROOT, "and_os/"),
-            "policy": "Fast-Track direct edits. Zero-Blind-Assumptions (Rule #61) - CLI verification mandatory."
+            "path": "and_os/",
+            "policy": "Fast-Track edits; Zero-Blind-Assumptions (Rule #61)"
         },
         "2_vault": {
             "name": "Knowledge Vault",
-            "path": os.path.join(VAULT_ROOT, "{Nero,Product,Story,Ta-Bu,Book,Clippings}/"),
-            "policy": "New notes allowed via write_to_file. Edits MUST use vault_patch or sys_cli vault patch."
+            "path": "Nero/ Product/ Story/ Ta-Bu/ Clippings/",
+            "policy": "Edits ONLY via sys_cli vault patch (Rule #19)"
         },
         "3_pulsar": {
             "name": "Pulsar Space",
             "path": "./pulsar/",
-            "policy": "12 decoupled apps. Ports strictly in :8080-:8099 (Terminal on :8099). sys_cli project pulsar."
+            "policy": "Ports :8080-:8099 (Terminal :8099); sys_cli project pulsar"
         },
         "4_xcode": {
             "name": "Xcode & Gamedev",
             "path": "./xcode/",
-            "policy": "Swift 6 + SpriteKit (EscPlanet). Muscle Realm Isolation (Rule #27) - no Swift code in Vault notes."
+            "policy": "Swift 6 + SpriteKit; no code in notes (Rule #27)"
         },
         "5_comfyui": {
             "name": "ComfyUI & 3D CG",
-            "path": "./cg_workspace",
-            "policy": "LiteGraph v0.4 schemas (extra.ds). Passports with CHBS_Approval_Gate. Zero ~/Downloads. comfy_graph.py."
+            "path": "~/Documents/ComfyUI/",
+            "policy": "LiteGraph v0.4 (extra.ds); zero ~/Downloads"
         }
     }
 
+
+def parse_cg_rules_from_system_md() -> Dict[str, Dict[str, str]]:
+    """Parses the SYSTEM.md rules table into {name, essence} pairs.
+
+    Used ONLY for the CG satellite, whose app reader expects the richer
+    {name, essence} shape (the global v2 index is titles-only).
+    """
     rules_dict: Dict[str, Dict[str, str]] = {}
+    if not os.path.exists(SYSTEM_MD):
+        return rules_dict
+    with open(SYSTEM_MD, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    if os.path.exists(SYSTEM_MD):
-        with open(SYSTEM_MD, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        for m in re.finditer(r'\|\s*([0-9.]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|', content):
-            r_num = m.group(1).strip()
-            r_name = m.group(2).strip()
-            r_desc = m.group(3).strip()
-            # Clean up markdown formatting in essence
-            clean_desc = re.sub(r'[*_`]', '', r_desc)
-            clean_desc = re.sub(r'\s+', ' ', clean_desc).strip()
-            clean_name = re.sub(r'[*_`]', '', r_name).strip()
-
-            rules_dict[r_num] = {
-                "name": clean_name,
-                "essence": clean_desc
-            }
-
-    return core_principles, domain_beacons, rules_dict
+    for m in re.finditer(r'\|\s*([0-9.]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|', content):
+        r_num = m.group(1).strip()
+        r_name = m.group(2).strip()
+        r_desc = m.group(3).strip()
+        clean_desc = re.sub(r'[*_`]', '', r_desc)
+        clean_desc = re.sub(r'\s+', ' ', clean_desc).strip()
+        clean_name = re.sub(r'[*_`]', '', r_name).strip()
+        rules_dict[r_num] = {"name": clean_name, "essence": clean_desc}
+    return rules_dict
 
 
-def compile_rules_index() -> Dict[str, Any]:
-    """Compiles rules into and_os/etc/rules_fast_index.json."""
-    os.makedirs(os.path.dirname(TARGET_JSON), exist_ok=True)
-    sys_sha = compute_file_sha256(SYSTEM_MD)
-    principles, beacons, rules = parse_rules_from_manifests()
-
-    payload = {
-        "version": "9.2.0",
-        "compiled_at": datetime.now().isoformat(),
-        "source_sha256": sys_sha,
+def build_payload(compiled_sha: str) -> Dict[str, Any]:
+    """Assembles the v2 session-start index payload (compact, <= budget)."""
+    with open(CANONICAL_SYSTEM_JSON, "r", encoding="utf-8") as f:
+        canonical_doc = json.load(f)
+    rules = canonical_doc["rules"]
+    return {
+        "v": 2,
+        "version": canonical_doc.get("version", ""),
+        "compiled_at": time.strftime("%Y-%m-%d"),
+        "source_sha256": compiled_sha,
         "rules_count": len(rules),
-        "core_principles": principles,
-        "domain_beacons": beacons,
-        "rules": rules
+        "fulltext": ".opencode/rules.md (lazy: read the section of the rule you need)",
+        "core_principles": build_core_principles(),
+        "domain_beacons": build_domain_beacons(),
+        "rules": {key: rule_title(text) for key, text in rules.items()}
     }
 
-    with open(TARGET_JSON, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
 
-    # Compile satellite CG projection
-    cg_payload = compile_cg_satellite_projection(sys_sha, rules)
-
-    return payload
-
-
-def compile_cg_satellite_projection(sys_sha: str, all_rules: Dict[str, Any]) -> Dict[str, Any]:
+def compile_cg_satellite_projection(compiled_sha: str, cg_rules: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Compiles localized CG / 3D+AI domain satellite index (cg_rules_fast.json).
-    Extracts relevant CG invariant rules and production budgets (< 500 tokens)
-    to eliminate agent hallucination and prevent central core context bloat.
+    Compiles the CG / 3D+AI domain satellite index (cg_rules_fast.json).
+    Keeps the {name, essence} rule shape for the CG app reader.
     """
     os.makedirs(os.path.dirname(CG_TARGET_JSON), exist_ok=True)
 
-    # Focused domain rules for 3D/AI production
-    cg_rule_keys = ["0", "0.5", "1", "3", "13", "16", "19", "27", "41", "42", "45", "57", "58", "61", "65", "68"]
-    selected_rules = {k: all_rules[k] for k in cg_rule_keys if k in all_rules}
+    cg_rule_keys = ["0", "0.5", "1", "3", "13", "16", "19", "27", "41", "42", "45", "57", "58", "61", "65", "68", "69"]
+    selected_rules = {k: cg_rules[k] for k in cg_rule_keys if k in cg_rules}
 
     cg_payload = {
         "domain": "cg_workspace",
         "engine": "cg_core",
         "role": "Hybrid 3D+AI Production Sub-Core",
-        "compiled_at": datetime.now().isoformat(),
-        "source_sha256": sys_sha,
+        "compiled_at": time.strftime("%Y-%m-%d"),
+        "source_sha256": compiled_sha,
         "rules_count": len(selected_rules),
         "production_invariants": {
             "topology": "Quad-first geometry, zero non-manifold edges, apply scale (scale=1.0.0), pivot at center-bottom",
@@ -188,54 +224,116 @@ def compile_cg_satellite_projection(sys_sha: str, all_rules: Dict[str, Any]) -> 
     return cg_payload
 
 
+def compile_rules_index() -> Dict[str, Any]:
+    """Compiles the v2 session-start index and the CG satellite projection.
+
+    The serialized index is checked against SIZE_BUDGET_BYTES BEFORE
+    writing: an over-budget index is a compile failure, not a warning.
+    """
+    compiled_sha = compute_combined_sha256()
+    payload = build_payload(compiled_sha)
+
+    serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    size_b = len(serialized.encode("utf-8"))
+    if size_b > SIZE_BUDGET_BYTES:
+        raise ValueError(
+            f"Fast index over budget: {size_b} B > {SIZE_BUDGET_BYTES} B — "
+            f"shrink core_principles / domain_beacons / rule titles")
+
+    os.makedirs(os.path.dirname(TARGET_JSON), exist_ok=True)
+    with open(TARGET_JSON, "w", encoding="utf-8") as f:
+        f.write(serialized)
+
+    # Compile satellite CG projection ({name, essence} shape, no budget)
+    cg_rules = parse_cg_rules_from_system_md()
+    cg_payload = compile_cg_satellite_projection(compiled_sha, cg_rules)
+
+    # Stash satellite size for the caller's report
+    payload["_cg_size_b"] = os.path.getsize(CG_TARGET_JSON)
+    payload["_cg_rules_count"] = cg_payload["rules_count"]
+    return payload
+
+
 def verify_rules_freshness() -> Tuple[bool, str]:
-    """Checks if rules_fast_index.json and cg_rules_fast.json match current SYSTEM.md checksum."""
+    """Checks both indices against the three-source sha256 and the size budget."""
     if not os.path.exists(TARGET_JSON):
         return False, f"Missing index file: {TARGET_JSON}"
-
     if not os.path.exists(CG_TARGET_JSON):
         return False, f"Missing satellite CG index file: {CG_TARGET_JSON}"
 
     try:
-        current_sha = compute_file_sha256(SYSTEM_MD)
+        current_sha = compute_combined_sha256()
+        size_b = os.path.getsize(TARGET_JSON)
+        if size_b > SIZE_BUDGET_BYTES:
+            return False, (f"Fast index over budget: {size_b} B > {SIZE_BUDGET_BYTES} B — "
+                           f"re-run compile after shrinking the payload")
 
         # 1. Check Global Index
         with open(TARGET_JSON, "r", encoding="utf-8") as f:
             data = json.load(f)
-        saved_sha = data.get("source_sha256", "")
-        if current_sha != saved_sha:
-            return False, f"Manifest drift in global index: SYSTEM.md changed (SHA {current_sha[:8]} != {saved_sha[:8]})"
+        if current_sha != data.get("source_sha256", ""):
+            return False, (f"Manifest drift in global index: source changed "
+                           f"(SHA {current_sha[:8]} != {data.get('source_sha256', '')[:8]})")
+        if data.get("rules_count") != len(data.get("rules", {})):
+            return False, "Global index rules_count mismatch with rules dict"
 
         # 2. Check CG Satellite Index
         with open(CG_TARGET_JSON, "r", encoding="utf-8") as f:
             cg_data = json.load(f)
-        cg_saved_sha = cg_data.get("source_sha256", "")
-        if current_sha != cg_saved_sha:
-            return False, f"Manifest drift in CG satellite index: SYSTEM.md changed (SHA {current_sha[:8]} != {cg_saved_sha[:8]})"
+        if current_sha != cg_data.get("source_sha256", ""):
+            return False, (f"Manifest drift in CG satellite index: source changed "
+                           f"(SHA {current_sha[:8]} != {cg_data.get('source_sha256', '')[:8]})")
 
-        return True, f"Rules indices fresh: Global ({data.get('rules_count', 0)}) + CG Satellite ({cg_data.get('rules_count', 0)})"
-    except Exception as e:
+        return True, f"Rules indices fresh: Global ({data.get('rules_count', 0)}, {size_b} B) + CG Satellite ({cg_data.get('rules_count', 0)})"
+    except (OSError, json.JSONDecodeError, ValueError) as e:
         return False, f"Index read error: {e}"
 
 
-def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1] == "verify":
-        ok, msg = verify_rules_freshness()
-        if ok:
-            print(f"🟢 PASS: {msg}")
-            sys.exit(0)
-        else:
-            print(f"🔴 FAIL: {msg}")
-            sys.exit(1)
-
-    # Default action: compile
-    payload = compile_rules_index()
+def status() -> int:
+    """Prints index facts: size, sha, freshness, budget headroom."""
+    if not os.path.exists(TARGET_JSON):
+        print(f"🔴 Index missing: {TARGET_JSON}")
+        return 1
+    with open(TARGET_JSON, "r", encoding="utf-8") as f:
+        data = json.load(f)
     size_b = os.path.getsize(TARGET_JSON)
-    cg_size_b = os.path.getsize(CG_TARGET_JSON)
-    print(f"✅ Rules indices compiled successfully:")
-    print(f"   • Global Path: {TARGET_JSON} ({size_b} bytes, {payload['rules_count']} rules)")
-    print(f"   • CG Satellite Path: {CG_TARGET_JSON} ({cg_size_b} bytes, ~{int(cg_size_b / 5.5)} tokens)")
-    print(f"   • Manifest SHA: {payload['source_sha256'][:12]}")
+    ok, msg = verify_rules_freshness()
+    print(f"Index      : {TARGET_JSON}")
+    print(f"Size       : {size_b} B / budget {SIZE_BUDGET_BYTES} B (headroom {SIZE_BUDGET_BYTES - size_b} B)")
+    print(f"Rules      : {data.get('rules_count', 0)} | v{data.get('v', 1)} | version {data.get('version', '?')}")
+    print(f"SHA256     : {data.get('source_sha256', '?')[:16]} (3-source: SYSTEM.md + rules.md + etc/system.json)")
+    print(f"CG Sat     : {CG_TARGET_JSON} ({os.path.getsize(CG_TARGET_JSON)} B)" if os.path.exists(CG_TARGET_JSON) else "CG Sat     : missing")
+    print(("🟢 " if ok else "🔴 ") + msg)
+    return 0 if ok else 1
+
+
+def main() -> None:
+    action = sys.argv[1] if len(sys.argv) > 1 else "compile"
+
+    if action == "verify":
+        ok, msg = verify_rules_freshness()
+        print(f"🟢 PASS: {msg}" if ok else f"🔴 FAIL: {msg}")
+        sys.exit(0 if ok else 1)
+
+    if action == "status":
+        sys.exit(status())
+
+    if action != "compile":
+        print(f"Unknown action '{action}' (use: compile | status | verify)", file=sys.stderr)
+        sys.exit(2)
+
+    try:
+        payload = compile_rules_index()
+    except (OSError, ValueError) as err:
+        print(f"🔴 Compile failed: {err}", file=sys.stderr)
+        sys.exit(1)
+
+    size_b = os.path.getsize(TARGET_JSON)
+    cg_size_b = payload.pop("_cg_size_b")
+    print("✅ Rules indices compiled successfully:")
+    print(f"   • Global Path: {TARGET_JSON} ({size_b} bytes / budget {SIZE_BUDGET_BYTES}, {payload['rules_count']} rules)")
+    print(f"   • CG Satellite Path: {CG_TARGET_JSON} ({cg_size_b} bytes, {payload.pop('_cg_rules_count')} rules)")
+    print(f"   • Source SHA: {payload['source_sha256'][:12]} (3-source)")
 
 
 if __name__ == "__main__":

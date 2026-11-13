@@ -1,6 +1,6 @@
 """
 test_operations.py — Unit Tests for Canonical Microkernel Operations
-AnD os v8.1 — Core Architecture Layer (Unix-Grade Microkernel Operations)
+AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Operations)
 """
 
 import unittest

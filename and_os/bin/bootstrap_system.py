@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
 bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine.
-AnD os v8.1 (Rule №48: Zero-Cost Cross-Platform Unix Compatibility).
+AnD os v1.0.0 (Rule №48: Zero-Cost Cross-Platform Unix Compatibility).
 
-Автоматизированный скрипт развертывания и переноса операционной системы на новый компьютер (macOS / Linux / Windows).
-Проверяет:
-1. Системные рантаймы (Python >= 3.11, Node.js >= 20.x, Git >= 2.40).
-2. Автоматическую установку недостающих pip-пакетов из and_os/etc/requirements.txt.
-3. Восстановление необходимых директорий и прав доступа (POSIX permissions).
-4. Регенерацию симлинков для 63 скиллов (.opencode/skills/).
-5. Валидацию переноса через 21-векторный аудит validate_system.py.
+Automated script for deploying and migrating the operating system to a new computer (macOS / Linux / Windows).
+Checks:
+1. System runtimes (Python >= 3.11, Node.js >= 20.x, Git >= 2.40).
+2. Automatic installation of missing pip packages from and_os/etc/requirements.txt.
+3. Restoration of the required directories and access rights (POSIX permissions).
+4. Symlink regeneration for the 63 skills (.opencode/skills/).
+5. Migration validation via the 21-vector audit validate_system.py.
 
-Использование:
+Usage:
   python3 and_os/bin/bootstrap_system.py [--check] [--install] [--json]
 """
 
@@ -163,28 +163,28 @@ def run_bootstrap(install_mode=False, json_mode=False):
     if json_mode:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print("=== 🚀 AnD os v8.1 SYSTEM BOOTSTRAP & PORTABILITY CHECK ===")
-        print(f"💻 Платформа: {plat['os']} {plat['release']} ({plat['arch']})")
-        print(f"🐍 Python: {runtimes['python']['version']} ({'✅ >=3.11' if runtimes['python']['meets_minimum'] else '❌ Требуется >=3.11'})")
-        print(f"🟢 Node.js: {runtimes['node']['version'] or '⚠️ Не найден (рекомендуется для Pulsar/Terminal)'}")
-        print(f"📦 Git: {runtimes['git']['version'] or '❌ Не найден'}")
+        print("=== 🚀 AnD os v1.0.0 SYSTEM BOOTSTRAP & PORTABILITY CHECK ===")
+        print(f"💻 Platform: {plat['os']} {plat['release']} ({plat['arch']})")
+        print(f"🐍 Python: {runtimes['python']['version']} ({'✅ >=3.11' if runtimes['python']['meets_minimum'] else '❌ >=3.11 required'})")
+        print(f"🟢 Node.js: {runtimes['node']['version'] or '⚠️ Not found (recommended for Pulsar/Terminal)'}")
+        print(f"📦 Git: {runtimes['git']['version'] or '❌ Not found'}")
         print("------------------------------------------------------------")
-        print(f"📚 Зависимости Python: {len(pkgs['ok'])}/{pkgs['total']} установлены.")
+        print(f"📚 Python dependencies: {len(pkgs['ok'])}/{pkgs['total']} installed.")
         if pkgs["missing"]:
-            print(f"⚠️ Не хватает {len(pkgs['missing'])} библиотек:")
+            print(f"⚠️ {len(pkgs['missing'])} libraries missing:")
             for m in pkgs["missing"]:
                 print(f"   - {m}")
-            print("\n💡 Для автоматической установки запустите: python3 and_os/bin/bootstrap_system.py --install")
+            print("\n💡 For automatic installation run: python3 and_os/bin/bootstrap_system.py --install")
         else:
-            print("✅ Все 52 системные библиотеки Python установлены и готовы к работе.")
-        print(f"🔗 Симлинки скиллов (.opencode/skills/): проверены (восстановлено: {symlinks['restored']}).")
+            print("✅ All 52 system Python libraries are installed and ready.")
+        print(f"🔗 Skill symlinks (.opencode/skills/): checked (restored: {symlinks['restored']}).")
         print("------------------------------------------------------------")
-        print(f"ИТОГ: {'🟢 СИСТЕМА 100% ГОТОВА К ЗАПУСКУ НА ЭТОМ КОМПЬЮТЕРЕ' if report['system_ready'] else '🟡 ТРЕБУЕТСЯ УСТАНОВКА ЗАВИСИМОСТЕЙ'}")
+        print(f"RESULT: {'🟢 SYSTEM 100% READY TO RUN ON THIS COMPUTER' if report['system_ready'] else '🟡 DEPENDENCY INSTALLATION REQUIRED'}")
         print("============================================================")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AnD os System Bootstrap Engine")
-    parser.add_argument("--install", action="store_true", help="Автоматически установить недостающие pip-зависимости")
-    parser.add_argument("--json", action="store_true", help="Вывод в JSON")
+    parser.add_argument("--install", action="store_true", help="Automatically install missing pip dependencies")
+    parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
     run_bootstrap(install_mode=args.install, json_mode=args.json)

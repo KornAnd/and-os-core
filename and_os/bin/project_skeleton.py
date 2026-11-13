@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-project_skeleton.py — Генератор эталонных каркасов проектов (Skeleton Engine).
-AnD os v8.4 — Остров 9 (Xcode / iOS Game Engineering) & Остров 7 (Pulsar 3D Tools).
+project_skeleton.py — Reference project skeleton generator (Skeleton Engine).
+AnD os v1.0.0 — Island 9 (Xcode / iOS Game Engineering) & Island 7 (Pulsar 3D Tools).
 
-Разворачивает боевые архитектурные каркасы (battle-tested skeletons) вместо пустых каталогов:
-1. Шаблон 'ios-spritekit': Нативная Swift / SpriteKit архитектура для мобильных игр (EscPlanet):
+Deploys battle-ready architectural skeletons instead of empty catalogs:
+1. 'ios-spritekit' template: native Swift / SpriteKit architecture for mobile games (EscPlanet):
    - `GameScene.swift` (State Machine, Render Loop, Delta Time);
    - `GameViewController.swift` (Orientation lock, Metal View config);
-   - `AssetCatalog.swift` (Type-safe ассеты и текстуры);
-   - `GameConfig.swift` (Параметры баланса, FPS lock 60/120);
-   - `Package.swift` или структура Xcode Workspace;
-   - `Tests/` (Базовый тестовый комплект).
-2. Шаблон 'cg-tool': Модульная утилита с тестами и CLI-фасадом под AnD os.
+   - `AssetCatalog.swift` (type-safe assets and textures);
+   - `GameConfig.swift` (balance parameters, FPS lock 60/120);
+   - `Package.swift` or Xcode Workspace structure;
+   - `Tests/` (base test suite).
+2. 'cg-tool' template: modular utility with tests and an AnD os CLI facade.
 """
 
 import os
@@ -23,7 +23,7 @@ from typing import Dict, Any
 VAULT_ROOT = os.getenv("AND_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 def create_ios_game_skeleton(target_dir: str, app_name: str = "EscPlanet") -> Dict[str, Any]:
-    """Генерирует чистый, готовый к компиляции модульный скелетон SpriteKit игры."""
+    """Generates a clean, compile-ready SpriteKit game module skeleton."""
     os.makedirs(target_dir, exist_ok=True)
     sources_dir = os.path.join(target_dir, "Sources", app_name)
     tests_dir = os.path.join(target_dir, "Tests", f"{app_name}Tests")
@@ -37,7 +37,7 @@ def create_ios_game_skeleton(target_dir: str, app_name: str = "EscPlanet") -> Di
     with open(config_swift, "w", encoding="utf-8") as f:
         f.write(f"""//
 // GameConfig.swift
-// {app_name} — AnD os v8.4 Architecture
+// {app_name} — AnD os v1.0.0 Architecture
 //
 
 import Foundation

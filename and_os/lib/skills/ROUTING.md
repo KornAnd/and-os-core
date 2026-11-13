@@ -21,7 +21,7 @@ reviewed: 2026-10-19
 3. **Operational Scope** — Filesystem directories where domain assets and state reside.
 4. **Extensions** — Secondary supporting skills loaded strictly on-demand or upon explicit prompt.
 
-Invariant: **Core first. Extension only if the task demands it** (specialized artifact type, narrow query, or auxiliary validation step). Never scan all 50 skills indiscriminately — inspect only the target domain core + relevant extension.
+Invariant: **Core first. Extension only if the task demands it** (specialized artifact type, narrow query, or auxiliary validation step). Never scan all skills indiscriminately — inspect only the target domain core + relevant extension.
 
 ---
 
@@ -50,6 +50,7 @@ All domains and skills map directly to the **9 Logical Islands** (`[[and_os/etc/
 | `task-graph` | Any complex or multi-phase task (DAG compilation, skill/script binding, Mermaid rendering, Canvas export, swimlane concurrency) |
 | `dev-flow` | Software engineering, bug fixes, refactoring across Pulsar and `and_os/` (modular pipeline, test-driven validation, Stop-on-3 circuit breaker) |
 | `app-deconstructor` | Reverse engineering and architecture deconstruction of unfamiliar apps, services, and codebases into C4 blueprints |
+| `reverse-engineer-anything` | Deep binary inspection, decompilation, SQLite and Electron/ASAR reverse-engineering via REA substrate (`sys_cli reverse`) |
 | `llm-council` | High-stakes architectural or product decision-making, pressure-testing alternatives (5-persona advisory council with veto checks) |
 | `document-hub` | Ingestion and OCR parsing of PDF, Excel, Word, PPTX, or image text via MarkItDown across any domain |
 | `yt-analyze` | Analysis and transcript extraction for YouTube URLs across any domain |
@@ -207,7 +208,7 @@ Task Received
 
 ## Meta & System Skills Cross-Domain Matrix
 
-All 50 skills across the architecture are fully mapped to their respective Islands and execution tools:
+All 67 skills across the architecture are fully mapped to their respective Islands and execution tools:
 
 | Skill | Architectural Role / Domain | Island Binding | Tool / Execution Script | Triggers & Keys |
 | :--- | :--- | :---: | :--- | :--- |

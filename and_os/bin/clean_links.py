@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-clean_links.py — безопасная нормализация ссылок на несуществующие картинки.
-Proxy-shim к монолитной библиотеке and_os.lib.vault.
+clean_links.py — safe normalization of links to missing images.
+Proxy-shim to the monolithic and_os.lib.vault library.
 """
 import os
 import sys
@@ -14,7 +14,7 @@ from and_os.lib.vault import clean_broken_image_links
 
 def main() -> None:
     fixed = clean_broken_image_links(VAULT_ROOT)
-    print(f"Готово. Обработано файлов: {fixed}")
+    print(f"Done. Files processed: {fixed}")
 
 if __name__ == "__main__":
     main()

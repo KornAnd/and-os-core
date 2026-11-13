@@ -1,5 +1,5 @@
 """
-bilingual_lexicon.py — Lightweight Semantic Lexicon & Cross-Language Bridge (AnD os v8.1).
+bilingual_lexicon.py — Lightweight Semantic Lexicon & Cross-Language Bridge (AnD os v1.0.0).
 Enables instant sub-millisecond translation between Russian domain concepts and English canonical paths.
 Zero external dependencies. Pure dictionary-based token expansion.
 """

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Task Context Bundler & Output Trimming Utility
-AnD os v8.1 - Think in Code Context Squeezer
+AnD os v1.0.0 - Think in Code Context Squeezer
 
 Collects minimum sufficient context for tasks (signatures, decisions, status)
 without reading full multi-megabyte files into LLM memory.
@@ -69,7 +69,7 @@ DOMAINS_MAP = {
     },
     "terminal": {
         "manifests": ["Terminal/CONTEXT.md", "Nero/pulsar/and_terminal.md"],
-        "scripts": ["and_os/bin/sys_bus.py", "and_os/bin/kernel_daemon.py"],
+        "scripts": ["and_os/bin/sys_bus.py", "and_os/sbin/and_supervisor.py"],
         "state_keys": ["terminal", "events", "kernel"]
     }
 }

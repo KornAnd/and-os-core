@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v8.1.
+vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.0.0.
 Part of AnD os Binary Bridges (and_os/bin/).
 
 Commands:
@@ -42,7 +42,8 @@ def is_daemon_running() -> int:
                     pid = int(f.read().strip())
                 os.kill(pid, 0)
                 return pid
-            except Exception:
+            except (OSError, ValueError):
+                # a stale pid file or the process already exited
                 pass
     return 0
 
@@ -68,22 +69,22 @@ def cmd_status():
     daemon_badge = f"🟢 ACTIVE (PID {pid}){resource_badge}" if pid else "⚪ INACTIVE (On-Demand Mode)"
     db_size_kb = round(os.path.getsize(stats["db_path"]) / 1024, 1) if os.path.exists(stats["db_path"]) else 0
     
-    print(f"=== 🛰️ AnD os v8.1 Virtual File System (VFS Status) ===")
-    print(f"📡 Статус демона: {daemon_badge}")
-    print(f"📁 Всего файлов в индексе: {stats['total_files']} (Заметок: {stats['markdown_notes']})")
-    print(f"💾 База состояний: {os.path.basename(stats['db_path'])} ({db_size_kb} KB)")
-    print("\n🏝️ Распределение по Островам:")
+    print(f"=== 🛰️ AnD os v1.0.0 Virtual File System (VFS Status) ===")
+    print(f"📡 Daemon status: {daemon_badge}")
+    print(f"📁 Total files in the index: {stats['total_files']} (Notes: {stats['markdown_notes']})")
+    print(f"💾 State database: {os.path.basename(stats['db_path'])} ({db_size_kb} KB)")
+    print("\n🏝️ Distribution by Islands:")
     for isl, cnt in sorted(stats["islands_breakdown"].items()):
-        print(f"  • {isl}: {cnt} файлов")
+        print(f"  • {isl}: {cnt} files")
 
 
 def cmd_find(query: str, island: str = None, ext: str = None, limit: int = 15):
     engine = VFSEngine()
     results = engine.find_files(query=query, island=island, ext=ext, limit=limit)
     
-    print(f"=== 🔍 Результаты VFS поиска по запросу '{query or '*'}' (найдено {len(results)}) ===")
+    print(f"=== 🔍 VFS search results for the query '{query or '*'}' ({len(results)} found) ===")
     if not results:
-        print("Ничего не найдено.")
+        print("Nothing found.")
         return
         
     for r in results:
@@ -94,15 +95,15 @@ def cmd_find(query: str, island: str = None, ext: str = None, limit: int = 15):
 
 def cmd_sync():
     engine = VFSEngine()
-    print("🔄 Запуск полной синхронизации VFS индекса...")
+    print("🔄 Launching the full VFS index synchronization...")
     res = engine.bootstrap_scan(VAULT_ROOT)
-    print(f"✅ VFS синхронизирован: {res['scanned']} файлов за {res['elapsed_seconds']} сек.")
+    print(f"✅ VFS synchronized: {res['scanned']} files in {res['elapsed_seconds']} s.")
 
 
 def cmd_start_daemon():
     pid = is_daemon_running()
     if pid:
-        print(f"⚠️ VFS Daemon уже запущен (PID {pid}).")
+        print(f"⚠️ VFS Daemon is already running (PID {pid}).")
         return
     daemon_script = os.path.join(AND_OS_ROOT, "sbin/vfs_daemon.py")
     log_file = os.path.join(VAR_DIR, "vfs_daemon.log")
@@ -114,7 +115,7 @@ def cmd_start_daemon():
         stderr=out,
         start_new_session=True
     )
-    print(f"🚀 VFS Daemon запущен в фоне (PID {proc.pid}). Лог: {os.path.relpath(log_file, VAULT_ROOT)}")
+    print(f"🚀 VFS Daemon launched in the background (PID {proc.pid}). Log: {os.path.relpath(log_file, VAULT_ROOT)}")
 
 
 def cmd_stop_daemon():
@@ -127,11 +128,11 @@ def cmd_pulsar():
     bridge = PulsarStateBridge()
     projs = bridge.scan_and_sync()
     
-    print(f"=== 🚀 Матрица Модулей и Сервисов Pulsar Space ({len(projs)} проектов) ===")
+    print(f"=== 🚀 Pulsar Space Modules & Services Matrix ({len(projs)} projects) ===")
     for p in projs:
         act = "🟢" if p["is_active"] else "⚪"
         port = f":{p['port']}" if p["port"] else "no-port"
-        cache_status = f" | Кэш: {p['cache_status']}" if p["cache_file"] else ""
+        cache_status = f" | Cache: {p['cache_status']}" if p["cache_file"] else ""
         
         score = p.get("compliance_score", 0)
         issues = p.get("compliance_issues", "")

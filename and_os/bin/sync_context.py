@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-sync_context.py — автоматизация синхронизации CONTEXT.md в Obsidian Vault.
-Принцип: Think in Code (Правило №16).
+sync_context.py — the automation of the synchronization of the CONTEXT.md in the Obsidian Vault.
+The principle: Think in Code (Rule #16).
 
-Использование:
-  python3 sync_context.py --check             # Только диагностика всех CONTEXT.md
-  python3 sync_context.py --check --path Nero # Проверка конкретного каталога
-  python3 sync_context.py --fix               # Автоматическая синхронизация всех CONTEXT.md
-  python3 sync_context.py --fix --path Book   # Автоматическая синхронизация конкретного каталога
+Usage:
+  python3 sync_context.py --check             # Only the diagnostics of all the CONTEXT.md
+  python3 sync_context.py --check --path Nero # The check of the specific catalog
+  python3 sync_context.py --fix               # The automatic synchronization of all the CONTEXT.md
+  python3 sync_context.py --fix --path Book   # The automatic synchronization of the specific catalog
 """
 
 import os
@@ -19,6 +19,8 @@ import argparse
 from datetime import datetime
 
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, os.path.join(VAULT_ROOT, "and_os", "lib"))
+from vfs.vfs_engine import VOLATILE_ZONES
 IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git"}
 IGNORE_FILES = {".DS_Store", "CONTEXT.md"}
 
@@ -31,6 +33,14 @@ def find_context_files(target_dir):
     contexts = []
     for root, dirs, files in os.walk(target_dir):
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+        # Prune volatile system zones (checkpoints, shadows, state): their
+        # CONTEXT.md copies are frozen CoW artifacts, not live maps (R3-AUTO-1)
+        rel_root = os.path.relpath(root, VAULT_ROOT).replace("\\", "/")
+        if rel_root == ".":
+            rel_root = ""
+        dirs[:] = [d for d in dirs if not any(
+            (f"{rel_root}/{d}" if rel_root else d).startswith(z) for z in VOLATILE_ZONES
+        )]
         if "CONTEXT.md" in files:
             contexts.append(root)
     return contexts
@@ -259,7 +269,7 @@ def update_quick_db():
 
     with open(db_path, "w", encoding="utf-8") as out:
         json.dump(knowledge_entries, out, ensure_ascii=False, indent=2)
-    print(f"⚡ Обновлена быстрая база знаний: Clippings/quick_knowledge_db.json ({len(knowledge_entries)} записей)")
+    print(f"⚡ The quick knowledge base was updated: Clippings/quick_knowledge_db.json ({len(knowledge_entries)} records)")
 
 def sync_all_contexts(fix=True, target_path=""):
     target = get_vault_path(target_path) if target_path else VAULT_ROOT
@@ -278,20 +288,20 @@ def sync_all_contexts(fix=True, target_path=""):
     return len(dirs_with_missing) == 0
 
 def main():
-    parser = argparse.ArgumentParser(description="Автоматическая синхронизация CONTEXT.md")
-    parser.add_argument("--check", action="store_true", help="Проверить актуальность без изменения файлов")
-    parser.add_argument("--fix", action="store_true", help="Автоматически добавить недостающие файлы в CONTEXT.md")
-    parser.add_argument("--path", type=str, default="", help="Относительный или абсолютный путь каталога для проверки")
+    parser = argparse.ArgumentParser(description="The automatic synchronization of the CONTEXT.md")
+    parser.add_argument("--check", action="store_true", help="Check the actuality without the change of the files")
+    parser.add_argument("--fix", action="store_true", help="Automatically add the missing files into the CONTEXT.md")
+    parser.add_argument("--path", type=str, default="", help="The relative or the absolute path of the catalog for the check")
     args = parser.parse_args()
     
     target = get_vault_path(args.path) if args.path else VAULT_ROOT
     if not os.path.exists(target):
-        print(f"Ошибка: каталог {target} не существует.")
+        print(f"Error: the catalog {target} does not exist.")
         sys.exit(1)
         
     contexts = find_context_files(target)
-    print(f"Сканирование хранилища: {target}")
-    print(f"Найдено CONTEXT.md файлов: {len(contexts)}")
+    print(f"The scanning of the vault: {target}")
+    print(f"The CONTEXT.md files were found: {len(contexts)}")
     print("-" * 60)
     
     total_missing = 0
@@ -299,39 +309,39 @@ def main():
     
     for c_dir in contexts:
         rel_dir = os.path.relpath(c_dir, VAULT_ROOT)
-        rel_dir_label = "корень" if rel_dir == "." else rel_dir
+        rel_dir_label = "root" if rel_dir == "." else rel_dir
         res = analyze_context(c_dir)
         missing = res.get("missing_in_context", [])
         if missing:
             total_missing += len(missing)
             dirs_with_missing.append((c_dir, res))
-            print(f"⚠️  [{rel_dir_label}] Не отражено в CONTEXT.md ({len(missing)} шт.):")
+            print(f"⚠️  [{rel_dir_label}] Not reflected in the CONTEXT.md ({len(missing)} pcs.):")
             for m in missing[:5]:
                 print(f"    + {m}")
             if len(missing) > 5:
-                print(f"    ... и ещё {len(missing) - 5} файлов")
+                print(f"    ... and the {len(missing) - 5} more files")
                 
     if not dirs_with_missing:
-        print("✅ Все проверенные CONTEXT.md полностью синхронизированы!")
+        print("✅ All the checked CONTEXT.md were fully synchronized!")
         if args.fix:
             update_quick_db()
         return
         
     print("-" * 60)
-    print(f"Итого несинхронизированных файлов: {total_missing} в {len(dirs_with_missing)} каталогах.")
+    print(f"Total the unsynchronized files: {total_missing} in the {len(dirs_with_missing)} catalogs.")
     
     if args.fix:
-        print("\nЗапуск автоматического исправления (--fix)...")
+        print("\nThe launch of the automatic fix (--fix)...")
         fixed_count = 0
         for c_dir, res in dirs_with_missing:
             if fix_context(c_dir, res):
                 rel_dir = os.path.relpath(c_dir, VAULT_ROOT)
-                print(f"✅ Обновлён CONTEXT.md: {rel_dir}")
+                print(f"✅ The CONTEXT.md was updated: {rel_dir}")
                 fixed_count += 1
-        print(f"\nГотово! Синхронизировано каталогов: {fixed_count}.")
+        print(f"\nDone! The catalogs were synchronized: {fixed_count}.")
         update_quick_db()
     elif not args.check:
-        print("\nДля автоматического исправления запустите с флагом --fix:")
+        print("\nFor the automatic fix launch with the --fix flag:")
         print(f"python3 \"{os.path.abspath(__file__)}\" --fix")
 
 if __name__ == "__main__":

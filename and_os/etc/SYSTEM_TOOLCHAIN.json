@@ -1,119 +1,473 @@
 {
   "version": "4.0.0",
-  "updated_at": "2026-11-06 11:03:14",
+  "updated_at": "2026-11-11 22:36:20",
   "runtime": {
     "os": "Darwin 27.2.0 (arm64)",
     "python": {
-      "version": "3.9.6",
-      "executable": "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "version": "3.12.11",
+      "executable": "./and_os/.venv/bin/python",
       "standard_target": ">=3.11 (Recommended 3.14.x)",
-      "total_packages": 12,
+      "total_packages": 56,
       "packages_categorized": {
-        "Data & Document Processing": [],
-        "Network, API & Integration": [],
+        "Data & Document Processing": [
+          {
+            "name": "docutils",
+            "version": "0.22.4"
+          },
+          {
+            "name": "Jinja2",
+            "version": "3.1.6"
+          },
+          {
+            "name": "markdown-it-py",
+            "version": "4.2.0"
+          },
+          {
+            "name": "MarkupSafe",
+            "version": "3.0.3"
+          },
+          {
+            "name": "numpy",
+            "version": "2.5.1"
+          },
+          {
+            "name": "openpyxl",
+            "version": "3.1.5"
+          },
+          {
+            "name": "pdfminer.six",
+            "version": "20260107"
+          },
+          {
+            "name": "pdfplumber",
+            "version": "0.11.10"
+          },
+          {
+            "name": "pillow",
+            "version": "12.2.0"
+          },
+          {
+            "name": "pypdfium2",
+            "version": "5.10.1"
+          },
+          {
+            "name": "rich",
+            "version": "15.0.0"
+          }
+        ],
+        "Network, API & Integration": [
+          {
+            "name": "curl_cffi",
+            "version": "0.15.0"
+          },
+          {
+            "name": "ftrack-python-api",
+            "version": "3.1.0"
+          },
+          {
+            "name": "telemetry_syncconnect",
+            "version": "0.3.8"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "ua-generator",
+            "version": "2.1.2"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.7.0"
+          },
+          {
+            "name": "websocket-client",
+            "version": "0.59.0"
+          },
+          {
+            "name": "youtube-transcript-api",
+            "version": "1.2.4"
+          }
+        ],
         "Security, Crypto & System": [
           {
+            "name": "certifi",
+            "version": "2026.7.22"
+          },
+          {
+            "name": "cffi",
+            "version": "2.0.0"
+          },
+          {
+            "name": "cryptography",
+            "version": "49.0.0"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
             "name": "platformdirs",
-            "version": "4.4.0"
+            "version": "4.11.0"
+          },
+          {
+            "name": "pycparser",
+            "version": "3.0"
           }
         ],
         "Build & Core Infrastructure": [
           {
+            "name": "packaging",
+            "version": "26.2"
+          },
+          {
             "name": "pip",
-            "version": "21.2.4"
+            "version": "26.1.2"
           },
           {
-            "name": "setuptools",
-            "version": "58.0.4"
+            "name": "pybind11",
+            "version": "3.0.4"
           },
           {
-            "name": "virtualenv",
-            "version": "20.35.4"
+            "name": "Pygments",
+            "version": "2.20.0"
+          },
+          {
+            "name": "Sphinx",
+            "version": "9.1.0"
           },
           {
             "name": "wheel",
-            "version": "0.37.0"
+            "version": "0.47.0"
           }
         ],
         "Other Utilities": [
           {
-            "name": "altgraph",
-            "version": "0.17.2"
+            "name": "alabaster",
+            "version": "1.0.0"
           },
           {
-            "name": "distlib",
-            "version": "0.4.0"
+            "name": "arrow",
+            "version": "0.17.0"
           },
           {
-            "name": "filelock",
-            "version": "3.19.1"
+            "name": "babel",
+            "version": "2.18.0"
           },
           {
-            "name": "future",
-            "version": "0.18.2"
+            "name": "charset-normalizer",
+            "version": "3.4.7"
           },
           {
-            "name": "macholib",
-            "version": "1.15.2"
+            "name": "clique",
+            "version": "1.6.1"
+          },
+          {
+            "name": "et_xmlfile",
+            "version": "2.0.0"
+          },
+          {
+            "name": "idna",
+            "version": "3.18"
+          },
+          {
+            "name": "imagesize",
+            "version": "2.0.0"
+          },
+          {
+            "name": "iniconfig",
+            "version": "2.3.1"
+          },
+          {
+            "name": "mdurl",
+            "version": "0.1.2"
+          },
+          {
+            "name": "pluggy",
+            "version": "1.7.0"
+          },
+          {
+            "name": "pyparsing",
+            "version": "2.4.7"
+          },
+          {
+            "name": "pytest",
+            "version": "9.2.0"
+          },
+          {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0"
+          },
+          {
+            "name": "PyYAML",
+            "version": "6.0.3"
+          },
+          {
+            "name": "roman-numerals",
+            "version": "4.1.0"
           },
           {
             "name": "six",
-            "version": "1.15.0"
+            "version": "1.17.0"
           },
           {
-            "name": "typing_extensions",
-            "version": "4.15.0"
+            "name": "snowballstemmer",
+            "version": "3.1.1"
+          },
+          {
+            "name": "sphinx-notfound-page",
+            "version": "1.1.0"
+          },
+          {
+            "name": "sphinxcontrib-applehelp",
+            "version": "2.0.0"
+          },
+          {
+            "name": "sphinxcontrib-devhelp",
+            "version": "2.0.0"
+          },
+          {
+            "name": "sphinxcontrib-htmlhelp",
+            "version": "2.1.0"
+          },
+          {
+            "name": "sphinxcontrib-jsmath",
+            "version": "1.0.1"
+          },
+          {
+            "name": "sphinxcontrib-qthelp",
+            "version": "2.0.0"
+          },
+          {
+            "name": "sphinxcontrib-serializinghtml",
+            "version": "2.0.0"
           }
         ]
       },
       "packages_all": [
         {
-          "name": "altgraph",
-          "version": "0.17.2"
+          "name": "alabaster",
+          "version": "1.0.0"
         },
         {
-          "name": "distlib",
-          "version": "0.4.0"
+          "name": "arrow",
+          "version": "0.17.0"
         },
         {
-          "name": "filelock",
-          "version": "3.19.1"
+          "name": "babel",
+          "version": "2.18.0"
         },
         {
-          "name": "future",
-          "version": "0.18.2"
+          "name": "certifi",
+          "version": "2026.7.22"
         },
         {
-          "name": "macholib",
-          "version": "1.15.2"
+          "name": "cffi",
+          "version": "2.0.0"
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.4.7"
+        },
+        {
+          "name": "clique",
+          "version": "1.6.1"
+        },
+        {
+          "name": "cryptography",
+          "version": "49.0.0"
+        },
+        {
+          "name": "curl_cffi",
+          "version": "0.15.0"
+        },
+        {
+          "name": "defusedxml",
+          "version": "0.7.1"
+        },
+        {
+          "name": "docutils",
+          "version": "0.22.4"
+        },
+        {
+          "name": "et_xmlfile",
+          "version": "2.0.0"
+        },
+        {
+          "name": "ftrack-python-api",
+          "version": "3.1.0"
+        },
+        {
+          "name": "telemetry_syncconnect",
+          "version": "0.3.8"
+        },
+        {
+          "name": "idna",
+          "version": "3.18"
+        },
+        {
+          "name": "imagesize",
+          "version": "2.0.0"
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1"
+        },
+        {
+          "name": "Jinja2",
+          "version": "3.1.6"
+        },
+        {
+          "name": "markdown-it-py",
+          "version": "4.2.0"
+        },
+        {
+          "name": "MarkupSafe",
+          "version": "3.0.3"
+        },
+        {
+          "name": "mdurl",
+          "version": "0.1.2"
+        },
+        {
+          "name": "numpy",
+          "version": "2.5.1"
+        },
+        {
+          "name": "openpyxl",
+          "version": "3.1.5"
+        },
+        {
+          "name": "packaging",
+          "version": "26.2"
+        },
+        {
+          "name": "pdfminer.six",
+          "version": "20260107"
+        },
+        {
+          "name": "pdfplumber",
+          "version": "0.11.10"
+        },
+        {
+          "name": "pillow",
+          "version": "12.2.0"
         },
         {
           "name": "pip",
-          "version": "21.2.4"
+          "version": "26.1.2"
         },
         {
           "name": "platformdirs",
-          "version": "4.4.0"
+          "version": "4.11.0"
         },
         {
-          "name": "setuptools",
-          "version": "58.0.4"
+          "name": "pluggy",
+          "version": "1.7.0"
+        },
+        {
+          "name": "pybind11",
+          "version": "3.0.4"
+        },
+        {
+          "name": "pycparser",
+          "version": "3.0"
+        },
+        {
+          "name": "Pygments",
+          "version": "2.20.0"
+        },
+        {
+          "name": "pyparsing",
+          "version": "2.4.7"
+        },
+        {
+          "name": "pypdfium2",
+          "version": "5.10.1"
+        },
+        {
+          "name": "pytest",
+          "version": "9.2.0"
+        },
+        {
+          "name": "python-dateutil",
+          "version": "2.9.0.post0"
+        },
+        {
+          "name": "PyYAML",
+          "version": "6.0.3"
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2"
+        },
+        {
+          "name": "rich",
+          "version": "15.0.0"
+        },
+        {
+          "name": "roman-numerals",
+          "version": "4.1.0"
         },
         {
           "name": "six",
-          "version": "1.15.0"
+          "version": "1.17.0"
         },
         {
-          "name": "typing_extensions",
-          "version": "4.15.0"
+          "name": "snowballstemmer",
+          "version": "3.1.1"
         },
         {
-          "name": "virtualenv",
-          "version": "20.35.4"
+          "name": "Sphinx",
+          "version": "9.1.0"
+        },
+        {
+          "name": "sphinx-notfound-page",
+          "version": "1.1.0"
+        },
+        {
+          "name": "sphinxcontrib-applehelp",
+          "version": "2.0.0"
+        },
+        {
+          "name": "sphinxcontrib-devhelp",
+          "version": "2.0.0"
+        },
+        {
+          "name": "sphinxcontrib-htmlhelp",
+          "version": "2.1.0"
+        },
+        {
+          "name": "sphinxcontrib-jsmath",
+          "version": "1.0.1"
+        },
+        {
+          "name": "sphinxcontrib-qthelp",
+          "version": "2.0.0"
+        },
+        {
+          "name": "sphinxcontrib-serializinghtml",
+          "version": "2.0.0"
+        },
+        {
+          "name": "ua-generator",
+          "version": "2.1.2"
+        },
+        {
+          "name": "urllib3",
+          "version": "2.7.0"
+        },
+        {
+          "name": "websocket-client",
+          "version": "0.59.0"
         },
         {
           "name": "wheel",
-          "version": "0.37.0"
+          "version": "0.47.0"
+        },
+        {
+          "name": "youtube-transcript-api",
+          "version": "1.2.4"
         }
       ]
     },
@@ -128,7 +482,7 @@
       "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
       "tesseract": "tesseract 5.5.4",
       "yt_dlp": "2026.10.26",
-      "uv": "uv 0.13.6 (Homebrew 2026-10-26 aarch64-apple-darwin)",
+      "uv": "uv 0.13.7 (Homebrew 2026-11-03 aarch64-apple-darwin)",
       "gh": "gh version 2.103.3 (2026-10-26)",
       "jq": "jq-1.8.2",
       "sqlite": "3.54.0 2026-04-09 12:25:13 8fa8248e303219400c646a885e36dfc52eae33d83f4412e3f369b2be5373aapl (64-bit)",
@@ -139,18 +493,18 @@
       "houdini": "22.0.466",
       "davinci_resolve": "21.1.1",
       "xcode": "27.2",
-      "unity_hub": "3.22.5",
-      "comfy_desktop": "1.1.8"
+      "unity_hub": "NOT_INSTALLED",
+      "comfy_desktop": "1.1.9"
     },
     "apps": {
       "obsidian": "1.6.7",
       "mattermost": "6.3.2",
       "telegram": "13.1.0",
-      "docker": "4.97.0"
+      "docker": "4.99.0"
     }
   },
-  "total_scripts": 105,
-  "total_skills": 65,
+  "total_scripts": 113,
+  "total_skills": 67,
   "scripts": [
     {
       "name": "agent_handoff.py",
@@ -160,17 +514,17 @@
     {
       "name": "api_contract_generator.py",
       "path": "and_os/bin/api_contract_generator.py",
-      "description": "api_contract_generator.py — Typed API & Microkernel Contract Generator AnD os v8.1 — System Engineering Layer (Type-Safe Contracts & Schemas"
+      "description": "api_contract_generator.py — Typed API & Microkernel Contract Generator AnD os v1.0.0 — System Engineering Layer (Type-Safe Contracts & Schemas"
     },
     {
       "name": "app_bridge.py",
       "path": "and_os/bin/app_bridge.py",
-      "description": "app_bridge.py — Диспетчер бесшовного взаимодействия Obsidian и Внешних Проектов (v1.0.0). Управляет регистрацией проектов, валидацией их здо"
+      "description": "app_bridge.py — Dispatcher for seamless interaction between Obsidian and External Projects (v1.0.0). Manages project registration, health va"
     },
     {
       "name": "app_deconstructor.py",
       "path": "and_os/bin/app_deconstructor.py",
-      "description": "app_deconstructor.py — Automated Application & Service Architecture Deconstructor AnD os v8.1 — System Engineering Layer (Clean Architecture"
+      "description": "app_deconstructor.py — Automated Application & Service Architecture Deconstructor AnD os v1.0.0 — System Engineering Layer (Clean Architecture"
     },
     {
       "name": "app_quick_check.py",
@@ -180,7 +534,7 @@
     {
       "name": "architect_engine.py",
       "path": "and_os/bin/architect_engine.py",
-      "description": "architect_engine.py — Sovereign System Architecture & Project Scaffolding Engine. AnD os v9.2 — Master Systems Architect Module (Island 8 / "
+      "description": "architect_engine.py — Sovereign System Architecture & Project Scaffolding Engine. Master Systems Architect Module (Island 8 / Island 6). Imp"
     },
     {
       "name": "artifact_capture.py",
@@ -195,52 +549,52 @@
     {
       "name": "audit_graph_orphans.py",
       "path": "and_os/bin/audit_graph_orphans.py",
-      "description": "audit_graph_orphans.py — Точный сканер графовой связности Obsidian Vault. Находит файлы, которые в визуальном графе Obsidian отображаются си"
+      "description": "audit_graph_orphans.py — Precise graph-connectivity scanner of the Obsidian Vault. Finds files that appear as orphans in the Obsidian visual"
     },
     {
       "name": "audit_tags_links.py",
       "path": "and_os/bin/audit_tags_links.py",
-      "description": "audit_tags_links.py — проверка и доставка тегов каталога и навигационных ссылок CONTEXT. Принцип: Think in Code (Правило №16) и Правило №1 ("
+      "description": "audit_tags_links.py — check and delivery of catalog tags and CONTEXT navigation links. Principle: Think in Code (Rule #16) and Rule #1 (chec"
     },
     {
       "name": "backup_engine.py",
       "path": "and_os/bin/backup_engine.py",
-      "description": "backup_engine.py — Enterprise Backup Engine for AnD os v8.5. Features: - 100% Full Obsidian Vault backup (All knowledge domains, configs, co"
+      "description": "backup_engine.py — Enterprise Backup Engine for AnD os v1.0.0. Features: - 100% Full Obsidian Vault backup (All knowledge domains, configs, co"
     },
     {
       "name": "board_parser.py",
       "path": "and_os/bin/board_parser.py",
-      "description": "Board Parser & Visual Semantic Extractor (Miro, Holst, FigJam, Schemas) AnD os v8.1 - Think in Code Infrastructure Поддерживает: 1. Визуальн"
+      "description": "Board Parser & Visual Semantic Extractor (Miro, Holst, FigJam, Schemas) AnD os v1.0.0 - Think in Code Infrastructure Supports: 1. Visual parsi"
     },
     {
       "name": "bootstrap_system.py",
       "path": "and_os/bin/bootstrap_system.py",
-      "description": "bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine. AnD os v8.1 (Rule №48: Zero-Cost Cross-Platform Unix Compa"
+      "description": "bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine. AnD os v1.0.0 (Rule №48: Zero-Cost Cross-Platform Unix Compa"
     },
     {
       "name": "budget_calc.py",
       "path": "and_os/bin/budget_calc.py",
-      "description": "budget_calc.py — Единый CLI-модуль расчёта бюджетов и смет (Think in Code / IPC Bus). Принцип: Zero-Token Computation. Расчёт ставок, смен и"
+      "description": "budget_calc.py — Unified CLI module for budget and estimate computation (Think in Code / IPC Bus). Principle: Zero-Token Computation. Rate, "
     },
     {
       "name": "build_native.py",
       "path": "and_os/bin/build_native.py",
-      "description": "build_native.py — Системный компилятор Python-проектов в нативные бинарники (Правило №32). Поддерживаемые компиляторы: - PyInstaller (основн"
+      "description": "build_native.py — System compiler of Python projects into native binaries (Rule #32). Supported compilers: - PyInstaller (primary) - Nuitka "
     },
     {
       "name": "build_resolver.py",
       "path": "and_os/bin/build_resolver.py",
-      "description": "build_resolver.py — Автономный резолвер ошибок сборки с минимальными диффами (Minimal Diffs). AnD os v8.4 — Остров 8 (Kernel & Compiler) ⟷ О"
+      "description": "build_resolver.py — Autonomous build-error resolver with minimal diffs (Minimal Diffs). AnD os v1.0.0 — Island 8 (Kernel & Compiler) <-> Islan"
     },
     {
       "name": "career_radar.py",
       "path": "and_os/bin/career_radar.py",
-      "description": "career_radar.py — Executive Market Radar & Opportunity Matcher Part of AnD os v9.2 | Rule #16 (Think-in-Code), Rule #54 (Zero-Orphans), Rule"
+      "description": "career_radar.py — Executive Market Radar & Opportunity Matcher Part of AnD os | Rule #16 (Think-in-Code), Rule #54 (Zero-Orphans), Rule #59 "
     },
     {
       "name": "cg_bridge.py",
       "path": "and_os/bin/cg_bridge.py",
-      "description": "CG Pipeline Integration Bridge (cg_bridge.py) AnD os v8.1 - Think in Code Infrastructure Обеспечивает надежный, токеноэкономичный и воспроиз"
+      "description": "CG Pipeline Integration Bridge (cg_bridge.py) AnD os v1.0.0 - Think in Code Infrastructure Provides a reliable, token-efficient and reproducib"
     },
     {
       "name": "checkpoint_manager.py",
@@ -250,17 +604,17 @@
     {
       "name": "clean_links.py",
       "path": "and_os/bin/clean_links.py",
-      "description": "clean_links.py — безопасная нормализация ссылок на несуществующие картинки. Proxy-shim к монолитной библиотеке and_os.lib.vault."
+      "description": "clean_links.py — safe normalization of links to missing images. Proxy-shim to the monolithic and_os.lib.vault library."
     },
     {
       "name": "closed_loop.py",
       "path": "and_os/bin/closed_loop.py",
-      "description": "closed_loop.py — Единый Мастер-Диспетчер Замкнутого Контура (Closed-Loop Sovereign OS Stack v1.0). Обеспечивает сквозную регистрацию артефак"
+      "description": "closed_loop.py — The Unified Master Dispatcher of the Closed Loop (Closed-Loop Sovereign OS Stack v1.0). Provides the end-to-end registratio"
     },
     {
       "name": "codemap_engine.py",
       "path": "and_os/bin/codemap_engine.py",
-      "description": "codemap_engine.py — Генератор сверхлегких архитектурных карт кода (Codemaps Engine). AnD os v8.4 — Остров 8 (Kernel & System Compiler). Обес"
+      "description": "codemap_engine.py — Ultra-lightweight architectural code map generator (Codemaps Engine). AnD os v1.0.0 — Island 8 (Kernel & System Compiler)."
     },
     {
       "name": "comfy_graph.py",
@@ -275,32 +629,32 @@
     {
       "name": "context_budget_guard.py",
       "path": "and_os/bin/context_budget_guard.py",
-      "description": "context_budget_guard.py — Страж бюджета контекста и фазовый компактор AnD os v8.4. Остров 8 (Kernel Core) ⟷ Инструментальный рантайм агента."
+      "description": "context_budget_guard.py — Context budget guard and phase compactor for AnD os v1.0.0. Island 8 (Kernel Core) <-> the agent's instrumental runt"
     },
     {
       "name": "context_bundler.py",
       "path": "and_os/bin/context_bundler.py",
-      "description": "Task Context Bundler & Output Trimming Utility AnD os v8.1 - Think in Code Context Squeezer Collects minimum sufficient context for tasks (s"
+      "description": "Task Context Bundler & Output Trimming Utility AnD os v1.0.0 - Think in Code Context Squeezer Collects minimum sufficient context for tasks (s"
     },
     {
       "name": "context_mode_manager.py",
       "path": "and_os/bin/context_mode_manager.py",
-      "description": "context_mode_manager.py - Context Mode Switcher for AnD os v8.5. Manages active behavioral presets (dev, research, review) for LLM agents."
+      "description": "context_mode_manager.py - Context Mode Switcher for AnD os v1.0.0. Manages active behavioral presets (dev, research, review) for LLM agents."
     },
     {
       "name": "context_router.py",
       "path": "and_os/bin/context_router.py",
-      "description": "context_router.py — Умная быстрая БД и маршрутизатор контекстных файлов ANDREY OS (v1.0.0). Индексирует все CONTEXT.md в Vault, ведет реестр"
+      "description": "context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.0.0). Indexes all the CONTEXT.md in the V"
     },
     {
       "name": "continuous_learner.py",
       "path": "and_os/bin/continuous_learner.py",
-      "description": "continuous_learner.py — Интеллектуальный компилятор опыта сессий для AnD os v8.4. Остров 8 (Kernel & Compiler) ⟷ Остров 1 & 6 (Knowledge Rea"
+      "description": "continuous_learner.py — Intelligent experience compiler of sessions for AnD os v1.0.0. Island 8 (Kernel & Compiler) <-> Island 1 & 6 (Knowledg"
     },
     {
       "name": "convert_doc.py",
       "path": "and_os/bin/convert_doc.py",
-      "description": "convert_doc.py — Универсальный конвертер документов в чистый Markdown для LLM на базе Microsoft MarkItDown с надежным fallback-контуром. Под"
+      "description": "convert_doc.py — The universal converter of the documents into the clean Markdown for the LLM on the base of the Microsoft MarkItDown with t"
     },
     {
       "name": "dag_planner.py",
@@ -310,32 +664,32 @@
     {
       "name": "dash_smoke_test.py",
       "path": "and_os/bin/dash_smoke_test.py",
-      "description": "dash_smoke_test.py — Headless Smoke-Tester для веб-приложений Dash / Plotly (Mars, Kot, Dino и др.). Проверяет: 1. Синтаксическую целостност"
+      "description": "dash_smoke_test.py — Headless Smoke-Tester for Dash / Plotly web applications (Mars, Kot, Dino, etc.). Checks: 1. The syntactic integrity of"
     },
     {
       "name": "dependency_engine.py",
       "path": "and_os/bin/dependency_engine.py",
-      "description": "dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer. AnD os v8.1 (Pillar II & VI: Full Information Dependency &"
+      "description": "dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer. AnD os v1.0.0 (Pillar II & VI: Full Information Dependency &"
     },
     {
       "name": "dev_flow.py",
       "path": "and_os/bin/dev_flow.py",
-      "description": "dev_flow.py — Модульный CLI-оркестратор строгой поэтапной разработки AnD os. Управляет сессией разработки через детерминированный FSM и врем"
+      "description": "dev_flow.py — Modular CLI orchestrator for strict step-by-step development in AnD os. Manages the development session via a deterministic FS"
     },
     {
       "name": "doc_analyze.py",
       "path": "and_os/bin/doc_analyze.py",
-      "description": "doc_analyze.py — универсальный анализатор документов, таблиц, PDF и изображений. Реализует принцип Think in Code (Правило №16) и Context Bud"
+      "description": "doc_analyze.py — The universal analyzer of the documents, the tables, the PDF and the images. Implements the Think in Code principle (Rule #"
     },
     {
       "name": "docs_sync.py",
       "path": "and_os/bin/docs_sync.py",
-      "description": "docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v8.5. Parses SSOT configurations (system.json, sys_cli.py, root_c"
+      "description": "docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.0.0. Parses SSOT configurations (system.json, sys_cli.py, root_c"
     },
     {
       "name": "editorial_otio_conform.py",
       "path": "and_os/bin/editorial_otio_conform.py",
-      "description": "editorial_otio_conform.py — OpenTimelineIO Editorial Conform Engine (AnD os v8.1) Conforms editorial timelines, handles EDL/XML/OTIO interch"
+      "description": "editorial_otio_conform.py — OpenTimelineIO Editorial Conform Engine (AnD os v1.0.0) Conforms editorial timelines, handles EDL/XML/OTIO interch"
     },
     {
       "name": "eval_engine.py",
@@ -343,89 +697,104 @@
       "description": "eval_engine.py - Eval-Driven Development (EDD) Framework for AnD os. Inspired by Everything-Claude-Code eval harness and adapted for determi"
     },
     {
+      "name": "export_kernel.py",
+      "path": "and_os/bin/export_kernel.py",
+      "description": "export_kernel.py — Zero-Leak Deterministic Kernel Exporter for AnD os. Extracts and sanitizes only open-source microkernel components. Part "
+    },
+    {
       "name": "finance_bridge.py",
       "path": "and_os/bin/finance_bridge.py",
-      "description": "finance_bridge.py — Аналитический и Синхронизационный Шлюз Финансового Капитала (AnD os v8.1). Обеспечивает 100% локальный, герметичный (Air"
+      "description": "finance_bridge.py — Analytical and Synchronization Gateway of the Financial Capital (AnD os v1.0.0). Provides a 100% local, hermetic (Air-Gap)"
     },
     {
       "name": "fix_webdav_sync_issues.py",
       "path": "and_os/bin/fix_webdav_sync_issues.py",
-      "description": "fix_webdav_sync_issues.py — Комплексное исправление проблемных путей и файлов для стабильной синхронизации WebDAV: 1. Замена симлинков blend"
+      "description": "fix_webdav_sync_issues.py — The complex fix of the problematic paths and the files for the stable synchronization of the WebDAV: 1. The repl"
     },
     {
       "name": "ftrack_cache.py",
       "path": "and_os/bin/ftrack_cache.py",
-      "description": "Модуль кеширования выгрузок Ftrack API для снижения трат токенов и ускорения анализа. Функции: query_cached(session, query_str, cache_key, m"
+      "description": "Caching module for Ftrack API dumps: reduces token spend and speeds up analysis. Features: query_cached(session, query_str, cache_key, max_a"
     },
     {
       "name": "ftrack_gantt_exporter.py",
       "path": "and_os/bin/ftrack_gantt_exporter.py",
-      "description": "ftrack_gantt_exporter.py — Модуль точечной выгрузки данных Ftrack для Диаграммы Ганта (v2.0.0). Поддерживает фильтрацию по проектам (--proje"
+      "description": "ftrack_gantt_exporter.py — Pinpoint Ftrack data export module for the Gantt Chart (v2.0.0). Supports filtering by projects (--project mars /"
     },
     {
       "name": "ftrack_inspector.py",
       "path": "and_os/bin/ftrack_inspector.py",
-      "description": "ftrack_inspector.py — Анализатор структуры и поэтапный бережный забор данных из Ftrack. Возможности: 1. inspect: глубокий аудит структуры пр"
+      "description": "ftrack_inspector.py — Analyzer of the Ftrack structure and the staged careful data retrieval. Features: 1. inspect: the deep audit of the pr"
     },
     {
       "name": "ftrack_report.py",
       "path": "and_os/bin/ftrack_report.py",
-      "description": "Ftrack → таблицы → статус-отчёт (Кот / Марс). Режимы: python3 ftrack_report.py --project kot --export        # выгрузить сырые данные в CSV "
+      "description": "Ftrack -> tables -> the status report (Kot / Mars). Modes: python3 ftrack_report.py --project kot --export        # export the raw data into"
     },
     {
       "name": "ftrack_sync.py",
       "path": "and_os/bin/ftrack_sync.py",
-      "description": "Синхронизация Ftrack → Obsidian для проектов Кот учёный и Мотомарс ПМ. Использует единый оптимизированный аналитический движок ftrack_report"
+      "description": "Synchronization Ftrack -> Obsidian for the projects Kot Ucheny and Motomars PM. Uses the unified optimized analytical engine ftrack_report. "
     },
     {
       "name": "telemetry_sync_sync.py",
       "path": "and_os/bin/telemetry_sync_sync.py",
-      "description": "Расширенная синхронизация telemetry_sync Connect → Obsidian (health.md, telemetry_sync.md, sport.md). Извлекает исчерпывающий пласт биометрии и аналитики: -"
+      "description": "The extended synchronization telemetry_sync Connect -> Obsidian (health.md, telemetry_sync.md, sport.md). Extracts the exhaustive layer of the biometrics an"
     },
     {
       "name": "gen_context.py",
       "path": "and_os/bin/gen_context.py",
-      "description": "Генератор контекста для внешних LLM (ChatGPT, Claude, Gemini). Собирает все CONTEXT.md из хранилища Obsidian в единый файл, оптимизированный"
+      "description": "Context generator for external LLMs (ChatGPT, Claude, Gemini). Collects all CONTEXT.md files from the Obsidian Vault into a single file, opt"
     },
     {
       "name": "graph_builder.py",
       "path": "and_os/bin/graph_builder.py",
-      "description": "graph_builder.py — Движок генерации и оркестрации графов задач (Execution DAG). Часть стандарта Task Execution Graph (Правило №20). Генериру"
+      "description": "graph_builder.py — Engine of the task graphs generation and orchestration (Execution DAG). Part of the Task Execution Graph standard (Rule #"
     },
     {
       "name": "health_bridge.py",
       "path": "and_os/bin/health_bridge.py",
-      "description": "health_bridge.py — Единый аналитический и синхронизационный шлюз здоровья семьи ANDREY OS (AnD os v8.1). Стандарты: - Правило №7: Двухконтур"
+      "description": "health_bridge.py — Unified analytical and synchronization gateway of the ANDREY OS family health (AnD os v1.0.0). Standards: - Rule #7: Dual-c"
     },
     {
       "name": "hybrid_animatic_director.py",
       "path": "and_os/bin/hybrid_animatic_director.py",
-      "description": "hybrid_animatic_director.py — AI-Assisted Storyboard & 3D Animatic Assembler AnD os v8.1 — Studio Production & Narrative Layer (Island 4 & I"
+      "description": "hybrid_animatic_director.py — AI-Assisted Storyboard & 3D Animatic Assembler AnD os v1.0.0 — Studio Production & Narrative Layer (Island 4 & I"
     },
     {
       "name": "hybrid_comfyui_render.py",
       "path": "and_os/bin/hybrid_comfyui_render.py",
-      "description": "hybrid_comfyui_render.py — Multi-Pass 3D-to-AI Styler and ComfyUI Dispatcher AnD os v8.1 — Hybrid Production Layer (Island 7 & 3D Pipeline) "
+      "description": "hybrid_comfyui_render.py — Multi-Pass 3D-to-AI Styler and ComfyUI Dispatcher AnD os v1.0.0 — Hybrid Production Layer (Island 7 & 3D Pipeline) "
     },
     {
       "name": "image_ocr.py",
       "path": "and_os/bin/image_ocr.py",
-      "description": "OCR-анализатор изображений через tesseract. Использует tesseract OCR с языковыми пакетами rus+eng. Установка: brew install tesseract tessera"
+      "description": "Image OCR analyzer via tesseract. Uses tesseract OCR with the rus+eng language packs. Install: brew install tesseract tesseract-lang Run: py"
+    },
+    {
+      "name": "language_migration.py",
+      "path": "and_os/bin/language_migration.py",
+      "description": "language_migration.py — Rule #3 EN-migration workbench (audit R2, WI-5.3). Machine-readable backlog and progress tracking for the Cyrillic -"
     },
     {
       "name": "link_graph_orphans.py",
       "path": "and_os/bin/link_graph_orphans.py",
-      "description": "link_graph_orphans.py — Идемпотентная привязка изолированных заметок к корневым и категориальным хабам Obsidian. Цель: 1. Для каждой изолиро"
+      "description": "link_graph_orphans.py — Idempotent attachment of isolated notes to the root and category hubs of Obsidian. Goal: 1. For each isolated note ("
+    },
+    {
+      "name": "manifest_projector.py",
+      "path": "and_os/bin/manifest_projector.py",
+      "description": "manifest_projector.py — Root Manifest Projector (Single Source of Truth Guard). The canonical system manifest lives at and_os/etc/system.jso"
     },
     {
       "name": "mattermost_inspector.py",
       "path": "and_os/bin/mattermost_inspector.py",
-      "description": "mattermost_inspector.py — Анализатор структуры, аудитор и staged-экстрактор срезов Mattermost. Архитектурный стандарт: AnD os v8.1 (Правило "
+      "description": "mattermost_inspector.py — The analyzer of the structure, the auditor and the staged extractor of the Mattermost slices. The architectural st"
     },
     {
       "name": "mattermost_sync.py",
       "path": "and_os/bin/mattermost_sync.py",
-      "description": "Mattermost API → дайджест сообщений и фоллоу-апы (Studio). Режимы: python3 mattermost_sync.py --teams                                   # спис"
+      "description": "Mattermost API -> the digest of the messages and the follow-ups (Studio). Modes: python3 mattermost_sync.py --teams                          "
     },
     {
       "name": "mirror_collector.py",
@@ -440,47 +809,57 @@
     {
       "name": "obsidian_blueprint_generator.py",
       "path": "and_os/bin/obsidian_blueprint_generator.py",
-      "description": "obsidian_blueprint_generator.py — Генератор эталонного паспорта архитектуры и плагинов Obsidian. AnD os v8.1 — Production Environment Bluepr"
+      "description": "obsidian_blueprint_generator.py — Generator of the reference architecture and plugins passport of Obsidian. AnD os v1.0.0 — Production Environ"
+    },
+    {
+      "name": "passport_sync_runner.py",
+      "path": "and_os/bin/passport_sync_runner.py",
+      "description": "passport_sync_runner.py — Daily cron wrapper for the Island 7 passport sync. Runs the library-level PulsarPassportSync (and_os/lib/pulsar/pa"
     },
     {
       "name": "pdf_twin_converter.py",
       "path": "and_os/bin/pdf_twin_converter.py",
-      "description": "pdf_twin_converter.py — Автоматическое создание информационных Markdown-двойников для PDF. Принцип: Think in Code (Правило №16), Безопасност"
+      "description": "pdf_twin_converter.py — Automatic creation of informational Markdown twins for PDFs. Principle: Think in Code (Rule #16), Data Safety (Rule "
     },
     {
       "name": "post_prompt_planner.py",
       "path": "and_os/bin/post_prompt_planner.py",
-      "description": "post_prompt_planner.py — Автоматический генератор карт процессов (Post-Prompt Execution Map / DAG Planner). Принцип: Think in Code (Правило "
+      "description": "post_prompt_planner.py — Automatic generator of process maps (Post-Prompt Execution Map / DAG Planner). Principle: Think in Code (Rule #16),"
     },
     {
       "name": "postmortem_analyzer.py",
       "path": "and_os/bin/postmortem_analyzer.py",
-      "description": "postmortem_analyzer.py — Production Bottleneck & Sprint Postmortem Analyzer AnD os v8.1 — Studio Production Layer (Island 5: Studio & Theory "
+      "description": "postmortem_analyzer.py — Production Bottleneck & Sprint Postmortem Analyzer AnD os v1.0.0 — Studio Production Layer (Island 5: Studio & Theory "
     },
     {
       "name": "proc_mesh.py",
       "path": "and_os/bin/proc_mesh.py",
-      "description": "proc_mesh.py — Генерация и чтение виртуального пространства состояния (/proc mesh). Принцип: Think in Code (Правило №16), 0-Token State Read"
+      "description": "proc_mesh.py — Generation and reading of the virtual state space (/proc mesh). Principle: Think in Code (Rule #16), 0-Token State Reading, L"
     },
     {
       "name": "project_manager.py",
       "path": "and_os/bin/project_manager.py",
-      "description": "project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v8.5. Automatically registers new projects in Nero/pulsar (Isl"
+      "description": "project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.0.0. Automatically registers new projects in Nero/pulsar (Isl"
     },
     {
       "name": "project_registry.py",
       "path": "and_os/bin/project_registry.py",
-      "description": "project_registry.py — Единый Реестр Внешних Программных Систем и Веб-Сервисов ANDREY OS (v1.0.0). Каталогизирует все автономные внешние серв"
+      "description": "project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.0.0). Catalogs all autonomous external s"
     },
     {
       "name": "project_skeleton.py",
       "path": "and_os/bin/project_skeleton.py",
-      "description": "project_skeleton.py — Генератор эталонных каркасов проектов (Skeleton Engine). AnD os v8.4 — Остров 9 (Xcode / iOS Game Engineering) & Остро"
+      "description": "project_skeleton.py — Reference project skeleton generator (Skeleton Engine). AnD os v1.0.0 — Island 9 (Xcode / iOS Game Engineering) & Island"
+    },
+    {
+      "name": "projects_registry_sync.py",
+      "path": "and_os/bin/projects_registry_sync.py",
+      "description": "projects_registry_sync.py — External Project Registry Regenerator (SSoT sync). Regenerates and_os/srv/projects_registry.json from live sourc"
     },
     {
       "name": "quick_find.py",
       "path": "and_os/bin/quick_find.py",
-      "description": "quick_find.py — Fast Knowledge Retrieval Tool with Okapi BM25 & Bilingual Expansion AnD os v8.1 — Think in Code Knowledge Retrieval Engine ("
+      "description": "quick_find.py — Fast Knowledge Retrieval Tool with Okapi BM25 & Bilingual Expansion AnD os v1.0.0 — Think in Code Knowledge Retrieval Engine ("
     },
     {
       "name": "quick_verify.py",
@@ -490,37 +869,47 @@
     {
       "name": "refactor_cleaner.py",
       "path": "and_os/bin/refactor_cleaner.py",
-      "description": "refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v8.5. Analyzes Python & Swift ASTs for unused functions, dead code b"
+      "description": "refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.0.0. Analyzes Python & Swift ASTs for unused functions, dead code b"
     },
     {
       "name": "register_component.py",
       "path": "and_os/bin/register_component.py",
-      "description": "Component Lifecycle & Registration Engine (register_component.py) AnD os v8.1 - Modular Architecture Infrastructure Автоматизированный инстр"
+      "description": "Component Lifecycle & Registration Engine (register_component.py) AnD os v1.0.0 - Modular Architecture Infrastructure The automated tool for t"
     },
     {
       "name": "rules_compiler.py",
       "path": "and_os/bin/rules_compiler.py",
-      "description": "rules_compiler.py — Fast Rules Index Compiler for AnD os v8.5. Compiles SYSTEM.md and .opencode/rules.md into a high-density, token-efficien"
+      "description": "rules_compiler.py — Fast Rules Index Compiler for AnD os (v2, audit R2 P3). Compiles the canonical manifest (and_os/etc/system.json — SSoT) "
+    },
+    {
+      "name": "rules_fulltext_expander.py",
+      "path": "and_os/bin/rules_fulltext_expander.py",
+      "description": "rules_fulltext_expander.py — Canonical Rule Section Restorer & Consistency Guard. Restores missing \"### Правило N:\" sections in .opencode/ru"
+    },
+    {
+      "name": "run_tests.py",
+      "path": "and_os/bin/run_tests.py",
+      "description": "run_tests.py — Canonical AnD os test-suite runner. Single entrypoint for `pytest and_os/tests` with the hermetic-FHS contract (Rule #50) enf"
     },
     {
       "name": "safe_snapshot.py",
       "path": "and_os/bin/safe_snapshot.py",
-      "description": "safe_snapshot.py — Управление снимками состояния системы (APFS Local Snapshot & State Snapshots). Принципы: APFS Native CoW (Правило №42, №4"
+      "description": "safe_snapshot.py — Management of system state snapshots (APFS Local Snapshot & State Snapshots). Principles: APFS Native CoW (Rule #42, #43)"
     },
     {
       "name": "schema_validator.py",
       "path": "and_os/bin/schema_validator.py",
-      "description": "schema_validator.py — Движок валидации IPC-схем ответов системных модулей (Pydantic / Schema Engine). Принцип: Data Contract Validation. Про"
+      "description": "schema_validator.py — IPC response schema validation engine for system modules (Pydantic / Schema Engine). Principle: Data Contract Validati"
     },
     {
       "name": "script_bible_extractor.py",
       "path": "and_os/bin/script_bible_extractor.py",
-      "description": "script_bible_extractor.py — Narrative IP & Script Bible Entity Extractor AnD os v8.1 — Narrative & Creative Layer (Island 4: Story & Books) "
+      "description": "script_bible_extractor.py — Narrative IP & Script Bible Entity Extractor AnD os v1.0.0 — Narrative & Creative Layer (Island 4: Story & Books) "
     },
     {
       "name": "script_chunker.py",
       "path": "and_os/bin/script_chunker.py",
-      "description": "script_chunker.py — инструмент умного извлечения фрагментов из крупных текстов/сценариев/книг. Принцип: Think in Code (Правило №16) & Contex"
+      "description": "script_chunker.py — the tool of the smart extraction of the fragments from the large texts/scripts/books. The principle: Think in Code (Rule"
     },
     {
       "name": "sec_audit.py",
@@ -530,17 +919,22 @@
     {
       "name": "session_gate.py",
       "path": "and_os/bin/session_gate.py",
-      "description": "session_gate.py — Universal Session Gate & Domain Anchor Beacon (AnD os v9.0). Acts as a SessionStart lifecycle hook for Antigravity & LLM a"
+      "description": "session_gate.py — Universal Session Gate & Domain Anchor Beacon. Acts as a SessionStart lifecycle hook for Antigravity & LLM agents. Injects"
+    },
+    {
+      "name": "skill_abi_backfill.py",
+      "path": "and_os/bin/skill_abi_backfill.py",
+      "description": "skill_abi_backfill.py — SKILL_MODULE_ABI frontmatter backfill (audit R2, WI-5.1). Adds the ABI-mandated `ttl` and `reviewed` keys to every S"
     },
     {
       "name": "skill_bus.py",
       "path": "and_os/bin/skill_bus.py",
-      "description": "skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v8.1) Universal gateway for all 58 system skills: - inspect: zero-token archit"
+      "description": "skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.0.0) Universal gateway for all 58 system skills: - inspect: zero-token archit"
     },
     {
       "name": "skill_dormancy_checker.py",
       "path": "and_os/bin/skill_dormancy_checker.py",
-      "description": "Skill Usage & Dormancy Analyzer AnD os v8.1 - Skill Governance (Rule №18) Parses and_os/lib/skills/telemetry.md, matches against all registe"
+      "description": "Skill Usage & Dormancy Analyzer AnD os v1.0.0 - Skill Governance (Rule №18) Parses and_os/lib/skills/telemetry.md, matches against all registe"
     },
     {
       "name": "sos_auditor.py",
@@ -555,22 +949,22 @@
     {
       "name": "statusline.py",
       "path": "and_os/bin/statusline.py",
-      "description": "statusline.py — Динамическая статус-строка ядра (Runtime Statusline Beacon). AnD os v8.4 — Остров 8 (Kernel & AND_Terminal :8099). Выводит к"
+      "description": "statusline.py — Dynamic kernel statusline (Runtime Statusline Beacon). AnD os v1.0.0 — Island 8 (Kernel & AND_Terminal :8099). Prints a compac"
     },
     {
       "name": "sync_context.py",
       "path": "and_os/bin/sync_context.py",
-      "description": "sync_context.py — автоматизация синхронизации CONTEXT.md в Obsidian Vault. Принцип: Think in Code (Правило №16). Использование: python3 sync"
+      "description": "sync_context.py — the automation of the synchronization of the CONTEXT.md in the Obsidian Vault. The principle: Think in Code (Rule #16). Us"
     },
     {
       "name": "sync_preflight.py",
       "path": "and_os/bin/sync_preflight.py",
-      "description": "sync_preflight.py — Пре-полетный сканер изменений и синхронизатор структуры AnD os. Правило №47: Pre-Flight Context & Cross-Chat Delta Synch"
+      "description": "sync_preflight.py — Pre-flight scanner of changes and structure synchronizer of AnD os. Rule #47: Pre-Flight Context & Cross-Chat Delta Sync"
     },
     {
       "name": "sync_service.py",
       "path": "and_os/bin/sync_service.py",
-      "description": "sync_service.py — Высокоскоростной сервис инициализации сессии (Fast Session Init Service v2.0). Выполняет прямые импорты модулей в едином P"
+      "description": "sync_service.py — High-speed session initialization service (Fast Session Init Service v2.0). Runs direct module imports in a single Python "
     },
     {
       "name": "sys_bus.py",
@@ -585,22 +979,22 @@
     {
       "name": "system_dashboard.py",
       "path": "and_os/bin/system_dashboard.py",
-      "description": "system_dashboard.py — Автономный Интерактивный TUI-Дашборд (AnD os v8.1 Live Top). Принципы: Think in Code (Правило №16), Rich TUI (Автономн"
+      "description": "system_dashboard.py — The Autonomous Interactive TUI Dashboard (AnD os v1.0.0 Live Top). Principles: Think in Code (Rule #16), the Rich TUI (t"
     },
     {
       "name": "system_tools_map.py",
       "path": "and_os/bin/system_tools_map.py",
-      "description": "system_tools_map.py — Автоматический Генератор Единого Системного Паспорта Инструментария и Рантаймов (Toolchain & Runtime Engine). Принцип:"
+      "description": "system_tools_map.py — The Automatic Generator of the Unified System Passport of the Toolkit and the Runtimes (Toolchain & Runtime Engine). T"
     },
     {
       "name": "task_db_engine.py",
       "path": "and_os/bin/task_db_engine.py",
-      "description": "task_db_engine.py — Локальный Движок БД Задач и Индексации Vault (SQLite Engine). Принцип: Think in Code (Правило №16), Zero-Token Querying."
+      "description": "task_db_engine.py — Local Task Database and Vault Indexing Engine (SQLite Engine). Principle: Think in Code (Rule #16), Zero-Token Querying."
     },
     {
       "name": "tasks_bridge.py",
       "path": "and_os/bin/tasks_bridge.py",
-      "description": "tasks_bridge.py — Аналитический и Синхронизационный Шлюз Производственного Пульса (Tasks & Production Pulse). Обеспечивает токеноэффективное"
+      "description": "tasks_bridge.py — Analytical and Synchronization Gateway of the Production Pulse (Tasks & Production Pulse). Provides token-efficient (<50 t"
     },
     {
       "name": "tdd_scaffold.py",
@@ -610,72 +1004,72 @@
     {
       "name": "telemetry_logger.py",
       "path": "and_os/bin/telemetry_logger.py",
-      "description": "telemetry_logger.py — Модуль быстрых логов телеметрии (IPC Bus). Модульная программа для добавления валидированных записей в and_os/lib/skil"
+      "description": "telemetry_logger.py — Fast telemetry logging module (IPC Bus). Modular program for appending validated records to and_os/lib/skills/telemetr"
     },
     {
       "name": "temporal_consistency_guard.py",
       "path": "and_os/bin/temporal_consistency_guard.py",
-      "description": "temporal_consistency_guard.py — Frame Deflicker & Temporal Consistency Checker AnD os v8.1 — Quality & Animation Gate (Island 7 & Production"
+      "description": "temporal_consistency_guard.py — Frame Deflicker & Temporal Consistency Checker AnD os v1.0.0 — Quality & Animation Gate (Island 7 & Production"
     },
     {
       "name": "tg_career_fetcher.py",
       "path": "and_os/bin/tg_career_fetcher.py",
-      "description": "tg_career_fetcher.py — Automated Telegram Channels Ingestion Engine (AnD os v9.1). Part of career-radar ecosystem | Rule #59 (Official Proto"
+      "description": "tg_career_fetcher.py — Hybrid Telegram Career Ingestion Engine. Part of career-radar ecosystem | Rule #56 (No Hallucinations) & Rule #16 (To"
     },
     {
       "name": "trim_output.py",
       "path": "and_os/bin/trim_output.py",
-      "description": "trim_output.py — Обертка для песочного выполнения CLI-команд с авто-усечением логов (Правило №24). Сохраняет Head (первые N строк) + Tail (п"
+      "description": "trim_output.py — Sandbox CLI execution wrapper with automatic log truncation (Rule #24). Keeps Head (first N lines) + Tail (last M lines), f"
     },
     {
       "name": "ui_inspector.py",
       "path": "and_os/bin/ui_inspector.py",
-      "description": "ui_inspector.py — Высокоэффективный инспектор GUI/Dash/HTML компонентов (ANDREY OS). Позволяет без загрузки сотен строк кода в контекст моде"
+      "description": "ui_inspector.py — High-efficiency inspector of GUI/Dash/HTML components (ANDREY OS). Allows, without loading hundreds of code lines into the"
     },
     {
       "name": "vacuum_cleaner.py",
       "path": "and_os/bin/vacuum_cleaner.py",
-      "description": "vacuum_cleaner.py — Системный Санитар и Сборщик Мусора AnD os (v1.0.0). Очищает хранилище Obsidian Vault и экосистему Pulsar от мусорных арт"
+      "description": "vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.0.0). Cleans the Obsidian Vault and the Pulsar ecosystem from junk artifact"
     },
     {
       "name": "validate_system.py",
       "path": "and_os/bin/validate_system.py",
-      "description": "validate_system.py — Модульный мастер-диспетчер самодиагностики и аудита AnD os. Архитектура Health Grid (Ring 0 - Ring 4): - Ring 0: FSSynt"
+      "description": "validate_system.py — Modular master dispatcher of the self-diagnostics and audit of AnD os. Health Grid architecture (Ring 0 - Ring 4): - Ri"
     },
     {
       "name": "vault_guard_hook.py",
       "path": "and_os/bin/vault_guard_hook.py",
-      "description": "vault_guard_hook.py — Hardware-Level PreToolUse Governance Hook (AnD os v9.0). Implements Dual-Speed Governance (Rule #19 Invariant): - Fast"
+      "description": "vault_guard_hook.py — Hardware-Level PreToolUse Governance Hook. Implements Dual-Speed Governance (Rule #19 Invariant): - Fast-Track (Core, "
     },
     {
       "name": "vfs_bridge.py",
       "path": "and_os/bin/vfs_bridge.py",
-      "description": "vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v8.1. Part of AnD os Binary Bridges (and_os/bin/). Commands: sys_cli.py vf"
+      "description": "vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.0.0. Part of AnD os Binary Bridges (and_os/bin/). Commands: sys_cli.py vf"
     },
     {
       "name": "video_harness.py",
       "path": "and_os/bin/video_harness.py",
-      "description": "video_harness.py — Автономный валидатор технического ОТК видео и пассов (Video E2E Harness). AnD os v8.4 — Остров 7 & 5 (Pulsar & CG Product"
+      "description": "video_harness.py — Autonomous technical QC validator for video and passes (Video E2E Harness). AnD os v1.0.0 — Island 7 & 5 (Pulsar & CG Produ"
     },
     {
       "name": "video_scenes.py",
       "path": "and_os/bin/video_scenes.py",
-      "description": "video_scenes.py — Селективный медиа-анализ видео через FFmpeg (Scene Detection). Часть стандарта Think in Code (Правило №16). Фильтр FFmpeg "
+      "description": "video_scenes.py — The selective media analysis of the video via the FFmpeg (Scene Detection). A part of the standard Think in Code (Rule #16"
     },
     {
       "name": "weeek_sync.py",
       "path": "and_os/bin/weeek_sync.py",
-      "description": "Weeek Sync — извлечение и аналитика задач из Weeek (Studio). Работает без API-ключа через прямое чтение открытых вкладок Safari (AppleScript L"
+      "description": "Weeek Sync — extraction and analytics of the tasks from Weeek (Studio). Works without an API key via direct reading of the open Safari tabs ("
     },
     {
       "name": "xl_analyze.py",
       "path": "and_os/bin/xl_analyze.py",
-      "description": "Анализатор Excel/Google Sheets: чтение формул, связей, структуры. Запуск: python3 xl_analyze.py <путь к файлу> [--sheet имя] [--formulas] [-"
+      "description": "Excel/Google Sheets analyzer: reading formulas, links, structure. Run: python3 xl_analyze.py <path to file> [--sheet name] [--formulas] [--s"
     },
     {
       "name": "yt_analyze.py",
       "path": "and_os/bin/yt_analyze.py",
-      "description": "Извлечение данных из YouTube видео. python3 yt_analyze.py <url> --transcript  — транскрипт python3 yt_analyze.py <url> --info        — метад"
+      "description": "YouTube video data extraction. python3 yt_analyze.py <url> --transcript  — transcript python3 yt_analyze.py <url> --info        — metadata p"
     }
   ],
   "skills": [
@@ -722,7 +1116,7 @@
     {
       "name": "career-radar",
       "path": "and_os/lib/skills/career-radar/SKILL.md",
-      "description": "Weekly executive market radar and vacancy scoring engine for System Architect across CG animation, gamedev cinematics, streaming originals, and brand v"
+      "description": "Use when executing weekly executive market intelligence scans, vacancy scoring, and career opportunity radar for System Architect across CG animation, "
     },
     {
       "name": "cg-article",
@@ -815,6 +1209,11 @@
       "description": "Use when retrieving nocturnal HRV, sleep architecture, resting HR, and ACWR training load indices from telemetry_sync Connect."
     },
     {
+      "name": "github-ops",
+      "path": "and_os/lib/skills/github-ops/SKILL.md",
+      "description": "Use when searching GitHub repositories, inspecting issues, analyzing pull requests, checking CI/CD workflow runs, reading remote code, or tracking rel"
+    },
+    {
       "name": "goal-writer",
       "path": "and_os/lib/skills/goal-writer/SKILL.md",
       "description": "Use when formulating SMART annual, quarterly, and life milestone goals across career, health, creative, and family domains."
@@ -857,7 +1256,7 @@
     {
       "name": "knowledge-promoter",
       "path": "and_os/lib/skills/knowledge-promoter/SKILL.md",
-      "description": "Primary closed-loop knowledge orchestrator for AnD os. Handles dual-direction memory: (1) Pre-flight Recall to retrieve established domain invariants "
+      "description": "Use when orchestrating closed-loop memory in AnD os: running Pre-flight Recall to retrieve negative constraints before execution, or Post-flight Learn"
     },
     {
       "name": "llm-council",
@@ -882,7 +1281,7 @@
     {
       "name": "obsidian-bases",
       "path": "and_os/lib/skills/obsidian-bases/SKILL.md",
-      "description": "Create, validate, and maintain Obsidian Bases (.base files) with views, reactive filters, formulas, and summaries. Use when generating database-like t"
+      "description": "Use when creating, validating, and maintaining Obsidian Bases (.base files) with views, reactive filters, formulas, and summaries for database-like ta"
     },
     {
       "name": "openmontage-builder",
@@ -908,6 +1307,11 @@
       "name": "prompt-improver",
       "path": "and_os/lib/skills/prompt-improver/SKILL.md",
       "description": "Use when refining agent system prompts, clarifying underspecified user queries, and distilling high-fidelity context instructions."
+    },
+    {
+      "name": "reverse-engineer-anything",
+      "path": "and_os/lib/skills/reverse-engineer-anything/SKILL.md",
+      "description": "Reverse engineer native, managed, Electron/JavaScript, packaged, firmware, SQLite, and browser targets with REA. Use shipped-artifact or requested run"
     },
     {
       "name": "script-bible-extractor",

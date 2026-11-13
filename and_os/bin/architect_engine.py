@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 architect_engine.py — Sovereign System Architecture & Project Scaffolding Engine.
-AnD os v9.2 — Master Systems Architect Module (Island 8 / Island 6).
+Master Systems Architect Module (Island 8 / Island 6).
 
 Implements Phase 0 (Spec-Before-Code Architecture Protocol):
   1. Discovery & Validation of 5 Domain Beacons and 9 Logical Islands.
@@ -30,8 +30,8 @@ def load_rules_index() -> Dict[str, Any]:
         try:
             with open(RULES_INDEX_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
-            pass
+        except (OSError, json.JSONDecodeError) as err:
+            sys.stderr.write(f"[architect_engine] Notice: the rules index is unreadable: {err}\n")
     return {}
 
 def list_available_blueprints() -> List[Dict[str, Any]]:
@@ -47,8 +47,8 @@ def list_available_blueprints() -> List[Dict[str, Any]]:
                     data = json.load(f)
                     data["folder_name"] = d
                     results.append(data)
-            except Exception:
-                pass
+            except (OSError, json.JSONDecodeError) as err:
+                sys.stderr.write(f"[architect_engine] Notice: the blueprint config of the '{d}' was skipped: {err}\n")
     return results
 
 def find_blueprint_by_domain(domain_query: str) -> Optional[Dict[str, Any]]:
@@ -77,7 +77,7 @@ def scaffold_project(
     if not bp:
         return {
             "status": "error",
-            "message": f"Архитектурный домен '{domain}' не найден. Доступные домены: {[b['domain'] for b in list_available_blueprints()]}"
+            "message": f"Architecture domain '{domain}' not found. Available domains: {[b['domain'] for b in list_available_blueprints()]}"
         }
 
     beacon_path = bp.get("beacon_path", "")
@@ -97,13 +97,13 @@ def scaffold_project(
                 allocated_port = min_p
         is_free = check_port_availability(allocated_port)
         if not is_free and not dry_run:
-            print(f"⚠️ [ВНИМАНИЕ] Порт :{allocated_port} уже слушается процессом в системе.")
+            print(f"⚠️ [WARNING] Port :{allocated_port} is already being listened on by a process in the system.")
 
     # 2. Check path collision
     if os.path.exists(target_path) and not dry_run:
         return {
             "status": "error",
-            "message": f"Директория назначения уже существует: '{target_path}'. Очистите или выберите другое имя проекта."
+            "message": f"Target directory already exists: '{target_path}'. Clear it or choose a different project name."
         }
 
     template_file = os.path.join(BLUEPRINTS_DIR, "DESIGN_DOC.template.md")
@@ -125,8 +125,8 @@ def scaffold_project(
         PORT=allocated_port or 0,
         PORT_INFO=f":{allocated_port}" if allocated_port else "N/A (No Network Port)",
         DATE=datetime.datetime.now().strftime("%Y-%m-%d"),
-        OBJECTIVE=f"Реализация высокопроизводительного сервиса/приложения '{project_name}' в домене {bp.get('title')}",
-        CONSUMERS="Пользователь (System Architect), смежные сервисы AnD os, Остров 8",
+        OBJECTIVE=f"Implementation of a high-performance service/application '{project_name}' in the {bp.get('title')} domain",
+        CONSUMERS="User (System Architect), adjacent AnD os services, Island 8",
         CONSTRAINTS="Strict Sandboxing, Zero Hardcoded Secrets, CoW Rollback Safety",
         MANDATORY_RULES=rules_md,
         MERMAID_GRAPH=f"graph LR\n  P[\"Producer: {bp.get('producer_script')}\"] -->|writes| C[\"Contract: {bp.get('contract_file')}\"]\n  C -->|reads| U[\"Consumer: {bp.get('consumer_artifact')}\"]",
@@ -134,21 +134,65 @@ def scaffold_project(
         CONSUMER_ARTIFACT=bp.get("consumer_artifact", "output"),
         CONTRACT_FILE=bp.get("contract_file", "contract.json"),
         DATA_CONTRACT_JSON="{\n  \"status\": \"healthy\",\n  \"version\": \"1.0.0\",\n  \"payload\": {}\n}",
-        ADR_CONTEXT=f"Старт проекта в домене {bp.get('title')} с соблюдением требований изоляции",
-        ADR_ALTERNATIVES="Монолитное внедрение в ядро vs отдельная папка; ручное управление портами vs декларативное",
-        ADR_DECISION=f"Выбрана 100% модульная архитектура Доменного Маяка {bp.get('beacon_name')}",
-        ADR_TRADEOFFS="Необходимость поддерживать отдельный локальный кэш компенсируется мгновенной скоростью отклика и 0% LLM-токенов в рантайме",
+        ADR_CONTEXT=f"Project start in the {bp.get('title')} domain while honoring isolation requirements",
+        ADR_ALTERNATIVES="Monolithic embedding into the kernel vs a separate folder; manual port management vs declarative",
+        ADR_DECISION=f"100% modular architecture of the {bp.get('beacon_name')} Domain Beacon was chosen",
+        ADR_TRADEOFFS="The need to maintain a separate local cache is compensated by instant response speed and 0% LLM tokens at runtime",
+        SMOKE_TEST_CMD=bp.get("smoke_cmd", "python3 smoke_test.py")
+    )
+
+    # Load AGENTS.template.md
+    agents_template_file = os.path.join(BLUEPRINTS_DIR, "AGENTS.template.md")
+    agents_template_str = ""
+    if os.path.exists(agents_template_file):
+        with open(agents_template_file, "r", encoding="utf-8") as af:
+            agents_template_str = af.read()
+
+    agents_doc = agents_template_str.format(
+        PROJECT_NAME=project_name,
+        DOMAIN=bp.get("domain", domain),
+        BEACON_NAME=bp.get("beacon_name", "Core"),
+        BEACON_PATH=bp.get("beacon_path", beacon_path),
+        TARGET_PATH=target_path,
         SMOKE_TEST_CMD=bp.get("smoke_cmd", "python3 smoke_test.py")
     )
 
     created_files = []
     if not dry_run:
         os.makedirs(target_path, exist_ok=True)
-        # Write DESIGN_DOC.md
-        doc_path = os.path.join(target_path, "DESIGN_DOC.md")
+        # Ensure standard project directories
+        os.makedirs(os.path.join(target_path, "docs"), exist_ok=True)
+        os.makedirs(os.path.join(target_path, "var"), exist_ok=True)
+
+        # Write docs/DESIGN_DOC.md
+        doc_path = os.path.join(target_path, "docs", "DESIGN_DOC.md")
         with open(doc_path, "w", encoding="utf-8") as df:
             df.write(design_doc)
-        created_files.append("DESIGN_DOC.md")
+        created_files.append("docs/DESIGN_DOC.md")
+
+        # Also write root symlink or copy for convenience if needed, but write AGENTS.md
+        agents_path = os.path.join(target_path, "AGENTS.md")
+        with open(agents_path, "w", encoding="utf-8") as af:
+            af.write(agents_doc)
+        created_files.append("AGENTS.md")
+
+        # Deploy Project Core Kernel (src/core/)
+        core_templates_dir = os.path.join(BLUEPRINTS_DIR, "core_templates")
+        if os.path.exists(core_templates_dir):
+            target_core_dir = os.path.join(target_path, "src", "core")
+            os.makedirs(target_core_dir, exist_ok=True)
+            for cfile in os.listdir(core_templates_dir):
+                if cfile.endswith(".py"):
+                    src_f = os.path.join(core_templates_dir, cfile)
+                    dst_f = os.path.join(target_core_dir, cfile)
+                    shutil.copyfile(src_f, dst_f)
+                    created_files.append(f"src/core/{cfile}")
+            # Ensure __init__.py in src/core/
+            init_f = os.path.join(target_core_dir, "__init__.py")
+            if not os.path.exists(init_f):
+                with open(init_f, "w", encoding="utf-8") as f:
+                    f.write('"""AnD os Project Core Kernel."""\n')
+                created_files.append("src/core/__init__.py")
 
         # Write skeleton files
         skeleton_files = bp.get("skeleton_files", {})
@@ -198,22 +242,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os System Architecture Engine")
     subparsers = parser.add_subparsers(dest="subcommand")
 
-    p_list = subparsers.add_parser("list", help="Список доступных архитектурных доменов и маяков")
-    p_init = subparsers.add_parser("init", help="Развернуть эталонный архитектурный каркас")
-    p_init.add_argument("--domain", required=True, help="Домен: pulsar_site, public_web, xcode_game, hybrid_3d_ai, interactive_tool, core_service")
-    p_init.add_argument("--name", required=True, help="Имя нового проекта")
-    p_init.add_argument("--path", help="Опциональный путь размещения (по умолчанию путь Маяка)")
-    p_init.add_argument("--port", type=int, help="Специфический порт (для веба)")
-    p_init.add_argument("--dry-run", action="store_true", help="Проверить без записи на диск")
+    p_list = subparsers.add_parser("list", help="List of available architecture domains and beacons")
+    p_init = subparsers.add_parser("init", help="Deploy the reference architecture skeleton")
+    p_init.add_argument("--domain", required=True, help="Domain: pulsar_site, public_web, xcode_game, hybrid_3d_ai, interactive_tool, core_service")
+    p_init.add_argument("--name", required=True, help="New project name")
+    p_init.add_argument("--path", help="Optional placement path (defaults to the Beacon path)")
+    p_init.add_argument("--port", type=int, help="Specific port (for web)")
+    p_init.add_argument("--dry-run", action="store_true", help="Check without writing to disk")
 
     args = parser.parse_args()
 
     if args.subcommand == "list":
         blueprints = list_available_blueprints()
-        print(f"🏛️ [System Architecture Engine] Доступно {len(blueprints)} архитектурных доменов:")
+        print(f"🏛️ [System Architecture Engine] {len(blueprints)} architecture domains available:")
         for bp in blueprints:
             p_str = f":{bp['default_port_range'][0]}-{bp['default_port_range'][1]}" if bp.get("default_port_range") else "None"
-            print(f"  • {bp['domain']:<18} | Остров {bp['island']} | Маяк: {bp['beacon_name']:<22} | Порты: {p_str}")
+            print(f"  • {bp['domain']:<18} | Island {bp['island']} | Beacon: {bp['beacon_name']:<22} | Ports: {p_str}")
             for r in bp.get("mandatory_rules", []):
                 print(f"     - {r[:80]}...")
     elif args.subcommand == "init":
@@ -227,13 +271,13 @@ def main() -> None:
         if res.get("status") == "error":
             print(f"❌ {res.get('message')}")
             sys.exit(1)
-        print(f"✅ Архитектурный каркас '{args.name}' успешно инициализирован:")
-        print(f"   • Домен: {res['title']} (Остров {res['island']})")
-        print(f"   • Маяк: {res['beacon']} ➔ {res['target_path']}")
+        print(f"✅ Architecture skeleton '{args.name}' initialized successfully:")
+        print(f"   • Domain: {res['title']} (Island {res['island']})")
+        print(f"   • Beacon: {res['beacon']} ➔ {res['target_path']}")
         if res.get("port"):
-            print(f"   • Выделенный порт: :{res['port']}")
-        print(f"   • Создано файлов: {len(res['created_files'])} ({', '.join(res['created_files'])})")
-        print(f"   • Дымовой тест: {'🟢 ' + res['smoke_status'] if res['smoke_status'] == 'PASS' else '🔴 ' + res['smoke_status']}")
+            print(f"   • Allocated port: :{res['port']}")
+        print(f"   • Files created: {len(res['created_files'])} ({', '.join(res['created_files'])})")
+        print(f"   • Smoke test: {'🟢 ' + res['smoke_status'] if res['smoke_status'] == 'PASS' else '🔴 ' + res['smoke_status']}")
         if res.get("smoke_output"):
             print(f"     > {res['smoke_output']}")
     else:

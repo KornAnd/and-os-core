@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-system_tools_map.py — Автоматический Генератор Единого Системного Паспорта Инструментария и Рантаймов (Toolchain & Runtime Engine).
-Принцип: Zero-Token Routing Map, Think in Code (Правило №16), Регламент сред исполнения AnD os v8.1.
+system_tools_map.py — The Automatic Generator of the Unified System Passport of the Toolkit and the Runtimes (Toolchain & Runtime Engine).
+The principle: the Zero-Token Routing Map, the Think in Code (Rule #16), the regulation of the execution environments of the AnD os v1.0.0.
 
-Назначение:
-  1. Сканирует рантаймы ОС: Python (версия, путь, установленные пакеты), Node.js, Git, OS Architecture.
-  2. Сканирует все 50 скиллов (SKILL.md) и скрипты ядра в and_os/bin/.
-  3. Генерирует машиночитаемый JSON и Markdown файл:
+Purpose:
+  1. Scans the runtimes of the OS: Python (the version, the path, the installed packages), Node.js, Git, the OS Architecture.
+  2. Scans all the 50 skills (SKILL.md) and the scripts of the core in the and_os/bin/.
+  3. Generates the machine-readable JSON and the Markdown file:
      - `and_os/etc/SYSTEM_TOOLCHAIN.json`
      - `and_os/etc/SYSTEM_TOOLCHAIN.md`
-  4. Обновляет виртуальный статус в /proc mesh (`proc/env.stat`).
+  4. Updates the virtual status in the /proc mesh (`proc/env.stat`).
 
-Использование:
+Usage:
   python3 system_tools_map.py --build
 """
 
@@ -64,7 +64,7 @@ def get_app_plist_version(plist_path):
     return "NOT_INSTALLED"
 
 def collect_runtime_environment():
-    """Сбор информации о версиях языков программирования, установленных модулях, DCC и прикладных системах."""
+    """The collection of the information over the versions of the programming languages, the installed modules, the DCC and the applied systems."""
     python_ver = platform.python_version()
     python_path = sys.executable
     os_name = f"{platform.system()} {platform.release()} ({platform.machine()})"
@@ -303,7 +303,7 @@ tags:
 created: {toolchain_data['updated_at']}
 ---
 
-# 🛠️ SYSTEM TOOLCHAIN — Runtime Standard & Toolchain Specification AnD os v8.1
+# 🛠️ SYSTEM TOOLCHAIN — Runtime Standard & Toolchain Specification AnD os v1.0.0
 
 > **Specification for AI Agents and Developers:** Canonical specification of programming language versions, installed libraries, {len(scripts_info)} core scripts, and {len(skills_info)} active skills.  
 > **Automated Refresh:** `python3 and_os/bin/sys_cli.py env` or `python3 and_os/bin/system_tools_map.py --build`
@@ -328,14 +328,14 @@ created: {toolchain_data['updated_at']}
 
 | Tool | Version / Status | Role & Purpose |
 | :--- | :--- | :--- |
-| **FFmpeg** | `{runtime_env['cli_tools']['ffmpeg']}` | Декодирование, нарезка видео/аудио, конформ таймлайнов |
-| **Tesseract OCR** | `{runtime_env['cli_tools']['tesseract']}` | Оптическое распознавание текста со сканов и скриншотов |
-| **yt-dlp** | `{runtime_env['cli_tools']['yt_dlp']}` | Загрузка медиа и транскриптов YouTube (`yt_analyze.py`) |
-| **uv** | `{runtime_env['cli_tools']['uv']}` | Ультрабыстрый менеджер пакетов и виртуальных окружений Python |
-| **GitHub CLI (gh)** | `{runtime_env['cli_tools']['gh']}` | Управление репозиториями, PR и релизами GitHub |
-| **jq** | `{runtime_env['cli_tools']['jq']}` | Потоковая фильтрация и парсинг JSON в терминале |
-| **SQLite3** | `{runtime_env['cli_tools']['sqlite']}` | Встроенное хранилище индексов и задач (`task_vault.db`) |
-| **tmux** | `{runtime_env['cli_tools']['tmux']}` | Мультиплексор терминальных сессий |
+| **FFmpeg** | `{runtime_env['cli_tools']['ffmpeg']}` | The decoding, the cutting of the video/audio, the conform of the timelines |
+| **Tesseract OCR** | `{runtime_env['cli_tools']['tesseract']}` | The optical recognition of the text from the scans and the screenshots |
+| **yt-dlp** | `{runtime_env['cli_tools']['yt_dlp']}` | The download of the media and the transcripts of the YouTube (`yt_analyze.py`) |
+| **uv** | `{runtime_env['cli_tools']['uv']}` | The ultra-fast manager of the packages and the virtual environments of the Python |
+| **GitHub CLI (gh)** | `{runtime_env['cli_tools']['gh']}` | The control of the repositories, the PR and the releases of the GitHub |
+| **jq** | `{runtime_env['cli_tools']['jq']}` | The streaming filtering and the parsing of the JSON in the terminal |
+| **SQLite3** | `{runtime_env['cli_tools']['sqlite']}` | The embedded storage of the indexes and the tasks (`task_vault.db`) |
+| **tmux** | `{runtime_env['cli_tools']['tmux']}` | The multiplexer of the terminal sessions |
 
 ---
 
@@ -343,12 +343,12 @@ created: {toolchain_data['updated_at']}
 
 | Software / Suite | Version / Status | Production Domain / Role |
 | :--- | :--- | :--- |
-| **Blender** | `{runtime_env['creative_and_dcc']['blender']}` | 3D-моделирование, процедурные ассеты, рендер (`cg_workspace`) |
-| **Houdini** | `{runtime_env['creative_and_dcc']['houdini']}` | Процедурный FX/динамика, Solaris, USD пайплайн |
-| **DaVinci Resolve** | `{runtime_env['creative_and_dcc']['davinci_resolve']}` | Цветокоррекция, финальный монтаж, конформ шотов (`openmontage-builder`) |
-| **Xcode** | `{runtime_env['creative_and_dcc']['xcode']}` | Нативная разработка iOS/macOS игр и приложений (Остров 9) |
-| **Comfy Desktop** | `{runtime_env['creative_and_dcc']['comfy_desktop']}` | Нейросетевая генерация и стилизация шотов (ComfyUI / ControlNet) |
-| **Unity Hub** | `{runtime_env['creative_and_dcc']['unity_hub']}` | Менеджер игровых движков Unity (Standby / Cross-platform) |
+| **Blender** | `{runtime_env['creative_and_dcc']['blender']}` | The 3D modeling, the procedural assets, the render (`cg_workspace`) |
+| **Houdini** | `{runtime_env['creative_and_dcc']['houdini']}` | The procedural FX/dynamics, the Solaris, the USD pipeline |
+| **DaVinci Resolve** | `{runtime_env['creative_and_dcc']['davinci_resolve']}` | The color grading, the final editing, the conform of the shots (`openmontage-builder`) |
+| **Xcode** | `{runtime_env['creative_and_dcc']['xcode']}` | The native development of the iOS/macOS games and the applications (the Island 9) |
+| **Comfy Desktop** | `{runtime_env['creative_and_dcc']['comfy_desktop']}` | The neural network generation and the stylization of the shots (ComfyUI / ControlNet) |
+| **Unity Hub** | `{runtime_env['creative_and_dcc']['unity_hub']}` | The manager of the game engines of the Unity (Standby / Cross-platform) |
 
 ---
 
@@ -356,10 +356,10 @@ created: {toolchain_data['updated_at']}
 
 | Application | Version / Status | System Interaction |
 | :--- | :--- | :--- |
-| **Obsidian** | `{runtime_env['apps']['obsidian']}` | Суверенное когнитивное пространство (Brain Realm) |
-| **Mattermost** | `{runtime_env['apps']['mattermost']}` | Корпоративный мессенджер Production Studio (`mattermost_sync.py`) |
-| **Telegram** | `{runtime_env['apps']['telegram']}` | Каналы, боты и оперативная коммуникация (`tg_bot_app`) |
-| **Docker** | `{runtime_env['apps']['docker']}` | Контейнеризация микросервисов и баз данных |
+| **Obsidian** | `{runtime_env['apps']['obsidian']}` | The sovereign cognitive space (Brain Realm) |
+| **Mattermost** | `{runtime_env['apps']['mattermost']}` | The corporate messenger of the studio of the Studio (`mattermost_sync.py`) |
+| **Telegram** | `{runtime_env['apps']['telegram']}` | The channels, the bots and the operational communication (`tg_bot_app`) |
+| **Docker** | `{runtime_env['apps']['docker']}` | The containerization of the microservices and the databases |
 
 ---
 
@@ -409,22 +409,22 @@ created: {toolchain_data['updated_at']}
 
 def main():
     parser = argparse.ArgumentParser(description="System Toolchain & Runtime Map Generator")
-    parser.add_argument("--build", action="store_true", default=True, help="Сгенерировать карту инструментария и рантаймов")
-    parser.add_argument("--json", action="store_true", help="Вывод только в формате JSON")
+    parser.add_argument("--build", action="store_true", default=True, help="Generate the map of the toolkit and the runtimes")
+    parser.add_argument("--json", action="store_true", help="The output only in the JSON format")
     args = parser.parse_args()
 
     data = build_toolchain_map()
     if args.json:
         print(json.dumps(data, ensure_ascii=False, indent=2))
     else:
-        print(f"⚡ [Toolchain & Runtime Engine] Успешно актуализировано!")
-        print(f"  • Python: {data['runtime']['python']['version']} ({data['runtime']['python']['total_packages']} пакетов)")
+        print(f"⚡ [Toolchain & Runtime Engine] Was actualized successfully!")
+        print(f"  • Python: {data['runtime']['python']['version']} ({data['runtime']['python']['total_packages']} packages)")
         print(f"  • Node.js: {data['runtime']['runtimes']['node']} | Deno: {data['runtime']['runtimes']['deno']} | Swift: {data['runtime']['runtimes']['swift']}")
         print(f"  • DCC: Blender ({data['runtime']['creative_and_dcc']['blender']}), Houdini ({data['runtime']['creative_and_dcc']['houdini']}), Resolve ({data['runtime']['creative_and_dcc']['davinci_resolve']}), Xcode ({data['runtime']['creative_and_dcc']['xcode']})")
-        print(f"  • Скриптов ядра: {data['total_scripts']} | Скиллов: {data['total_skills']}")
-        print(f"  • Паспорт: and_os/etc/SYSTEM_TOOLCHAIN.md")
-        print(f"  • Машиночитаемый JSON: and_os/etc/SYSTEM_TOOLCHAIN.json")
-        print(f"  • Виртуальный статус: and_os/proc/env.stat")
+        print(f"  • The scripts of the core: {data['total_scripts']} | The skills: {data['total_skills']}")
+        print(f"  • The passport: and_os/etc/SYSTEM_TOOLCHAIN.md")
+        print(f"  • The machine-readable JSON: and_os/etc/SYSTEM_TOOLCHAIN.json")
+        print(f"  • The virtual status: and_os/proc/env.stat")
 
 if __name__ == "__main__":
     main()

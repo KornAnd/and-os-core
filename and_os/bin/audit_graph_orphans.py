@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-audit_graph_orphans.py — Точный сканер графовой связности Obsidian Vault.
-Находит файлы, которые в визуальном графе Obsidian отображаются сиротами:
-1. Имеют 0 входящих ссылок из видимых .md файлов (исключая игнорируемые CONTEXT.md)
-2. Имеют 0 исходящих ссылок на видимые .md файлы (или только обратные ссылки на скрытый CONTEXT.md)
+audit_graph_orphans.py — Precise graph-connectivity scanner of the Obsidian Vault.
+Finds files that appear as orphans in the Obsidian visual graph:
+1. Have 0 incoming links from visible .md files (excluding ignored CONTEXT.md)
+2. Have 0 outgoing links to visible .md files (or only backlinks to the hidden CONTEXT.md)
 """
 
 import os
@@ -16,7 +16,7 @@ VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".cache", "repo"}
 IGNORE_FILES = {".DS_Store"}
 
-# Файлы, которые Obsidian скрывает по userIgnoreFilters в app.json
+# Files that Obsidian hides via userIgnoreFilters in app.json
 HIDDEN_FROM_GRAPH = {"CONTEXT.md", "context_export.md", "context_lite.md"}
 
 def is_hidden_file(filename):
@@ -49,7 +49,7 @@ def main():
             full_path = os.path.join(root, f)
             rel_path = unicodedata.normalize('NFC', os.path.relpath(full_path, VAULT_ROOT))
             
-            # Скрытые из графа файлы не учитываются как узлы
+            # Files hidden from the graph are not counted as nodes
             if is_hidden_file(rel_path):
                 continue
                 
@@ -70,12 +70,12 @@ def main():
                 "outgoing": outgoing
             }
 
-    # Построение матрицы входящих связей
-    # Ссылка может вести по относительному пути (Folder/Name) или чисто по basename (Name)
+    # Build the incoming-links matrix
+    # A link may point by relative path (Folder/Name) or purely by basename (Name)
     in_degree = defaultdict(int)
     out_degree_visible = defaultdict(int)
 
-    # Быстрый индекс имен файлов
+    # Fast index of file names
     basename_map = defaultdict(list)
     for rel_path, data in all_files.items():
         basename_map[data["name_no_ext"]].append(rel_path)
@@ -86,20 +86,20 @@ def main():
 
     for src_rel, data in all_files.items():
         for target in data["outgoing"]:
-            # Проверяем, ведет ли ссылка на существующий видимый файл
+            # Check whether the link points to an existing visible file
             target_clean = os.path.basename(target)
             if target in basename_map or target_clean in basename_map:
-                # Нашли валидную цель в графе
+                # Found a valid target in the graph
                 target_paths = basename_map.get(target) or basename_map.get(target_clean)
                 for tp in target_paths:
-                    if tp != src_rel: # петли на себя не считаем
+                    if tp != src_rel: # self-loops are not counted
                         in_degree[tp] += 1
                         out_degree_visible[src_rel] += 1
 
-    # Сироты в терминах Obsidian:
-    # Узел в графе изолирован, если у него in_degree == 0 И out_degree == 0 (нет ни одного видимого ребра)
+    # Orphans in Obsidian terms:
+    # A graph node is isolated if in_degree == 0 AND out_degree == 0 (no visible edge at all)
     isolated_orphans = []
-    # Слабосвязанные: входящих 0 (тупик на входе, на него никто не ссылается)
+    # Weakly linked: 0 incoming (input dead-end, nobody links to it)
     zero_in = []
 
     for rel_path, data in all_files.items():
@@ -110,21 +110,21 @@ def main():
         elif in_c == 0:
             zero_in.append((rel_path, in_c, out_c))
 
-    print(f"📊 Всего видимых Markdown-файлов в графе: {len(all_files)}")
-    print(f"🔴 Полностью изолированные сироты (0 входящих, 0 исходящих): {len(isolated_orphans)}")
-    print(f"🟡 Односторонние заметки (0 входящих, но есть исходящие): {len(zero_in)}")
+    print(f"📊 Total visible Markdown files in the graph: {len(all_files)}")
+    print(f"🔴 Fully isolated orphans (0 incoming, 0 outgoing): {len(isolated_orphans)}")
+    print(f"🟡 One-way notes (0 incoming, but have outgoing): {len(zero_in)}")
 
-    # Группировка изолированных сирот по корневым каталогам
+    # Group isolated orphans by root directories
     by_folder = defaultdict(list)
     for p, inc, outc in isolated_orphans:
         root_folder = p.split(os.sep)[0]
         by_folder[root_folder].append(p)
 
-    print("\n📂 Распределение изолированных сирот по каталогам:")
+    print("\n📂 Distribution of isolated orphans by directory:")
     for folder, files in sorted(by_folder.items(), key=lambda x: len(x[1]), reverse=True):
-        print(f"  • {folder}/ : {len(files)} сирот")
+        print(f"  • {folder}/ : {len(files)} orphans")
 
-    # Сохраняем отчет для работы
+    # Save the report for further work
     report_file = os.path.join(VAULT_ROOT, "and_os/var/graph_orphans_report.json")
     os.makedirs(os.path.dirname(report_file), exist_ok=True)
     with open(report_file, "w", encoding="utf-8") as rf:
@@ -136,7 +136,7 @@ def main():
             "isolated_files": [p for p, _, _ in isolated_orphans]
         }, rf, ensure_ascii=False, indent=2)
 
-    print(f"\n💾 Полный отчет сохранен: and_os/var/graph_orphans_report.json")
+    print(f"\n💾 Full report saved: and_os/var/graph_orphans_report.json")
 
 if __name__ == "__main__":
     main()

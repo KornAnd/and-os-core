@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v8.5.
+docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.0.0.
 Parses SSOT configurations (system.json, sys_cli.py, root_config.py) and generates:
   - and_os/docs/RUNBOOK.md (Production operations manual & CLI command directory)
   - Validates sync between documentation tables and codebase
@@ -44,9 +44,11 @@ class DocsSynchronizer:
             try:
                 with open(self.sys_json_path, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
-        return {"version": "8.5.0", "rulesCount": 66}
+            except Exception as e:
+                # Fall back to the defaults, but announce the unreadable meta
+                # (never silent — clean-code-guardian, R4-P4)
+                sys.stderr.write(f"[docs_sync] Notice: system.json unreadable, using defaults ({e})\n")
+        return {"version": "1.0.0", "rulesCount": 66}
 
     def generate_runbook(self) -> str:
         meta = self.load_system_meta()
@@ -54,7 +56,7 @@ class DocsSynchronizer:
         now_str = time.strftime("%Y-%m-%d %H:%M:%S")
 
         lines = [
-            f"# 📖 AnD os v{meta.get('version', '8.5.0')} — Production Operations Runbook",
+            f"# 📖 AnD os v{meta.get('version', '1.0.0')} — Production Operations Runbook",
             "",
             f"> **Статус:** 🟢 Производственный регламент (SSOT Synchronized: {now_str})  ",
             f"> **Всего активных правил:** {meta.get('rulesCount', 66)} | **CLI-команд:** {len(cmds)}  ",

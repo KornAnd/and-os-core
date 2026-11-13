@@ -3,6 +3,8 @@ name: dev-flow
 description: "Use when planning multi-step software engineering cycles, designing test coverage matrices, and managing git branches."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: WORK

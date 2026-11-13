@@ -11,12 +11,12 @@ import argparse
 from typing import Dict, Any, List
 
 REQUIRED_SECTIONS = [
-    "Контекстный горизонт",
-    "Ключевые решения и инварианты",
-    "Затронутые файлы и дельты",
-    "Статус верификации качества",
-    "Открытые вопросы",
-    "Рекомендации к действию"
+    "Context horizon",
+    "Key decisions and invariants",
+    "Touched files and deltas",
+    "Quality verification status",
+    "Open questions",
+    "Recommended actions"
 ]
 
 
@@ -42,14 +42,14 @@ def main():
     parser = argparse.ArgumentParser(description="AnD os Subagent Handoff Validator")
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
-    p_val = subparsers.add_parser("validate", help="Проверить соответствие handoff-документа спецификации")
-    p_val.add_argument("file", help="Путь к handoff markdown файлу")
+    p_val = subparsers.add_parser("validate", help="Check the handoff document against the spec")
+    p_val.add_argument("file", help="Path to the handoff markdown file")
 
     args = parser.parse_args()
 
     if args.subcommand == "validate":
         if not os.path.exists(args.file):
-            print(f"❌ Файл не найден: {args.file}", file=sys.stderr)
+            print(f"❌ File not found: {args.file}", file=sys.stderr)
             sys.exit(1)
 
         with open(args.file, "r", encoding="utf-8") as f:
@@ -57,14 +57,14 @@ def main():
 
         res = validate_handoff_content(content)
         if res["valid"]:
-            print(f"🟢 HANDOFF VALID: Документ '{args.file}' на 100% соответствует канонической спецификации.")
+            print(f"🟢 HANDOFF VALID: document '{args.file}' is 100% compliant with the canonical spec.")
             sys.exit(0)
         else:
-            print(f"🔴 HANDOFF INVALID: В документе обнаружены дефекты:")
+            print(f"🔴 HANDOFF INVALID: defects found in the document:")
             if res["missing_sections"]:
-                print(f"  • Отсутствуют обязательные секции: {', '.join(res['missing_sections'])}")
+                print(f"  • Missing mandatory sections: {', '.join(res['missing_sections'])}")
             if res["secret_leak_detected"]:
-                print(f"  • Обнаружены потенциальные утечки секретов/токенов!")
+                print(f"  • Potential secret/token leaks detected!")
             sys.exit(1)
 
 

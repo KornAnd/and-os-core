@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Skill Usage & Dormancy Analyzer
-AnD os v8.1 - Skill Governance (Rule №18)
+AnD os v1.0.0 - Skill Governance (Rule №18)
 
 Parses and_os/lib/skills/telemetry.md, matches against all registered skills,
 and identifies active vs dormant skills (> 60 days unused).

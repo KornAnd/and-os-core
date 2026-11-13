@@ -35,18 +35,18 @@ def list_events(count: int = 20, event_type: Optional[str] = None):
 
 def main():
     parser = argparse.ArgumentParser(description="AnD os Canonical Event Journal CLI")
-    subparsers = parser.add_subparsers(dest="command", help="Команды шины")
+    subparsers = parser.add_subparsers(dest="command", help="Bus commands")
 
-    p_emit = subparsers.add_parser("emit", help="Опубликовать событие в журнал")
-    p_emit.add_argument("--type", "-t", required=True, help="Тип события (например: FILE_CHANGED, TASK_DONE)")
-    p_emit.add_argument("--payload", "-p", default="{}", help="JSON строка или сообщение")
-    p_emit.add_argument("--source", "-s", default="cli", help="Источник события")
+    p_emit = subparsers.add_parser("emit", help="Publish an event to the journal")
+    p_emit.add_argument("--type", "-t", required=True, help="Event type (e.g. FILE_CHANGED, TASK_DONE)")
+    p_emit.add_argument("--payload", "-p", default="{}", help="JSON string or a message")
+    p_emit.add_argument("--source", "-s", default="cli", help="Event source")
 
-    p_list = subparsers.add_parser("list", help="Показать последние события")
-    p_list.add_argument("-n", "--count", type=int, default=20, help="Количество строк")
-    p_list.add_argument("--type", "-t", default=None, help="Фильтр по типу")
+    p_list = subparsers.add_parser("list", help="Show the latest events")
+    p_list.add_argument("-n", "--count", type=int, default=20, help="Number of lines")
+    p_list.add_argument("--type", "-t", default=None, help="Filter by type")
 
-    subparsers.add_parser("clear", help="Очистить журнал событий")
+    subparsers.add_parser("clear", help="Clear the event journal")
 
     args = parser.parse_args()
 
@@ -56,15 +56,15 @@ def main():
     elif args.command == "list":
         events = list_events(args.count, args.type)
         if not events:
-            print("⚪ Журнал событий пуст.")
+            print("⚪ The event journal is empty.")
             return
         for e in events:
             print(f"[{e.get('timestamp_utc', e.get('timestamp'))}] {e.get('type'):15} | {e.get('source'):12} | {json.dumps(e.get('payload', {}), ensure_ascii=False)}")
     elif args.command == "clear":
         if clear_events():
-            print("🟢 Журнал событий очищен.")
+            print("🟢 The event journal has been cleared.")
         else:
-            print("🔴 Ошибка при очистке журнала.")
+            print("🔴 Error while clearing the journal.")
     else:
         parser.print_help()
 

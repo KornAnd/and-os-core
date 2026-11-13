@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-pdf_twin_converter.py — Автоматическое создание информационных Markdown-двойников для PDF.
-Принцип: Think in Code (Правило №16), Безопасность данных (Правило №7).
+pdf_twin_converter.py — Automatic creation of informational Markdown twins for PDFs.
+Principle: Think in Code (Rule #16), Data Safety (Rule #7).
 
-Функционал:
-  1. Находит все PDF в vault (или по указанному пути).
-  2. Конвертирует их в чистый структурированный Markdown (.md двойник).
-  3. Переносит оригинальный PDF в архивный подкаталог `.pdf_archive/` рядом с оригиналом.
-  4. Прописывает в `.md` инфо-двойнике шапку с вики-ссылкой на оригинальный PDF в архиве.
-  5. Автоматически обновляет Quick DB (Clippings/quick_knowledge_db.json).
+Features:
+  1. Finds all PDFs in the vault (or at the given path).
+  2. Converts them into clean structured Markdown (.md twins).
+  3. Moves the original PDF into the `.pdf_archive/` subcatalog next to the original.
+  4. Writes a header with a wiki-link to the archived original PDF into the .md twin.
+  5. Automatically updates the Quick DB (Clippings/quick_knowledge_db.json).
 
-Использование:
-  python3 pdf_twin_converter.py --check             # Только проверка PDF без конвертации
-  python3 pdf_twin_converter.py --run               # Выполнить конвертацию и архивацию
-  python3 pdf_twin_converter.py --file "<path>"    # Конвертировать конкретный PDF
+Usage:
+  python3 pdf_twin_converter.py --check             # Check PDFs only, no conversion
+  python3 pdf_twin_converter.py --run               # Perform the conversion and archiving
+  python3 pdf_twin_converter.py --file "<path>"    # Convert a specific PDF
 """
 
 import os
@@ -29,7 +29,7 @@ VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".pdf_archive"}
 
 def convert_pdf_to_text(pdf_path):
-    # Попытка 1: convert_doc.py (Anydoc / markitdown / pypdf)
+    # Attempt 1: convert_doc.py (Anydoc / markitdown / pypdf)
     convert_doc_script = os.path.join(os.path.dirname(__file__), "convert_doc.py")
     if os.path.exists(convert_doc_script):
         cmd = [sys.executable, convert_doc_script, pdf_path]
@@ -37,7 +37,7 @@ def convert_pdf_to_text(pdf_path):
         if res.returncode == 0 and res.stdout.strip():
             return res.stdout.strip()
             
-    # Попытка 2: pypdf напрямую
+    # Attempt 2: pypdf directly
     try:
         from pypdf import PdfReader
         reader = PdfReader(pdf_path)
@@ -114,9 +114,9 @@ original_pdf: "{rel_archived_pdf}"
 
 def main():
     parser = argparse.ArgumentParser(description="PDF Twin Converter Module")
-    parser.add_argument("--check", action="store_true", help="Найти все PDF для конвертации без изменений")
-    parser.add_argument("--run", action="store_true", help="Выполнить конвертацию и перемещение в архив")
-    parser.add_argument("--file", type=str, help="Путь к конкретному PDF файлу")
+    parser.add_argument("--check", action="store_true", help="Find all PDFs for conversion without changes")
+    parser.add_argument("--run", action="store_true", help="Perform the conversion and move to the archive")
+    parser.add_argument("--file", type=str, help="Path to a specific PDF file")
 
     args = parser.parse_args()
 
@@ -132,20 +132,20 @@ def main():
                 if f.endswith(".pdf"):
                     pdf_files.append(os.path.join(root, f))
 
-    print(f"=== PDF Twin Converter: найдено PDF файлов: {len(pdf_files)} ===")
+    print(f"=== PDF Twin Converter: PDF files found: {len(pdf_files)} ===")
 
     results = []
     for pdf_p in pdf_files:
         res = process_pdf(pdf_p, run=args.run)
         results.append(res)
         status_symbol = "✅ SUCCESS" if res["status"] == "SUCCESS" else "⏳ PENDING"
-        print(f"{status_symbol}: {res['pdf']} -> {res['md_twin']} (Архив: {res['archive_target']})")
+        print(f"{status_symbol}: {res['pdf']} -> {res['md_twin']} (Archive: {res['archive_target']})")
 
     if args.run and pdf_files:
         # Update Quick DB and Sync Context
         sync_script = os.path.join(os.path.dirname(__file__), "sync_context.py")
         if os.path.exists(sync_script):
-            print("\n⚡ Синхронизация контекста и обновление Quick Knowledge DB...")
+            print("\n⚡ Context synchronization and Quick Knowledge DB update...")
             subprocess.run([sys.executable, sync_script, "--fix"], capture_output=True, text=True)
 
 if __name__ == "__main__":

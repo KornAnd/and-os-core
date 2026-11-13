@@ -3,6 +3,8 @@ name: clean-code-guardian
 description: "Use when authoring, reviewing, or refactoring Python code to enforce Uncle Bob clean architecture, zero silent exceptions, and low nesting."
 version: "2.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: QUICK
@@ -32,9 +34,10 @@ Whenever authoring, editing, or refactoring code across AnD os (`and_os/`), Puls
 - **For 3D / ComfyUI / VFX / Heavy Neural Tooling:**
   - Enforce **Smoke & Schema Contracts**: verify JSON-graph topology, tensor/payload schemas, and API imports before attempting runtime integration.
 
-### 4. Boundary Discipline & Idempotence
+### 4. Boundary Discipline, Pure Domain & Idempotence
 - Validate inputs at the boundary where data enters the module. Inside the module, trust clean data.
-- Keep business logic in pure, deterministic functions.
+- **Pure Domain Separation:** Business logic in `domain/` must remain pure functions with zero I/O side-effects (no raw database connections, no HTTP calls).
+- **Zero Leaky Abstractions:** UI and Presentation layers must never directly query databases or network gateways; interactions occur strictly through typed Domain DTOs.
 - All mutating operations (file writes, database entries, migrations) must be **strictly idempotent** — running them multiple times produces the exact same state without errors.
 
 ---

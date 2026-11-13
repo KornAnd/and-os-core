@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Генератор контекста для внешних LLM (ChatGPT, Claude, Gemini).
+"""Context generator for external LLMs (ChatGPT, Claude, Gemini).
 
-Собирает все CONTEXT.md из хранилища Obsidian в единый файл,
-оптимизированный для загрузки в чат-интерфейсы.
+Collects all CONTEXT.md files from the Obsidian Vault into a single file,
+optimized for loading into chat interfaces.
 
-Использование:
-  python3 gen_context.py              # полный контекст
-  python3 gen_context.py --lite       # только Nero (для быстрой загрузки)
-  python3 gen_context.py --topic work # контекст конкретного каталога
+Usage:
+  python3 gen_context.py              # full context
+  python3 gen_context.py --lite       # Nero only (for fast loading)
+  python3 gen_context.py --topic work # context of a specific catalog
 """
 
 import os
@@ -24,7 +24,7 @@ OUTPUT = os.path.join(VAULT, "Nero", "ai", "context_export.md")
 EXCLUDE_DIRS = {'.trash', '.obsidian', '.smart-env', '.space', '.makemd'}
 
 def collect_context(root: str, exclude: set = None) -> list:
-    """Собрать все CONTEXT.md файлы, отсортированные по важности."""
+    """Collect all CONTEXT.md files, sorted by importance."""
     files = []
     for md in glob.glob(os.path.join(root, "**", "CONTEXT.md"), recursive=True):
         parts = md.replace(root, "").split(os.sep)
@@ -57,20 +57,20 @@ def read_file(path: str) -> str:
     )
 
 def generate_full():
-    """Полный контекст: карта карт + полный текст ключевых CONTEXT, оглавление остальных."""
+    """Full context: map of maps + the full text of the key CONTEXTs, a table of contents for the rest."""
     lines = [
-        f"# Контекст базы знаний System Architect",
-        f"# Сгенерировано: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
-        f"# Для загрузки в ChatGPT/Claude/Gemini",
+        f"# Knowledge base context of System Architect",
+        f"# Generated: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+        f"# For loading into ChatGPT/Claude/Gemini",
         f"",
-        f"> **Инструкция для LLM:** Это карта базы знаний. Ниже — полный текст глобального контекста, KNOWLEDGE.md и Nero/CONTEXT. Остальные каталоги — оглавление с wiki-ссылками.",
-        f"> Для детального разбора каталога запроси его CONTEXT.md отдельно (по `[[wiki-link]]`).",
+        f"> **Instruction for the LLM:** This is the knowledge base map. Below — the full text of the global context, KNOWLEDGE.md and Nero/CONTEXT. The remaining catalogs — a table of contents with wiki-links.",
+        f"> For a detailed breakdown of a catalog, request its CONTEXT.md separately (by `[[wiki-link]]`).",
         f"",
         "---",
         "",
     ]
     files = collect_context(VAULT)
-    # Ключевые — полный текст (точное совпадение относительного пути)
+    # The key ones — full text (exact relative-path match)
     full_keys = {
         "SYSTEM.md",
         "CONTEXT.md",
@@ -92,22 +92,22 @@ def generate_full():
         if rel in full_keys:
             lines.append(read_file(f))
         else:
-            # Оглавление: короткая шапка CONTEXT (назначение)
+            # Table of contents: the short CONTEXT header (purpose)
             content = read_file(f)
             purpose = ""
             for line in content.split("\n"):
                 if line.startswith("**Назначение**") or line.startswith("# Контекст"):
                     purpose = line.strip()
                     break
-            lines.append(f"→ {purpose or 'Каталог'}. Полный текст: `[[{rel}]]` (запросить при необходимости)")
+            lines.append(f"→ {purpose or 'Catalog'}. Full text: `[[{rel}]]` (request if needed)")
         lines.append("")
     return "\n".join(lines)
 
 def generate_lite():
-    """Лёгкий контекст: только Nero."""
+    """Lite context: Nero only."""
     lines = [
-        f"# Контекст базы знаний (NERO)",
-        f"# Сгенерировано: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+        f"# Knowledge base context (NERO)",
+        f"# Generated: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
         f"",
     ]
     nero_root = os.path.join(VAULT, "Nero")
@@ -120,17 +120,17 @@ def generate_lite():
     return "\n".join(lines)
 
 def generate_topic(topic: str):
-    """Контекст конкретного каталога."""
+    """Context of a specific catalog."""
     nero_dir = os.path.join(VAULT, "Nero", topic)
     vault_dir = os.path.join(VAULT, topic)
     
     lines = [
-        f"# Контекст: {topic}/",
-        f"# Сгенерировано: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+        f"# Context: {topic}/",
+        f"# Generated: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
         f"",
     ]
     
-    # Сначала Nero, потом vault
+    # Nero first, then the vault
     for base in [nero_dir, vault_dir]:
         ctx = os.path.join(base, "CONTEXT.md")
         if os.path.exists(ctx):
@@ -140,7 +140,7 @@ def generate_topic(topic: str):
             lines.append("")
     
     if len(lines) <= 3:
-        lines.append(f"❌ Каталог '{topic}' не найден.")
+        lines.append(f"❌ Catalog '{topic}' not found.")
     
     return "\n".join(lines)
 
@@ -160,6 +160,6 @@ if __name__ == "__main__":
     
     size_kb = len(content) / 1024
     tokens_est = int(len(content) / 3.5)  # rough estimate for Russian
-    print(f"✅ Сгенерирован: {OUTPUT}")
-    print(f"📏 Размер: {size_kb:.1f} KB (~{tokens_est:,} токенов)")
-    print(f"📋 Готов к загрузке в ChatGPT/Claude/Gemini")
+    print(f"✅ Generated: {OUTPUT}")
+    print(f"📏 Size: {size_kb:.1f} KB (~{tokens_est:,} tokens)")
+    print(f"📋 Ready for loading into ChatGPT/Claude/Gemini")

@@ -26,14 +26,14 @@ AI_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 VAULT_ROOT = os.getenv("AND_ROOT", os.path.abspath(os.path.join(AI_SCRIPT_DIR, "../..")))
 if VAULT_ROOT not in sys.path:
     sys.path.insert(0, VAULT_ROOT)
-PULSAR_ROOT = os.getenv("PULSAR_ROOT", os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar"))
+PULSAR_ROOT = os.getenv("PULSAR_ROOT", os.path.expanduser("./pulsar"))
 
 # Rule #68: Toolchain & Environment Parity Invariant (Auto-reexec under canonical .venv)
 try:
     from and_os.lib.core.toolchain import ToolchainManager
     ToolchainManager(Path(VAULT_ROOT) if 'Path' in globals() else None).ensure_canonical_python(auto_reexec=True)
-except Exception:
-    pass
+except (ImportError, AttributeError, OSError) as err:
+    sys.stderr.write(f"[sys_cli] Notice: toolchain auto-reexec skipped ({err})\n")
 
 def run_script(script_name: str, args_list: list, no_bytecode: bool = False) -> Dict[str, Any]:
     search_paths = [
@@ -109,7 +109,7 @@ def sync_global_rules() -> None:
 
 def print_agent_motd() -> None:
     """L1 Fast Agent Capsule / MOTD Banner (~80 tokens). Output once on init/preflight."""
-    ver = "9.4"
+    ver = "1.0.0"
     rel_summary = ""
     try:
         from and_os.lib.core.root_config import get_system_version
@@ -121,15 +121,15 @@ def print_agent_motd() -> None:
     try:
         from and_os.lib.core.release_ledger import get_compact_motd_summary
         rel_summary = get_compact_motd_summary()
-    except Exception:
-        pass
+    except (ImportError, AttributeError, KeyError) as err:
+        sys.stderr.write(f"[sys_cli:motd] Notice: release summary skipped ({err})\n")
 
     mode_name = "DEV"
     try:
         from and_os.bin.context_mode_manager import ContextModeManager
         mode_name = ContextModeManager(VAULT_ROOT).get_current_mode().upper()
-    except Exception:
-        pass
+    except (ImportError, AttributeError, OSError) as err:
+        sys.stderr.write(f"[sys_cli:motd] Notice: mode manager skipped ({err})\n")
 
     print("=" * 65)
     print(f"🌌 AnD os v{ver} | AGENT FAST CAPSULE (MOTD / Ring 1) | MODE: {mode_name}")
@@ -146,8 +146,8 @@ def print_agent_motd() -> None:
         tc_icon = "🟢" if tc_res["passed"] else "🔴"
         tc_py = tc_res["stack"].get("python", {}).get("active", "unknown")
         print(f"⚙️ TOOLCHAIN: {tc_icon} Python {tc_py} (Target: 3.12.11) | Bun 1.3 | Swift 6.4 | FFmpeg 9")
-    except Exception:
-        pass
+    except (ImportError, AttributeError, KeyError) as err:
+        sys.stderr.write(f"[sys_cli:motd] Notice: toolchain check skipped ({err})\n")
     print("🏁 DoD: sys_cli verify PASS (Rule #65) + audit PASS + блок 'НЕ ПРОВЕРЕНО'")
     print("=" * 65)
 
@@ -165,24 +165,11 @@ def auto_log_telemetry(task: str, mode: str = "SYSTEM", skill: str = "sys_cli", 
         subprocess.run(cmd, capture_output=True, text=True)
 
 def cmd_audit(args: Any) -> None:
-    flags = []
-    if args.fix:
-        flags.append("--fix")
-    if getattr(args, "compact", False):
-        flags.append("--compact")
-    elif getattr(args, "json", False):
-        flags.append("--json")
-    elif getattr(args, "deep", False):
-        flags.append("--deep")
-    elif not args.fix:
-        flags.append("--check")
-
-    res = run_script("validate_system.py", flags, no_bytecode=args.read_only)
-    print(res["stdout"], end="")
-    if res["stderr"]:
-        print(res["stderr"], file=sys.stderr)
-    if not args.read_only:
-        auto_log_telemetry(f"Audit ({'fix' if args.fix else 'check'})", skill="sys.audit")
+    from and_os.bin.cli_subsystems import get_subsystem
+    sub = get_subsystem("audit")
+    ret = sub.execute(args) if sub else 1
+    if ret != 0:
+        sys.exit(ret)
 
 def cmd_sync(args: Any) -> None:
     flags = ["--fix"] if args.fix else ["--check"]
@@ -277,16 +264,6 @@ def cmd_taskdb(args: Any) -> None:
     print(res["stdout"])
     auto_log_telemetry("Task DB query/index", skill="sys.taskdb")
 
-def cmd_plan(args: Any) -> None:
-    flags = ["--task", args.task]
-    if args.json:
-        flags.append("--json")
-    res = run_script("post_prompt_planner.py", flags)
-    if "stdout" in res:
-        print(res["stdout"])
-    else:
-        print(json.dumps(res, ensure_ascii=False, indent=2))
-
 def cmd_deconstruct(args: Any) -> None:
     flags = [args.target]
     if getattr(args, "json", False):
@@ -350,84 +327,6 @@ def cmd_bible(args: Any) -> None:
         print(res["stderr"], file=sys.stderr)
     auto_log_telemetry(f"Script bible extraction: {args.script_file}", skill="script-bible-extractor")
 
-def cmd_animatic(args: Any) -> None:
-    flags = [args.title]
-    if getattr(args, "framework", None):
-        flags.extend(["--framework", args.framework])
-    if getattr(args, "beats", None):
-        flags.extend(["--beats", args.beats])
-    if getattr(args, "comfy_export", False):
-        flags.append("--comfy-export")
-    if getattr(args, "json", False):
-        flags.append("--json")
-    if getattr(args, "out", None):
-        flags.extend(["--out", args.out])
-    res = run_script("hybrid_animatic_director.py", flags)
-    if "stdout" in res:
-        print(res["stdout"])
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    auto_log_telemetry(f"Hybrid animatic: {args.title} ({getattr(args, 'framework', 'hybrid')})", skill="hybrid-animatic-director")
-
-def cmd_hybrid_render(args: Any) -> None:
-    flags = [args.shot_id, "--prompt", args.prompt]
-    if getattr(args, "depth", None):
-        flags.extend(["--depth", args.depth])
-    if getattr(args, "normal", None):
-        flags.extend(["--normal", args.normal])
-    if getattr(args, "lineart", None):
-        flags.extend(["--lineart", args.lineart])
-    if getattr(args, "denoise", None):
-        flags.extend(["--denoise", str(args.denoise)])
-    if getattr(args, "json", False):
-        flags.append("--json")
-    if getattr(args, "out", None):
-        flags.extend(["--out", args.out])
-    res = run_script("hybrid_comfyui_render.py", flags)
-    if "stdout" in res:
-        print(res["stdout"])
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    auto_log_telemetry(f"Hybrid ComfyUI render: {args.shot_id}", skill="hybrid-comfyui-render")
-
-def cmd_consistency(args: Any) -> None:
-    flags = [args.sequence_dir]
-    if getattr(args, "threshold", None):
-        flags.extend(["--threshold", str(args.threshold)])
-    if getattr(args, "json", False):
-        flags.append("--json")
-    if getattr(args, "out", None):
-        flags.extend(["--out", args.out])
-    res = run_script("temporal_consistency_guard.py", flags)
-    if "stdout" in res:
-        print(res["stdout"])
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    auto_log_telemetry(f"Temporal consistency: {args.sequence_dir}", skill="temporal-consistency-guard")
-
-def cmd_conform(args: Any) -> None:
-    flags = [args.sequence]
-    if getattr(args, "edl", None):
-        flags.extend(["--edl", args.edl])
-    if getattr(args, "shots", None):
-        flags.extend(["--shots", args.shots])
-    if getattr(args, "fps", None):
-        flags.extend(["--fps", str(args.fps)])
-    if getattr(args, "handles", None):
-        flags.extend(["--handles", str(args.handles)])
-    if getattr(args, "roundtrip", None):
-        flags.extend(["--roundtrip", args.roundtrip])
-    if getattr(args, "json", False):
-        flags.append("--json")
-    if getattr(args, "out", None):
-        flags.extend(["--out", args.out])
-    res = run_script("editorial_otio_conform.py", flags)
-    if "stdout" in res:
-        print(res["stdout"])
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    auto_log_telemetry(f"Editorial conform: {args.sequence}", skill="editorial-otio-conform")
-
 def cmd_montage(args: Any) -> None:
     target = os.path.join(VAULT_ROOT, "and_os/opt/apps/montage_hub/montage_cli.py")
     if not os.path.exists(target):
@@ -443,20 +342,6 @@ def cmd_montage(args: Any) -> None:
     except (subprocess.SubprocessError, OSError) as e:
         sys.stderr.write(f"Montage execution failed: {e}\n")
         sys.exit(1)
-
-def cmd_links(args: Any) -> None:
-    flags = []
-    if getattr(args, "fix", False):
-        flags.append("--fix")
-    if getattr(args, "verbose", False):
-        flags.append("--verbose")
-    if getattr(args, "json", False):
-        flags.append("--json")
-    res = run_script("link_guard.py", flags)
-    print(res.get("stdout", ""), end="")
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    auto_log_telemetry("Link guard audit", skill="sys.links")
 
 def cmd_preflight(args: Any) -> None:
     print_agent_motd()
@@ -481,29 +366,6 @@ def cmd_init(args: Any) -> None:
         print(res["stdout"])
     else:
         print(json.dumps(res, ensure_ascii=False, indent=2))
-
-def cmd_asset(args: Any) -> None:
-    flags = []
-    if args.sync:
-        flags.append("sync")
-    res = run_script("asset_indexer.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry("Asset indexer sync", skill="sys.asset")
-
-def cmd_context(args: Any) -> None:
-    res = run_script("context_router.py", [])
-    print(res["stdout"])
-    auto_log_telemetry("Context DB sync", skill="sys.context")
-
-def cmd_route(args: Any) -> None:
-    res = run_script("context_router.py", ["route", args.query])
-    print(res["stdout"])
-    auto_log_telemetry("Context routing", skill="sys.route")
-
-def cmd_relate(args: Any) -> None:
-    res = run_script("context_router.py", ["relate", args.target])
-    print(res["stdout"])
-    auto_log_telemetry(f"Semantic relate: {args.target}", skill="sys.relate")
 
 def cmd_project(args: Any) -> None:
     sub = getattr(args, "subaction", "list")
@@ -553,24 +415,6 @@ def cmd_app(args: Any) -> None:
     res = run_script("app_bridge.py", flags)
     print(res["stdout"])
     auto_log_telemetry("App bridge query", skill="sys.app")
-
-def cmd_pack(args: Any) -> None:
-    if getattr(args, "code", False):
-        try:
-            from and_os.lib.core.code_ast_shrinker import shrink_file
-            print(shrink_file(args.domain))
-            auto_log_telemetry(f"AST Code shrink: {args.domain}", skill="sys.pack.code")
-            return
-        except Exception as e:
-            print(f"Error shrinking code: {e}", file=sys.stderr)
-            return
-
-    flags = [args.domain]
-    if args.json:
-        flags.append("--json")
-    res = run_script("context_bundler.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry(f"Context pack: {args.domain}", skill="sys.pack")
 
 def cmd_skills(args: Any) -> None:
     # External Skills Gateway routing
@@ -801,7 +645,7 @@ def cmd_islands(args: Any) -> None:
             "path": "Nero/pulsar/INDEX.md",
             "domain": "Внешние сервисы, Дашборды, Headless 3D Pipeline, Comfy-USD, Blender",
             "realm": "External Execution Muscle (Pulsar Space / WORK/pulsar/)",
-            "paths": ["and_os/opt/apps/", os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar/"), "Nero/pulsar/"],
+            "paths": ["and_os/opt/apps/", os.path.expanduser("./pulsar/"), "Nero/pulsar/"],
             "scripts": ["cg_core.py", "cg-pipeline", "server.py"],
             "daemons": ["ftrack_gantt (:8087, :8092)", "comfyui (:8188)"],
             "bridges": "Остров 4 (Story), Остров 5 (Studio assets), Остров 8 (Kernel Bus)"
@@ -823,7 +667,7 @@ def cmd_islands(args: Any) -> None:
             "path": "Nero/xcode/CONTEXT.md",
             "domain": "Нативные мобильные игры и приложения для Apple (iOS/macOS), Swift, SpriteKit, SwiftUI",
             "realm": "External Code Muscle (WORK/xcode/) & Brain Spec (Nero/xcode/)",
-            "paths": ["Nero/xcode/", os.path.expanduser("~/Yandex.Disk.localized/WORK/xcode/")],
+            "paths": ["Nero/xcode/", os.path.expanduser("./xcode/")],
             "scripts": ["ios-game-builder (Skill)", "swift", "xcodebuild", "xcrun simctl"],
             "daemons": ["Xcode Simulator (On-Demand)"],
             "bridges": "Остров 1 (Clippings/ASO), Остров 3 (Ta-Bu/MVP), Остров 4 (Story/Narrative), Остров 6 (Nero/Dev Accounts), Остров 7 (Pulsar/Sprites & SFX)"
@@ -857,7 +701,7 @@ def cmd_islands(args: Any) -> None:
             auto_log_telemetry(f"Islands info #{selected_info}", skill="sys.islands")
             return
 
-    print("=== 🏝️ Архитектура 9 Логических Островов AnD os v8.3 ===")
+    print("=== 🏝️ Архитектура 9 Логических Островов AnD os v1.0.0 ===")
     for isl in islands_data:
         full_p = os.path.join(VAULT_ROOT, isl["path"])
         exists = "🟢" if os.path.exists(full_p) else "🔴"
@@ -878,122 +722,13 @@ def cmd_backup(args: Any) -> None:
         print(res["stderr"], file=sys.stderr)
     auto_log_telemetry(f"Vault backup ({'status' if getattr(args, 'status', False) else 'run'})", skill="sys.backup")
 
-def cmd_status(args: Any) -> None:
-    flags = []
-    if getattr(args, "json", False):
-        flags.append("--json")
-    res = run_script("system_status.py", flags)
-    print(res["stdout"], end="")
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr, end="")
-    auto_log_telemetry("System status check", skill="sys.status")
-
-def cmd_boot(args: Any) -> None:
-    flags = []
-    if args.no_notify:
-        flags.append("--no-notify")
-    res = run_script("boot_engine.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry("System boot check", skill="sys.boot")
-
-def cmd_proc(args: Any) -> None:
-    # In-process sub-millisecond execution (<2ms)
-    try:
-        from and_os.lib.core import update_procfs, read_sys_stat
-        if args.sync:
-            info = update_procfs()
-            print("🟢 ProcFS успешно актуализирован:")
-            print(f"  sys.stat -> {info['disk_free_gb']}GB free, daemons: {sum(1 for d in info['daemons'].values() if d['status'] == 'UP')}/3")
-            auto_log_telemetry("ProcFS sync", skill="sys.proc")
-            return
-        elif args.cat == "sys":
-            update_procfs()
-            print(read_sys_stat())
-            auto_log_telemetry("ProcFS cat sys", skill="sys.proc")
-            return
-    except (ImportError, KeyError, OSError, RuntimeError) as err:
-        sys.stderr.write(f"[sys_cli:proc] Notice: core procfs unavailable ({err}), delegating to proc_mesh.py\n")
-
-    flags = []
-    if args.sync:
-        flags.append("--sync")
-    elif args.cat:
-        flags.extend(["--cat", args.cat])
-    res = run_script("proc_mesh.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry(f"Proc mesh: {args.cat or 'all'}", skill="sys.proc")
-
-def cmd_snapshot(args: Any) -> None:
-    if args.action in ("shadow", "rollback"):
-        from and_os.lib.apfs_shadow import create_shadow_copy, rollback_from_shadow
-        if not args.target:
-            print("Error: --target <path> is required for shadow or rollback.", file=sys.stderr)
-            sys.exit(1)
-        if args.action == "shadow":
-            snap = create_shadow_copy(args.target)
-            print(f"APFS Zero-Cost Shadow Snapshot created: {snap}")
-            auto_log_telemetry(f"Shadow Snapshot: {args.target}", skill="sys.snapshot")
-        elif args.action == "rollback":
-            ok = rollback_from_shadow(args.target, snapshot_id=args.id if args.id else None)
-            if ok:
-                print(f"APFS Zero-Cost Rollback SUCCESS for: {args.target}")
-                auto_log_telemetry(f"Shadow Rollback: {args.target}", skill="sys.snapshot")
-            else:
-                print(f"Error: No shadow snapshots found for {args.target}", file=sys.stderr)
-                sys.exit(1)
-        return
-
-    flags = [args.action]
-    if args.comment:
-        flags.extend(["-m", args.comment])
-    res = run_script("safe_snapshot.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry(f"Snapshot: {args.action}", skill="sys.snapshot")
-
-def cmd_notify(args: Any) -> None:
-    flags = [args.title, args.message]
-    if args.subtitle:
-        flags.append(args.subtitle)
-    res = run_script("notify_macos.py", flags)
-    print(res["stdout"])
-
-def cmd_env(args: Any) -> None:
-    flags = ["--build"]
-    if args.json:
-        flags.append("--json")
-    res = run_script("system_tools_map.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry("Runtime environment check", skill="sys.env")
-
-def cmd_vacuum(args: Any) -> None:
-    flags = ["--target", args.target]
-    if args.dry_run:
-        flags.append("--dry-run")
-    res = run_script("vacuum_cleaner.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry(f"Vacuum cleaner: {args.target}", skill="sys.vacuum")
-
-def cmd_comfy(args: Any) -> None:
-    flags = []
-    if args.verify:
-        flags.append("--verify")
-        if args.target:
-            flags.append(args.target)
-    else:
-        flags.append("--scan")
-        if args.json:
-            flags.append("--json")
-    res = run_script("comfy_node_registry.py", flags)
-    print(res["stdout"])
-    auto_log_telemetry(f"ComfyUI node registry: {'verify' if args.verify else 'scan'}", skill="sys.comfy")
-
 def cmd_top(args: Any) -> None:
     res = run_script("system_dashboard.py", [])
     print(res["stdout"])
     auto_log_telemetry("System TUI top dashboard", skill="sys.top")
 
 def cmd_terminal(args: Any) -> None:
-    term_dir = os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar/AND_Terminal")
+    term_dir = os.path.expanduser("./pulsar/AND_Terminal")
     server_script = os.path.join(term_dir, "server.py")
     if not os.path.exists(server_script):
         # Fallback to in-vault location
@@ -1019,27 +754,16 @@ def cmd_terminal(args: Any) -> None:
     auto_log_telemetry("AND_Terminal Web Console launch", skill="sys.terminal")
 
 def cmd_vault(args: Any) -> None:
-    """Шлюз безопасного взаимодействия с заметками Obsidian через mcp_vault_guard."""
-    if args.subaction == "move":
-        flags = ["move", args.src, args.dst]
+    """Шлюз безопасного взаимодействия с заметками Obsidian через mcp_vault_guard (Subsystem Delegation)."""
+    from and_os.bin.cli_subsystems import get_subsystem
+    sub = get_subsystem("vault")
+    if sub:
+        ret = sub.execute(args)
+        if ret != 0:
+            sys.exit(ret)
     else:
-        flags = [args.subaction, args.path]
-        if args.subaction == "read":
-            if args.section:
-                flags.extend(["--section", args.section])
-            if args.max_lines:
-                flags.extend(["--max-lines", str(args.max_lines)])
-        elif args.subaction == "patch":
-            flags.extend(["--target", args.target, "--replacement", args.replacement])
-        elif args.subaction == "set-frontmatter":
-            flags.extend(["--json", args.json])
-    
-    res = run_script("mcp_vault_guard.py", flags)
-    print(res.get("stdout", ""))
-    if res.get("stderr"):
-        print(res["stderr"], file=sys.stderr)
-    target_info = f"{args.src} -> {args.dst}" if args.subaction == "move" else args.path
-    auto_log_telemetry(f"Vault Guard: {args.subaction} on {target_info}", skill="mcp.vault_guard")
+        print("Error: vault subsystem failed to load", file=sys.stderr)
+        sys.exit(1)
 
 def cmd_event(args: Any) -> None:
     flags = [args.action]
@@ -1098,13 +822,42 @@ def main() -> None:
         from and_os.lib.core.root_config import get_system_version
         current_ver = get_system_version(VAULT_ROOT)
     except Exception:
-        current_ver = "8.0.0"
+        current_ver = "1.0.0"
+
+    # UNIX Git-Style Fast-Path: If invoking a mapped subsystem command with --help or arguments,
+    # register ONLY that targeted subsystem's parsers to bypass 59k function calls in monolithic argparse.
+    if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+        first_cmd = sys.argv[1]
+        try:
+            from and_os.bin.cli_subsystems import get_subsystem
+            sub_cls = get_subsystem(first_cmd)
+            if sub_cls and hasattr(sub_cls, "register_subparsers"):
+                fast_p = argparse.ArgumentParser(
+                    prog=f"sys_cli.py",
+                    description=f"AnD os v{current_ver} Unified Modular CLI"
+                )
+                fast_p.add_argument("--version", "-v", action="version", version=f"AnD os v{current_ver} (Production Release)")
+                fast_subs = fast_p.add_subparsers(dest="command")
+                sub_cls.register_subparsers(fast_subs)
+                try:
+                    f_args, f_unknown = fast_p.parse_known_args()
+                    if getattr(f_args, "command", None) == first_cmd:
+                        if hasattr(f_args, "extra_args") and f_unknown:
+                            f_args.extra_args.extend(f_unknown)
+                        ret = sub_cls.execute(f_args)
+                        sys.exit(ret if isinstance(ret, int) else 0)
+                except SystemExit as se:
+                    # If parse_known_args triggered --help or syntax error exit, honor it immediately
+                    sys.exit(se.code)
+        except Exception as e:
+            # Safe Fallback to monolithic parser if lazy fast-path throws any unexpected error
+            sys.stderr.write(f"[sys_cli:fast_path] Notice: fallback to monolithic parser ({e})\n")
 
     parser = argparse.ArgumentParser(description=f"AnD os v{current_ver} Unified Modular CLI")
     parser.add_argument("--version", "-v", action="version", version=f"AnD os v{current_ver} (Production Release)")
     subparsers = parser.add_subparsers(dest="command", help="Доступные команды")
 
-    # Vault Backup (AnD os v8.1 Enterprise Backup)
+    # Vault Backup (Enterprise Backup)
     p_bup = subparsers.add_parser("backup", help="Полное резервное копирование хранилища Obsidian Vault в WORK (лимит 5 ГБ)")
     p_bup.add_argument("--status", action="store_true", help="Проверить статус последнего бэкапа и здоровье контура")
 
@@ -1130,8 +883,8 @@ def main() -> None:
     p_vg_mv.add_argument("src", help="Исходный относительный путь к заметке")
     p_vg_mv.add_argument("dst", help="Новый относительный путь к заметке")
 
-    # Event Bus (AnD os v8.1 System Bus)
-    p_evt = subparsers.add_parser("event", help="Шина событий AnD os v8.1 (emit, list, clear)")
+    # Event Bus (System Bus)
+    p_evt = subparsers.add_parser("event", help="Шина событий (emit, list, clear)")
     p_evt.add_argument("action", choices=["emit", "list", "clear"], help="Действие над шиной событий")
     p_evt.add_argument("type", nargs="?", default="EVENT", help="Тип события для emit")
     p_evt.add_argument("payload", nargs="?", default="{}", help="Полезная нагрузка или сообщение")
@@ -1231,7 +984,7 @@ def main() -> None:
     p_proj.add_argument("--tags", help="Теги через запятую")
 
     # Context Router
-    p_ctx = subparsers.add_parser("context", help="Синхронизация и БД всех CONTEXT.md файлов")
+    p_ctx = subparsers.add_parser("context", help="БД-индекс и маршрутизация CONTEXT.md (индексация, route/relate). Интегралити карт и фоновые синки — подкоманда `sync`")
     p_ctx.add_argument("--sync", action="store_true", default=True, help="Запуск полной индексации контекстов")
 
     # Route
@@ -1262,7 +1015,7 @@ def main() -> None:
     p_init.add_argument("--json", action="store_true", help="Вывод в JSON")
 
     # Audit
-    p_audit = subparsers.add_parser("audit", help="Запуск 16-векторного аудита системы AnD os v8.1")
+    p_audit = subparsers.add_parser("audit", help="Запуск 16-векторного аудита системы AnD os v1.0.0")
     audit_mode = p_audit.add_mutually_exclusive_group()
     audit_mode.add_argument("--fix", action="store_true", help="Автоматически исправить дефекты")
     audit_mode.add_argument("--read-only", action="store_true", help="Проверка без телеметрии, кэша и байткода")
@@ -1271,7 +1024,7 @@ def main() -> None:
     p_audit.add_argument("--deep", action="store_true", help="Глубокая развернутая проверка")
 
     # Sync
-    p_sync = subparsers.add_parser("sync", help="Синхронизация CONTEXT.md и Quick DB")
+    p_sync = subparsers.add_parser("sync", help="Интегралити карт CONTEXT.md и 4 фоновых синка (state, taskdb, blueprint, toolchain). БД-индекс CONTEXT.md — подкоманда `context`")
     p_sync.add_argument("--fix", action="store_true", help="Автоматически исправить расхождения")
     p_sync.add_argument("--path", type=str, default="", help="Каталог для проверки")
     p_sync.add_argument("--parallel", action="store_true", help="Параллельный асинхронный запуск фоновых задач синхронизации")
@@ -1355,7 +1108,7 @@ def main() -> None:
     p_proc.add_argument("--cat", type=str, help="Прочитать файл состояния (sys, daemons, islands, tasks)")
 
     # Snapshot (APFS Native CoW & Manifest Snapshots)
-    p_snap = subparsers.add_parser("snapshot", help="Создание и просмотр снимков системы (APFS CoW / Micro-Snapshots)")
+    p_snap = subparsers.add_parser("snapshot", help="File-level APFS shadow: micro-снимки и откат отдельных файлов (apfs_shadow). Tree-level — подкоманда `checkpoint`")
     p_snap.add_argument("action", choices=["create", "list", "micro", "shadow", "rollback"], help="Действие со снимком")
     p_snap.add_argument("--target", type=str, default="", help="Целевой файл для shadow-снапшота или отката")
     p_snap.add_argument("--id", type=str, default="", help="Идентификатор снимка для отката")
@@ -1552,44 +1305,44 @@ def main() -> None:
     p_trash = subparsers.add_parser("trash", help="Безопасное перемещение файла в корзину (.trash/) без физического удаления")
     p_trash.add_argument("target", help="Путь к файлу для перемещения в корзину")
 
-    # Continuous Learning & Pattern Compilation Engine (AnD os v8.4)
+    # Continuous Learning & Pattern Compilation Engine
     p_learn = subparsers.add_parser("learn", help="Автономное извлечение и сохранение инженерного опыта и решений в Obsidian Knowledge Graph")
     p_learn.add_argument("--topic", required=True, help="Тема или название обнаруженного паттерна")
     p_learn.add_argument("--domain", choices=["blender", "comfyui", "davinci", "swift", "xcode", "core", "user", "story", "article", "process", "finance"], default="core", help="Технологический домен")
     p_learn.add_argument("--problem", required=True, help="Описание возникшей проблемы или симптома")
     p_learn.add_argument("--solution", required=True, help="Верифицированное решение или паттерн")
     p_learn.add_argument("--tags", help="Дополнительные теги через запятую")
-    # Strategic Context Compaction Facade (AnD os v8.4)
+    # Strategic Context Compaction Facade
     p_compact = subparsers.add_parser("compact", help="Аудит и контроль бюджета контекста сессии, стратегическая компактификация")
     p_compact.add_argument("--status", action="store_true", help="Показать текущий статус использования контекста и счетчик действий")
     p_compact.add_argument("--reset", action="store_true", help="Сбросить счетчик сессии после успешной компактификации")
     p_compact.add_argument("--phase-check", nargs=2, metavar=("CURR", "TGT"), help="Проверить безопасность перехода между фазами (напр. PHASE_2 PHASE_3)")
 
-    # Minimal-Diffs Build Error Resolver Facade (AnD os v8.4)
+    # Minimal-Diffs Build Error Resolver Facade
     p_bfix = subparsers.add_parser("build-fix", help="Хирургическое устранение ошибок сборки и синтаксиса с минимальными диффами")
     p_bfix.add_argument("--verify", help="Путь к файлу для верификации компиляции")
     p_bfix.add_argument("--file", help="Целевой файл для применения исправления")
     p_bfix.add_argument("--old", help="Исходная подстрока для точечной замены")
     p_bfix.add_argument("--new", help="Новая исправленная подстрока")
 
-    # Video Pass & Playblast Technical Harness (AnD os v8.4)
+    # Video Pass & Playblast Technical Harness
     p_vh = subparsers.add_parser("video-harness", help="Технический аудит и ОТК видео-плейбластов и пассов глубины перед ComfyUI")
     p_vh.add_argument("--check", nargs="+", help="Путь к плейбласту и опционально пассу глубины")
 
-    # Skeleton Engine Facade (AnD os v8.4)
+    # Skeleton Engine Facade
     p_skel = subparsers.add_parser("skeleton", help="Генерация эталонных архитектурных каркасов (iOS SpriteKit, CG Tools)")
     p_skel.add_argument("--ios", nargs=2, metavar=("DIR", "NAME"), help="Развернуть нативный Swift/SpriteKit каркас игры")
 
-    # Codemap Architecture Engine (AnD os v8.4)
+    # Codemap Architecture Engine
     p_cmap = subparsers.add_parser("codemap", help="Генерация компактных 0-токенных карт архитектуры классов и функций")
     p_cmap.add_argument("--dir", required=True, help="Целевой каталог для сканирования")
     p_cmap.add_argument("--title", help="Заголовок архитектурной карты")
 
-    # Runtime Statusline Beacon (AnD os v8.4)
+    # Runtime Statusline Beacon
     p_sline = subparsers.add_parser("statusline", help="Вывод однострочного терминального маяка состояния ядра и контекста")
     p_sline.add_argument("--no-color", action="store_true", help="Отключить ANSI цвета")
 
-    # Fast 8-Phase Pre-Flight Verification Loop (AnD os v9.0)
+    # Fast 8-Phase Pre-Flight Verification Loop
     p_rules = subparsers.add_parser("rules", help="Компиляция и аудит быстрого индекса правил (Rules Fast Index)")
     p_rules.add_argument("action", choices=["compile", "verify", "status"], default="compile", nargs="?", help="Действие: compile или verify")
 
@@ -1601,7 +1354,7 @@ def main() -> None:
     p_ver.add_argument("--json", action="store_true", help="Машиночитаемый JSON вывод")
     p_ver.add_argument("--verbose", "-v", action="store_true", help="Развернутый вывод отчёта")
 
-    # Release Ledger Engine (AnD os v9.4 SQLite & Changelog Architecture)
+    # Release Ledger Engine (SQLite & Changelog Architecture)
     p_rel = subparsers.add_parser("release", help="Управление версиями системы и журналом релизов на базе SQLite (Rule #55)")
     p_rel_sub = p_rel.add_subparsers(dest="subaction", required=True)
     
@@ -1621,61 +1374,69 @@ def main() -> None:
 
     p_rel_sync = p_rel_sub.add_parser("sync", help="Синхронизировать RELEASE_LEDGER.json и CHANGELOG.md из SQLite")
 
-    # APFS CoW & Git Checkpoint Engine (AnD os v9.0)
-    p_cp = subparsers.add_parser("checkpoint", help="Управление контрольными точками и мгновенными CoW-снимками рабочей области")
+    # APFS CoW & Git Checkpoint Engine
+    p_cp = subparsers.add_parser("checkpoint", help="Tree-level CoW: снимки и откат каталогов/рабочей области (checkpoint_manager). File-level — подкоманда `snapshot`")
     p_cp.add_argument("action", choices=["create", "verify", "rollback", "list", "clear"], help="Действие: create, verify, rollback, list, clear")
     p_cp.add_argument("name", nargs="?", help="Название контрольной точки")
     p_cp.add_argument("--targets", nargs="*", help="Целевые каталоги для снимка")
     p_cp.add_argument("--keep", type=int, default=5, help="Сколько последних снимков сохранить при очистке")
 
-    # Eval-Driven Development (EDD) Framework (AnD os v9.0)
+    # Eval-Driven Development (EDD) Framework
     p_eval = subparsers.add_parser("eval", help="Фреймворк Eval-Driven Development (метрики pass@1, pass@3, регрессионный контроль)")
     p_eval.add_argument("action", choices=["define", "check", "list"], help="Действие: define, check, list")
     p_eval.add_argument("feature", nargs="?", help="Название фичи или системы")
     p_eval.add_argument("--desc", default="", help="Описание требований")
     p_eval.add_argument("--domain", default="core", help="Домен системы")
 
-    # Subagent Handoff Protocol (AnD os v9.0)
+    # Subagent Handoff Protocol
     p_hnd = subparsers.add_parser("handoff", help="Управление и валидация канонического протокола передачи задач между субагентами")
     p_hnd.add_argument("action", choices=["validate"], help="Действие: validate")
     p_hnd.add_argument("file", help="Путь к handoff markdown файлу")
 
-    # Context Modes Switcher (AnD os v9.0)
+    # Context Modes Switcher
     p_mode = subparsers.add_parser("mode", help="Управление пресетами поведения агента (dev, research, review)")
     p_mode.add_argument("action", nargs="?", default="get", choices=["get", "set", "show", "list"], help="Действие: get, set, show, list")
     p_mode.add_argument("target_mode", nargs="?", help="Целевой режим (dev, research, review)")
 
-    # Safe Refactor-Cleaner & Dead Code Guard (AnD os v9.0)
+    # Safe Refactor-Cleaner & Dead Code Guard
     p_clean = subparsers.add_parser("clean", help="Безопасный аудит и очистка мёртвого кода с регистрацией в DELETION_LOG")
     p_clean.add_argument("action", nargs="?", default="audit", choices=["audit", "dry-run", "log"], help="Действие: audit, dry-run, log")
     p_clean.add_argument("--dir", help="Целевой подкаталог для сканирования")
 
-    # Documentation & Runbook Synchronizer (AnD os v9.0)
+    # Documentation & Runbook Synchronizer
     p_sdocs = subparsers.add_parser("sync-docs", help="Авто-генерация и синхронизация production ранбука RUNBOOK.md из кода ядра")
     p_sdocs.add_argument("--check", action="store_true", help="Проверить актуальность без перезаписи")
 
-    # TDD Test Scaffold Generator (AnD os v9.0)
+    # TDD Test Scaffold Generator
     p_tdd = subparsers.add_parser("tdd", help="Генератор скелетов модульных тестов (Python unittest / Swift XCTest)")
     p_tdd.add_argument("file", help="Исходный файл для генерации тестов (.py или .swift)")
     p_tdd.add_argument("--out", "-o", help="Кастомный путь сохранения теста")
     p_tdd.add_argument("--run", "-r", action="store_true", help="Мгновенный запуск созданного теста")
 
-    # Security & OWASP Top-10 / Injection Scanner (AnD os v9.0)
+    # Security & OWASP Top-10 / Injection Scanner
     p_sec = subparsers.add_parser("sec-audit", help="Аудит безопасности, инъекций и векторов OWASP Top-10")
     p_sec.add_argument("path", nargs="?", default="and_os", help="Путь для сканирования (default: and_os)")
 
-    # Visual Artifact on Failure Engine (AnD os v9.0)
+    # Visual Artifact on Failure Engine
     p_cap = subparsers.add_parser("capture-failure", help="Захват экранного снимка macOS и сетевых дампов при сбое")
     p_cap.add_argument("--reason", "-r", default="Manual capture or unhandled test failure", help="Причина сбоя")
     p_cap.add_argument("--cmd", "-c", default="", help="Команда, вызвавшая сбой")
     p_cap.add_argument("--json", action="store_true", help="Вывод в JSON")
 
-    # DAG Phase Planner & Acceptance Criteria Engine (AnD os v9.0)
+    # DAG Phase Planner & Acceptance Criteria Engine
     p_dplan = subparsers.add_parser("dag-plan", help="Фазовый планировщик задач DAG и контроль критериев приемки (DoD)")
     p_dplan.add_argument("action", nargs="?", default="status", choices=["new", "check", "status"], help="Действие: new, check, status")
     p_dplan.add_argument("task_id", nargs="?", help="Идентификатор задачи")
     p_dplan.add_argument("--phases", "-p", default="", help="Фазы через запятую (для new)")
-    p_dplan.add_argument("--desc", "-d", default="", help="Описание задачи (для new)")
+    # Reverse-Engineering Engine Dispatcher (REA)
+    p_rev = subparsers.add_parser("reverse", help="Диспетчер декомпиляции и статического анализа бинарников и приложений (REA)")
+    p_rev.add_argument("subaction", choices=["status", "inspect", "search", "decompile", "check-update"], help="Команда: status, inspect, search, decompile, check-update")
+    p_rev.add_argument("target", nargs="?", default="", help="Целевой файл или директория (Mach-O, ASAR, Electron, SQLite)")
+    p_rev.add_argument("--pattern", "-p", default="", help="Шаблон поиска для search")
+    p_rev.add_argument("--procedure", default="", help="Имя процедуры/функции для декомпиляции")
+    p_rev.add_argument("--token-limit", type=int, default=2000, help="Аппаратный потолок токенов (default: 2000)")
+    p_rev.add_argument("--json", action="store_true", help="Вывод в JSON")
+
     args, unknown = parser.parse_known_args()
     if hasattr(args, "extra_args") and unknown:
         args.extra_args.extend(unknown)
@@ -1713,201 +1474,34 @@ def main() -> None:
         if res.get("stderr"):
             print(res["stderr"], file=sys.stderr)
         auto_log_telemetry("Health command execution", skill="sys.health")
-    elif args.command == "find":
-        flags = []
-        if args.category:
-            flags.extend(["--category", args.category])
-        if args.limit:
-            flags.extend(["--limit", str(args.limit)])
-        if args.json:
-            flags.append("--json")
-        if args.query:
-            flags.extend(args.query)
-        res = run_script("quick_find.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("Quick knowledge search", skill="sys.find")
-    elif args.command == "bootstrap":
-        flags = []
-        if args.install:
-            flags.append("--install")
-        if args.json:
-            flags.append("--json")
-        res = run_script("bootstrap_system.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("System bootstrap & portability check", skill="sys.bootstrap")
-    elif args.command == "dep":
-        flags = []
-        if args.propagate:
-            flags.append("--propagate")
-        if args.mermaid:
-            flags.append("--mermaid")
-        if args.json:
-            flags.append("--json")
-        res = run_script("dependency_engine.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("Dependency cascade update", skill="sys.dep")
-    elif args.command == "doc":
-        flags = [args.file]
-        if args.json:
-            flags.append("--json")
-        target_script = "doc_analyze.py"
-        if args.ocr:
-            target_script = "image_ocr.py"
-        elif args.twin:
-            target_script = "pdf_twin_converter.py"
-        elif args.file.endswith(".xlsx") or args.file.endswith(".xls"):
-            target_script = "xl_analyze.py"
-        res = run_script(target_script, flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("Doc processing", skill="sys.doc")
+    elif args.command in ("find", "dep", "doc"):
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem(args.command)
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
 
     elif args.command == "track":
-        flags = []
-        if args.service == "ftrack":
-            if getattr(args, "inspect", False):
-                script = "ftrack_inspector.py"
-                flags.extend(["inspect", "--project", args.project])
-            elif getattr(args, "verify", False):
-                script = "ftrack_inspector.py"
-                flags.extend(["verify-slice", "--project", args.project])
-            elif getattr(args, "export", False):
-                script = "ftrack_inspector.py"
-                flags.extend(["staged-export", "--project", args.project])
-            elif args.gantt:
-                script = "ftrack_gantt_exporter.py"
-                flags.extend(["--project", args.project])
-            elif args.report:
-                script = "ftrack_report.py"
-                flags.extend(["--project", args.project, "--report"])
-            elif getattr(args, "summary", False):
-                script = "ftrack_report.py"
-                flags.extend(["--project", args.project, "--summary"])
-            else:
-                script = "ftrack_sync.py"
-                flags.extend(["--project", args.project])
-        elif args.service == "weeek":
-            script = "weeek_sync.py"
-            if getattr(args, "verify", False):
-                flags.extend(["--verify-slice", "--board", args.project])
-            else:
-                flags.extend(["--board", args.project])
-                if getattr(args, "summary", False):
-                    flags.append("--summary")
-                elif getattr(args, "report", False):
-                    flags.append("--export-md")
-        elif args.service == "mattermost":
-            if getattr(args, "verify", False):
-                script = "mattermost_inspector.py"
-                flags.extend(["verify-slice", "--project", args.project])
-            elif getattr(args, "inspect", False):
-                script = "mattermost_inspector.py"
-                flags.extend(["inspect", "--project", args.project])
-            elif getattr(args, "export", False):
-                script = "mattermost_inspector.py"
-                flags.extend(["staged-export", "--project", args.project])
-            else:
-                script = "mattermost_sync.py"
-                flags.extend(["--team", args.project])
-                if getattr(args, "channel", None):
-                    flags.extend(["--channel", args.channel])
-                if getattr(args, "search", None):
-                    flags.extend(["--search", args.search])
-                if getattr(args, "summary", False):
-                    flags.append("--summary")
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("track")
+        if sub:
+            ret = sub.execute(args)
+            if ret != 0:
+                sys.exit(ret)
         else:
-            script = "ftrack_sync.py"
-            flags.extend(["--project", args.project])
-        if args.json:
-            flags.append("--json")
-        res = run_script(script, flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Production tracking ({args.service} / {args.project})", skill="sys.track")
+            print("Error: track subsystem failed to load", file=sys.stderr)
+            sys.exit(1)
 
     elif args.command == "cg":
-        if args.action == "nodes":
-            script = "comfy_node_registry.py"
-        elif args.action == "graph":
-            script = "comfy_graph.py"
-        elif args.action == "scenes":
-            script = "video_scenes.py"
-        else:
-            script = "cg_bridge.py"
-        flags = ["--json"] if args.json else []
-        res = run_script(script, flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"CG 3D pipeline ({args.action})", skill="sys.cg")
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("cg")
+        ret = sub.execute(args) if sub else 1
+        if ret != 0:
+            sys.exit(ret)
     elif args.command == "tools":
-        tool_map = {
-            "smoke": "dash_smoke_test.py",
-            "ui-inspect": "ui_inspector.py",
-            "app-check": "app_quick_check.py",
-            "build-native": "build_native.py",
-            "graph": "graph_builder.py",
-            "gen-ctx": "gen_context.py",
-            "health-bridge": "health_bridge.py",
-            "ftrack-cache": "ftrack_cache.py",
-            "board-parser": "board_parser.py",
-            "trim-output": "trim_output.py",
-            "graph-orphans": "audit_graph_orphans.py",
-            "schema-validator": "schema_validator.py",
-            "link-orphans": "link_graph_orphans.py",
-            "clean-links": "clean_links.py",
-            "tags-links": "audit_tags_links.py",
-            "webdav-fix": "fix_webdav_sync_issues.py",
-            "budget-calc": "budget_calc.py",
-            "convert-doc": "convert_doc.py",
-            "telemetry_sync": "telemetry_sync_sync.py",
-            "yt-analyze": "yt_analyze.py",
-            "career-radar": "career_radar.py",
-            "mirror": "mirror_collector.py",
-            "architect": "architect_engine.py"
-        }
-        if args.utility == "kot-sync":
-            pulsar_kot = "./pulsar/kot_gantt"
-            import subprocess
-            print("🔄 [KOT GANTT] Актуализация данных и сборка index.html...")
-            res1 = subprocess.run([sys.executable, f"{pulsar_kot}/build_data.py"], capture_output=True, text=True)
-            print(res1.stdout, end="")
-            if res1.stderr:
-                print(res1.stderr, file=sys.stderr)
-            res2 = subprocess.run([sys.executable, f"{pulsar_kot}/generate_html.py"], capture_output=True, text=True)
-            print(res2.stdout, end="")
-            auto_log_telemetry("Kot Gantt data sync", skill="sys.tools")
-            return
-        elif args.utility == "mars-sync":
-            pulsar_mars = "./pulsar/mars_gantt"
-            import subprocess
-            print("🚀 [MARS GANTT] Актуализация данных и сборка index.html...")
-            res1 = subprocess.run([sys.executable, f"{pulsar_mars}/build_data.py"], capture_output=True, text=True)
-            print(res1.stdout, end="")
-            if res1.stderr:
-                print(res1.stderr, file=sys.stderr)
-            res2 = subprocess.run([sys.executable, f"{pulsar_mars}/generate_html.py"], capture_output=True, text=True)
-            print(res2.stdout, end="")
-            auto_log_telemetry("Mars Gantt data sync", skill="sys.tools")
-            return
-
-        target_script = tool_map.get(args.utility)
-        if target_script:
-            res = run_script(target_script, args.extra_args or [])
-            print(res.get("stdout", ""), end="")
-            if res.get("stderr"):
-                print(res["stderr"], file=sys.stderr)
-            auto_log_telemetry(f"Utility tool run: {args.utility}", skill="sys.tools")
-        else:
-            print(f"[!] Unknown utility: {args.utility}", file=sys.stderr)
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("tools")
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "trash":
         target_path = os.path.abspath(args.target) if os.path.isabs(args.target) else os.path.join(VAULT_ROOT, args.target)
         if not os.path.exists(target_path):
@@ -2051,15 +1645,12 @@ def main() -> None:
         print(sl_mod.format_statusline(color=not args.no_color))
         auto_log_telemetry("Statusline beacon output", skill="sys.statusline")
     elif args.command == "rules":
-        flags = [args.action] if args.action else ["compile"]
-        res = run_script("rules_compiler.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Rules index action: {args.action}", skill="sys.rules")
-        sys.exit(res.get("returncode", 0))
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("rules")
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "hooks":
-        # Hardware-Level Lifecycle Hooks Audit (AnD os v9.1)
+        # Hardware-Level Lifecycle Hooks Audit
         settings_file = "~/.gemini/settings.json"
         hooks_config = "~/.gemini/config/hooks.json"
         session_gate = os.path.join(AI_SCRIPT_DIR, "session_gate.py")
@@ -2071,7 +1662,7 @@ def main() -> None:
         vg_ok = os.path.exists(vault_guard) and os.access(vault_guard, os.X_OK)
 
         print("┌─────────────────────────────────────────────────────────────┐")
-        print("│  ⚡ AnD os v9.3 Hardware Lifecycle Hooks Status             │")
+        print("│  ⚡ AnD os v1.0.0 Hardware Lifecycle Hooks Status          │")
         print("├─────────────────────────────────────────────────────────────┤")
         print(f"│  1. SessionStart Hook (session_gate.py) : {'🟢 ACTIVE' if sg_ok and s_ok else '🔴 INACTIVE'}               │")
         print(f"│     • Binary executable : {'🟢 YES' if sg_ok else '🔴 NO'}                                  │")
@@ -2086,165 +1677,15 @@ def main() -> None:
         auto_log_telemetry(f"Hooks audit action: {args.action}", skill="sys.hooks")
         sys.exit(0 if (sg_ok and vg_ok and s_ok and h_ok) else 1)
     elif args.command == "verify":
-        flags = []
-        if args.json:
-            flags.append("--json")
-        if args.verbose:
-            flags.append("--verbose")
-        if args.paths:
-            flags.extend(args.paths)
-        res = run_script("quick_verify.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("Quick pre-flight verification", skill="sys.verify")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "release":
-        from and_os.lib.core.release_ledger import record_release, list_releases, get_latest_release, sync_projections
-        if args.subaction == "bump":
-            # Update system.json version
-            for spath in [os.path.join(VAULT_ROOT, "system.json"), os.path.join(VAULT_ROOT, "and_os/etc/system.json")]:
-                if os.path.exists(spath):
-                    try:
-                        with open(spath, "r", encoding="utf-8") as sf:
-                            sdata = json.load(sf)
-                        sdata["version"] = args.version
-                        with open(spath, "w", encoding="utf-8") as sf:
-                            json.dump(sdata, sf, indent=2, ensure_ascii=False)
-                    except Exception as se:
-                        sys.stderr.write(f"Warning updating {spath}: {se}\n")
-            
-            res = record_release(
-                version=args.version,
-                summary=args.summary,
-                changes=args.changes,
-                release_type=args.type,
-                affected_components=args.components
-            )
-            print(f"🎉 Релиз v{args.version} успешно зафиксирован в SQLite и спроецирован в CHANGELOG.md.")
-            print(f"   • Суть: {args.summary}")
-            print(f"   • Изменений: {len(args.changes)}")
-            print(f"   • Git commit: {res.get('sha')}")
-            auto_log_telemetry(f"Release bump: v{args.version}", skill="sys.release")
-            sys.exit(0)
-        elif args.subaction == "list":
-            rels = list_releases(limit=args.limit)
-            if args.json:
-                print(json.dumps(rels, ensure_ascii=False, indent=2))
-            else:
-                print(f"=== 📜 AnD os System Release History (Top {len(rels)}) ===")
-                for r in rels:
-                    print(f"  • v{r['version']} [{r['release_date']}] ({r['release_type']}): {r['summary']}")
-            sys.exit(0)
-        elif args.subaction == "show":
-            target_v = args.version
-            if not target_v:
-                rel = get_latest_release()
-            else:
-                rels = [r for r in list_releases(limit=100) if r["version"] == target_v]
-                rel = rels[0] if rels else None
-            if not rel:
-                print(f"❌ Релиз '{target_v}' не найден в SQLite ledger.")
-                sys.exit(1)
-            print(f"=== 📦 AnD os Release v{rel['version']} ({rel['release_date']}) ===")
-            print(f"Тип: {rel['release_type']} | Компоненты: {rel.get('affected_components', 'all')}")
-            print(f"Суть: {rel['summary']}")
-            print("Изменения:")
-            for ch in rel.get("changes", []):
-                print(f"  - {ch}")
-            sys.exit(0)
-        elif args.subaction == "sync":
-            sync_projections()
-            print("✅ Проекции RELEASE_LEDGER.json и CHANGELOG.md синхронизированы из SQLite.")
-            sys.exit(0)
-    elif args.command == "checkpoint":
-        flags = [args.action]
-        if args.name:
-            flags.append(args.name)
-        if args.targets:
-            flags.append("--targets")
-            flags.extend(args.targets)
-        if args.action == "clear":
-            flags.extend(["--keep", str(args.keep)])
-        res = run_script("checkpoint_manager.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Checkpoint action: {args.action}", skill="sys.checkpoint")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "eval":
-        flags = [args.action]
-        if args.feature:
-            flags.append(args.feature)
-        if args.action == "define":
-            if args.desc:
-                flags.extend(["--desc", args.desc])
-            if args.domain:
-                flags.extend(["--domain", args.domain])
-        res = run_script("eval_engine.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Eval action: {args.action}", skill="sys.eval")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "handoff":
-        flags = [args.action, args.file]
-        res = run_script("agent_handoff.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Handoff action: {args.action}", skill="sys.handoff")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "mode":
-        flags = [args.action]
-        if args.target_mode:
-            flags.append(args.target_mode)
-        res = run_script("context_mode_manager.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Mode action: {args.action}", skill="sys.mode")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "clean":
-        flags = [args.action]
-        if args.dir:
-            flags.extend(["--dir", args.dir])
-        res = run_script("refactor_cleaner.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Clean action: {args.action}", skill="sys.clean")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "sync-docs":
-        flags = []
-        if args.check:
-            flags.append("--check")
-        res = run_script("docs_sync.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry("Sync docs and runbook", skill="sys.docs")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "tdd":
-        flags = [args.file]
-        if args.out:
-            flags.extend(["--out", args.out])
-        if args.run:
-            flags.append("--run")
-        res = run_script("tdd_scaffold.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"TDD scaffold for {args.file}", skill="sys.tdd")
-        sys.exit(res.get("returncode", 0))
-    elif args.command == "sec-audit":
-        flags = [args.path]
-        res = run_script("sec_audit.py", flags)
-        print(res.get("stdout", ""), end="")
-        if res.get("stderr"):
-            print(res["stderr"], file=sys.stderr)
-        auto_log_telemetry(f"Security audit for {args.path}", skill="sys.sec-audit")
-        sys.exit(res.get("returncode", 0))
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("verify")
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
+    elif args.command in ("release", "checkpoint", "handoff", "mode", "clean", "sync-docs"):
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem(args.command)
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "capture-failure":
         flags = ["--reason", args.reason]
         if args.cmd:
@@ -2479,7 +1920,10 @@ def main() -> None:
     elif args.command == "app":
         cmd_app(args)
     elif args.command == "pack":
-        cmd_pack(args)
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("pack")
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "skills":
         cmd_skills(args)
     elif args.command == "skill":
@@ -2488,22 +1932,22 @@ def main() -> None:
         cmd_daemon(args)
     elif args.command == "islands":
         cmd_islands(args)
-    elif args.command == "status":
-        cmd_status(args)
-    elif args.command == "boot":
-        cmd_boot(args)
-    elif args.command == "proc":
-        cmd_proc(args)
-    elif args.command == "snapshot":
-        cmd_snapshot(args)
-    elif args.command == "notify":
-        cmd_notify(args)
-    elif args.command == "env":
-        cmd_env(args)
-    elif args.command == "vacuum":
-        cmd_vacuum(args)
+    elif args.command in ("status", "boot", "proc", "snapshot", "notify", "env", "vacuum"):
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem(args.command)
+        if sub:
+            ret = sub.execute(args)
+            if ret != 0:
+                sys.exit(ret)
+        else:
+            print(f"Error: subsystem for {args.command} failed to load", file=sys.stderr)
+            sys.exit(1)
     elif args.command == "comfy":
-        cmd_comfy(args)
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("comfy")
+        ret = sub.execute(args) if sub else 1
+        if ret != 0:
+            sys.exit(ret)
     elif args.command == "top":
         cmd_top(args)
     elif args.command == "terminal":
@@ -2512,16 +1956,11 @@ def main() -> None:
         cmd_event(args)
     elif args.command == "project":
         cmd_project(args)
-    elif args.command == "context":
-        cmd_context(args)
-    elif args.command == "route":
-        cmd_route(args)
-    elif args.command == "relate":
-        cmd_relate(args)
-    elif args.command == "asset":
-        cmd_asset(args)
-    elif args.command == "plan":
-        cmd_plan(args)
+    elif args.command in ("context", "route", "relate", "asset", "plan"):
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem(args.command)
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "deconstruct":
         cmd_deconstruct(args)
     elif args.command == "postmortem":
@@ -2530,18 +1969,17 @@ def main() -> None:
         cmd_contract(args)
     elif args.command == "bible":
         cmd_bible(args)
-    elif args.command == "animatic":
-        cmd_animatic(args)
-    elif args.command == "hybrid-render":
-        cmd_hybrid_render(args)
-    elif args.command == "consistency":
-        cmd_consistency(args)
-    elif args.command == "conform":
-        cmd_conform(args)
-    elif args.command == "montage":
-        cmd_montage(args)
+    elif args.command in ("animatic", "hybrid-render", "consistency", "conform", "montage"):
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem(args.command)
+        ret = sub.execute(args) if sub else 1
+        if ret != 0:
+            sys.exit(ret)
     elif args.command == "links":
-        cmd_links(args)
+        from and_os.bin.cli_subsystems import get_subsystem
+        sub = get_subsystem("links")
+        ret = sub.execute(args) if sub else 1
+        sys.exit(ret)
     elif args.command == "preflight":
         cmd_preflight(args)
     elif args.command == "init":
@@ -2562,6 +2000,43 @@ def main() -> None:
         cmd_vault(args)
     elif args.command == "toolchain":
         cmd_toolchain(args)
+    elif args.command == "reverse":
+        from and_os.lib.core.rea_engine import REAEngine
+        engine = REAEngine(token_limit=args.token_limit)
+        if args.subaction == "status":
+            st = engine.status()
+            if args.json:
+                print(json.dumps(st, indent=2, ensure_ascii=False))
+            else:
+                icon = "🟢" if st.get("healthy") else "🔴"
+                print(f"{icon} REA Engine: {st.get('engine_version', 'unknown')} | Node: {st.get('node_path')} | Bound: {st.get('token_limit')} tokens")
+        elif args.subaction == "check-update":
+            upd = engine.check_update()
+            if args.json:
+                print(json.dumps(upd, indent=2, ensure_ascii=False))
+            else:
+                if upd.get("update_available"):
+                    print(f"🟡 REA Update available: {upd.get('current_pinned')} -> {upd.get('upstream_latest')}")
+                else:
+                    print(f"🟢 REA is up-to-date (v{upd.get('current_pinned')})")
+        elif args.subaction == "inspect":
+            if not args.target:
+                print("❌ Error: Target path required for inspect", file=sys.stderr)
+                sys.exit(1)
+            res = engine.inspect_target(args.target)
+            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
+        elif args.subaction == "search":
+            if not args.target or not args.pattern:
+                print("❌ Error: Both target path and --pattern required for search", file=sys.stderr)
+                sys.exit(1)
+            res = engine.search_symbols(args.target, args.pattern)
+            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
+        elif args.subaction == "decompile":
+            if not args.target or not args.procedure:
+                print("❌ Error: Both target path and --procedure required for decompile", file=sys.stderr)
+                sys.exit(1)
+            res = engine.decompile_procedure(args.target, args.procedure)
+            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
     else:
         parser.print_help()
 

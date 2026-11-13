@@ -1,0 +1,11 @@
+{
+  "version": "1.3.0",
+  "updated": "2026-11-12",
+  "note": "Single source of truth for the I-1 kernel immutability zones (audit R4, P11). The I-1 declaration (rules.md Kernel Immutability, AGENTS.md) is stated here once; the banner contract test (test_version_banners_r4.py), the Ring 3 advisory scan (manifest_probe.scan_stale_banners) and the audit I-1 diff-gate all read this file through and_os/lib/i1_zones.py. Zones are vault-relative path prefixes (trailing slash); exempt_files are exact vault-relative paths. Since the B1 relocation (audit R4 backlog, 2026-11-12, Andrey decision) the cg Production Skeleton physically lives inside and_os/lib/core/cg/, so the I-1 kernel is a single physical zone and the only exempt file is the usd animatic pipeline test (I-1 per the R3-F2 report of record, kernel-adjacent DoD under opt/). History: P7 incident (bulk fix touched and_os/lib/core, reverted) and P7-2 incident (bulk fix touched the cg Production Skeleton, reverted per decision) were both caused by unsynchronized zone copies; this file removes the duplication. Banners inside I-1 zones were normalized to the canonical 9.6.0 by the P12 kernel versioning release, then to the canonical 1.0.0 by the 1.0 kernel versioning release (the first stable release, 12.11, Andrey decision) via a single CoW checkpoint + zone-based source diff gate; banners stay account-only until the NEXT kernel release.",
+  "zones": [
+    "and_os/lib/core/"
+  ],
+  "exempt_files": [
+    "and_os/opt/apps/cg_workspace/tests/test_usd_animatic_pipeline.py"
+  ]
+}

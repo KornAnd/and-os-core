@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-context_router.py — Умная быстрая БД и маршрутизатор контекстных файлов ANDREY OS (v1.0.0).
-Индексирует все CONTEXT.md в Vault, ведет реестр в SQLite (task_vault.db) и JSON (context_map.json),
-предоставляет быструю маршрутизацию задач к нужным контекстам за 0.005 сек.
+context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.0.0).
+Indexes all the CONTEXT.md in the Vault, keeps the registry in the SQLite (task_vault.db) and the JSON (context_map.json),
+provides the fast routing of the tasks to the needed contexts in the 0.005 s.
 """
 
 import os
@@ -50,10 +50,10 @@ def extract_context_info(context_path):
             if len(summary_lines) >= 3:
                 break
                 
-        summary = " ".join(summary_lines)[:250] if summary_lines else "Контекстный файл каталога."
+        summary = " ".join(summary_lines)[:250] if summary_lines else "The contextual file of the catalog."
         return title, summary
     except Exception as e:
-        return context_path.parent.name, f"Ошибка чтения: {str(e)}"
+        return context_path.parent.name, f"The reading error: {str(e)}"
 
 def count_child_md_files(directory):
     """Counts .md files inside directory (excluding CONTEXT.md)."""
@@ -68,7 +68,7 @@ def count_child_md_files(directory):
 
 def sync_context_registry():
     """Scans all CONTEXT.md files in Vault and updates SQLite + JSON snapshot."""
-    print("🔍 Сканирование и индексация всех CONTEXT.md файлов...")
+    print("🔍 The scanning and the indexation of all the CONTEXT.md files...")
     context_entries = []
 
     for root, dirs, files in os.walk(VAULT_ROOT):
@@ -78,7 +78,7 @@ def sync_context_registry():
             rel_ctx = str(ctx_file.relative_to(VAULT_ROOT))
             rel_dir = str(Path(root).relative_to(VAULT_ROOT))
             if rel_dir == ".":
-                rel_dir = "корень"
+                rel_dir = "root"
                 
             title, summary = extract_context_info(ctx_file)
             md_count = count_child_md_files(Path(root))
@@ -125,8 +125,8 @@ def sync_context_registry():
     conn.commit()
     conn.close()
 
-    print(f"✅ База данных контекстов обновлена! Учтено {len(context_entries)} CONTEXT.md файлов.")
-    print(f"📁 Файл снимка сохранен: and_os/var/context_map.json")
+    print(f"✅ The database of the contexts was updated! The {len(context_entries)} CONTEXT.md files were counted.")
+    print(f"📁 The snapshot file was saved: and_os/var/context_map.json")
     return context_entries
 
 def sync_knowledge_clippings_db():
@@ -156,7 +156,7 @@ def sync_knowledge_clippings_db():
         conn.commit()
         conn.close()
     except Exception as e:
-        print(f"⚠️ Ошибка синхронизации знаний в SQLite: {e}")
+        print(f"⚠️ The error of the synchronization of the knowledge in the SQLite: {e}")
 
 def sync_graph_registry_db():
     """Syncs and_os/etc/SYSTEM_GRAPH_REGISTRY.json into SQLite task_vault.db."""
@@ -193,7 +193,7 @@ def sync_graph_registry_db():
         conn.commit()
         conn.close()
     except Exception as e:
-        print(f"⚠️ Ошибка синхронизации графа зависимостей: {e}")
+        print(f"⚠️ The error of the synchronization of the graph of the dependencies: {e}")
 
 def route_task_to_context(query):
     """Fast unified routing across CONTEXT.md, Knowledge Clippings, and System Manifest Graph."""
@@ -421,44 +421,44 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "relate":
         target = sys.argv[2] if len(sys.argv) > 2 else ""
         rel = find_related_notes(target)
-        print(f"🔗 СЕМАНТИЧЕСКИ СВЯЗАННЫЕ ЗАМЕТКИ ДЛЯ: '{target}'")
+        print(f"🔗 THE SEMANTICALLY LINKED NOTES FOR: '{target}'")
         print("=" * 60)
         for i, item in enumerate(rel, 1):
             print(f"{i}. [{item['type'].upper()}] {item['title']} (Score: {item['score']})")
-            print(f"   Путь: {item['path']}")
-            print(f"   Сниппет: {item['snippet']}...\n")
+            print(f"   The path: {item['path']}")
+            print(f"   The snippet: {item['snippet']}...\n")
     elif len(sys.argv) > 1 and sys.argv[1] == "route":
         query = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else ""
         res = route_task_to_context(query)
-        print(f"🎯 ЕДИНАЯ МАРШРУТИЗАЦИЯ ДЛЯ ЗАДАЧИ: '{query}'")
+        print(f"🎯 THE UNIFIED ROUTING FOR THE TASK: '{query}'")
         print("=" * 60)
         
         if res.get("manifests"):
-            print("📜 Манифесты, Правила и Регламенты (Зависимости):")
+            print("📜 The Manifests, the Rules and the Regulations (The Dependencies):")
             for m in res["manifests"][:2]:
                 print(f"  • [{m['island']}] {m['file_path']} ({m['role']})")
-                print(f"    Суть: {m['description']}")
+                print(f"    The essence: {m['description']}")
                 if m["affects"]:
-                    print(f"    ⚠️ Требует синхронного обновления: {', '.join(m['affects'])}")
+                    print(f"    ⚠️ Requires the synchronous update: {', '.join(m['affects'])}")
                 print()
 
-        print("📍 Релевантные Контексты (CONTEXT.md):")
+        print("📍 The Relevant Contexts (CONTEXT.md):")
         for r in res["contexts"][:3]:
             print(f"  • [{r['directory']}] -> {r['context_path']}")
             print(f"    {r['title']}: {r['summary'][:100]}...\n")
         
         if res.get("knowledge"):
-            print("📚 Релевантные Статьи и Конспекты Базы Знаний (Остров 1):")
+            print("📚 The Relevant Articles and the Notes of the Knowledge Base (the Island 1):")
             for k in res["knowledge"][:3]:
                 print(f"  • [{k['category']}] {k['title']}")
-                print(f"    Источник: [[{k['source']}]]")
-                print(f"    Суть: {k['summary'][:120]}...\n")
+                print(f"    The source: [[{k['source']}]]")
+                print(f"    The essence: {k['summary'][:120]}...\n")
 
         if res.get("external_projects"):
-            print("🌐 Зарегистрированные Внешние Веб-Приложения / Проекты:")
+            print("🌐 The Registered External Web Applications / Projects:")
             for p in res["external_projects"][:3]:
-                print(f"  • [{p['category']}] {p['name']} (Порт: :{p['local_port']})")
-                print(f"    Стек: {p['stack']} | Команда: `{p['run_command']}`")
+                print(f"  • [{p['category']}] {p['name']} (The port: :{p['local_port']})")
+                print(f"    The stack: {p['stack']} | The command: `{p['run_command']}`")
                 print(f"    {p['description']}\n")
     else:
         sync_context_registry()

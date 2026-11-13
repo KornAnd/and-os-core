@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-closed_loop.py — Единый Мастер-Диспетчер Замкнутого Контура (Closed-Loop Sovereign OS Stack v1.0).
-Обеспечивает сквозную регистрацию артефактов без ручных просьб пользователя:
-  1. Документы: маршрутизация в нужный Остров в Nero/, frontmatter, авто-линковка в CONTEXT.md.
-  2. Скрипты: синтаксическая проверка py_compile, привязка к sys_cli.py.
-  3. Скиллы: создание по ABI v2.0, симлинк, каскадное обновление манифестов ядра.
-  4. Телеметрия: атомарная фиксация каждого действия в telemetry.md.
-  5. Двухуровневая верификация: L1 Fast-Path (<80 мс) + опциональный L2 Full Audit.
+closed_loop.py — The Unified Master Dispatcher of the Closed Loop (Closed-Loop Sovereign OS Stack v1.0).
+Provides the end-to-end registration of the artifacts without the manual requests of the user:
+  1. Documents: the routing into the target Island in Nero/, the frontmatter, the auto-linking into CONTEXT.md.
+  2. Scripts: the py_compile syntax check, the binding to sys_cli.py.
+  3. Skills: the creation per the ABI v2.0, the symlink, the cascading update of the kernel manifests.
+  4. Telemetry: the atomic fixation of each action in the telemetry.md.
+  5. The two-level verification: the L1 Fast-Path (<80 ms) + the optional L2 Full Audit.
 
-Команды:
-  register-doc     -- Зарегистрировать документ/заметку с привязкой к CONTEXT.md
-  register-script  -- Зарегистрировать системный скрипт
-  register-skill   -- Зарегистрировать новый скилл со всеми манифестами
-  audit-l1         -- Мгновенная L1 проверка одного артефакта (< 50 мс)
-  audit-l2         -- Полный 25-векторный аудит системы + 50 скиллов SOS
+Commands:
+  register-doc     -- Register the document/note with the binding to CONTEXT.md
+  register-script  -- Register the system script
+  register-skill   -- Register the new skill with all the manifests
+  audit-l1         -- The instant L1 check of the single artifact (< 50 ms)
+  audit-l2         -- The full 25-vector audit of the system + the 50 skills SOS
 """
 
 import os
@@ -39,7 +39,7 @@ from tasks_router import TasksRouter
 
 
 def cmd_register_knowledge(args):
-    """L1 регистрация знания: маршрутизация, привязка к CONTEXT.md, матрице компетенций и индексу."""
+    """L1 registration of the knowledge: the routing, the binding to CONTEXT.md, the competence matrix and the index."""
     tags_list = [t.strip() for t in args.tags.split(",") if t.strip()] if getattr(args, "tags", "") else []
     checklist_list = [c.strip() for c in args.checklist.split(";") if c.strip()] if getattr(args, "checklist", "") else []
     
@@ -61,7 +61,7 @@ def cmd_register_knowledge(args):
 
 
 def cmd_register_health(args):
-    """L1 регистрация медицинского факта или консультации в тайм-серии."""
+    """L1 registration of the medical fact or the consultation into the time series."""
     if args.type == "fact":
         res = HealthRouter.register_biomarker(
             patient_id=args.patient,
@@ -89,12 +89,12 @@ def cmd_register_health(args):
             source_doc=getattr(args, "source", "") or ""
         )
     else:
-        res = {"status": "error", "message": f"Неизвестный тип записи '{args.type}'. Допустимо: fact, consultation"}
+        res = {"status": "error", "message": f"Unknown record type '{args.type}'. Allowed: fact, consultation"}
     print(json.dumps(res, ensure_ascii=False, indent=2))
 
 
 def cmd_register_finance(args):
-    """L1 регистрация финансового среза или денежного потока (Air-Gap)."""
+    """L1 registration of the financial slice or the money flow (Air-Gap)."""
     if args.type == "snapshot":
         res = FinanceRouter.register_snapshot(
             account_id=args.account,
@@ -115,12 +115,12 @@ def cmd_register_finance(args):
             note=getattr(args, "note", "") or ""
         )
     else:
-        res = {"status": "error", "message": f"Неизвестный тип финансовой операции '{args.type}'. Допустимо: snapshot, cashflow"}
+        res = {"status": "error", "message": f"Unknown financial operation type '{args.type}'. Allowed: snapshot, cashflow"}
     print(json.dumps(res, ensure_ascii=False, indent=2))
 
 
 def cmd_register_task(args):
-    """L1 регистрация задачи со всеми подзадачами в доску Tasks/."""
+    """L1 registration of the task with all the subtasks into the Tasks/ board."""
     subtasks = [s.strip() for s in args.subtasks.split(";") if s.strip()] if getattr(args, "subtasks", "") else []
     res = TasksRouter.register_task(
         project=args.project,
@@ -134,7 +134,7 @@ def cmd_register_task(args):
 
 
 def cmd_register_doc(args):
-    """L1 регистрация документа: привязка к CONTEXT.md и запись телеметрии."""
+    """L1 registration of the document: the binding to CONTEXT.md and the telemetry write."""
     file_path = args.file
     summary = args.summary or ""
     task_name = args.task or f"Register document: {os.path.basename(file_path)}"
@@ -157,7 +157,7 @@ def cmd_register_doc(args):
 
 
 def cmd_register_script(args):
-    """L1 регистрация скрипта: валидация синтаксиса и запись телеметрии."""
+    """L1 registration of the script: the syntax validation and the telemetry write."""
     file_path = args.file
     task_name = args.task or f"Register script: {os.path.basename(file_path)}"
 
@@ -183,7 +183,7 @@ def cmd_register_script(args):
 
 
 def cmd_register_skill(args):
-    """L1 регистрация скилла: симлинк, каскадные манифесты, телеметрия."""
+    """L1 registration of the skill: the symlink, the cascading manifests, the telemetry."""
     name = args.name
     desc = args.desc
     domain = args.domain or "system_island_6"
@@ -207,7 +207,7 @@ def cmd_register_skill(args):
 
 
 def cmd_audit_l1(args):
-    """Мгновенный L1 аудит конкретного артефакта (< 50 мс)."""
+    """The instant L1 audit of the specific artifact (< 50 ms)."""
     target = args.target
     if not os.path.exists(target):
         print(json.dumps({"status": "ERROR", "message": f"Target not found: {target}"}), file=sys.stderr)
@@ -229,7 +229,7 @@ def cmd_audit_l1(args):
 
 
 def cmd_audit_l2(args):
-    """Полный L2 аудит ядра и параллельного стека скиллов (1.5-2.5 с)."""
+    """The full L2 audit of the kernel and the parallel stack of the skills (1.5-2.5 s)."""
     import subprocess
     t0 = os.times()[4]
     
@@ -248,80 +248,80 @@ def main():
     parser = argparse.ArgumentParser(description="AnD os Closed-Loop Sovereign OS Stack")
     subparsers = parser.add_subparsers(dest="command")
 
-    p_know = subparsers.add_parser("register-knowledge", help="Регистрация знания/книги, привязка к CONTEXT, матрице и индексу")
-    p_know.add_argument("--title", required=True, help="Название книги/статьи")
-    p_know.add_argument("--author", default="", help="Автор книги/материала")
-    p_know.add_argument("--category", default="Управление", help="Категория (Управление, Эффективность, Ии, Лидерство, etc.)")
-    p_know.add_argument("--island", default="", help="Целевой Остров (clippings, cg_core, ta_bu, story, book, etc.)")
-    p_know.add_argument("--essence", default="", help="Краткая практическая суть")
-    p_know.add_argument("--for-whom", default="", dest="for_whom", help="Целевая аудитория и роли")
-    p_know.add_argument("--competence", default="", help="Компетенция для матрицы компетенций")
-    p_know.add_argument("--skill", default="", help="Связанный скилл системы (напр. status-report)")
-    p_know.add_argument("--tasks", default="", help="Решаемые прикладные задачи")
-    p_know.add_argument("--tags", default="", help="Теги через запятую")
-    p_know.add_argument("--content", default="", help="Основной текст/принципы")
-    p_know.add_argument("--checklist", default="", help="Пункты чек-листа через точку с запятой (;)")
+    p_know = subparsers.add_parser("register-knowledge", help="The registration of the knowledge/book, the binding to the CONTEXT, the matrix and the index")
+    p_know.add_argument("--title", required=True, help="The title of the book/article")
+    p_know.add_argument("--author", default="", help="The author of the book/material")
+    p_know.add_argument("--category", default="Управление", help="Category (the RU values: Управление, Эффективность, Ии, Лидерство, etc.)")
+    p_know.add_argument("--island", default="", help="The target Island (clippings, cg_core, ta_bu, story, book, etc.)")
+    p_know.add_argument("--essence", default="", help="The brief practical essence")
+    p_know.add_argument("--for-whom", default="", dest="for_whom", help="The target audience and the roles")
+    p_know.add_argument("--competence", default="", help="The competence for the competence matrix")
+    p_know.add_argument("--skill", default="", help="The related system skill (e.g. status-report)")
+    p_know.add_argument("--tasks", default="", help="The applied tasks solved")
+    p_know.add_argument("--tags", default="", help="The tags separated by a comma")
+    p_know.add_argument("--content", default="", help="The main text/principles")
+    p_know.add_argument("--checklist", default="", help="The checklist items separated by a semicolon (;)")
 
-    p_health = subparsers.add_parser("register-health", help="Регистрация медицинского факта или консультации в тайм-серии")
-    p_health.add_argument("--patient", required=True, choices=["andrey", "misha", "yulia", "pavel", "mom"], help="ID пациента")
-    p_health.add_argument("--type", choices=["fact", "consultation"], default="fact", help="Тип записи (fact или consultation)")
-    p_health.add_argument("--date", required=True, help="Дата исследования/приема (YYYY-MM-DD)")
-    p_health.add_argument("--key", default="", help="Ключ маркера (wbc, crp, alt, ast, etc.)")
-    p_health.add_argument("--name", required=True, help="Название маркера или диагноза")
-    p_health.add_argument("--value", default="0", help="Значение показателя")
-    p_health.add_argument("--unit", default="", help="Единица измерения")
-    p_health.add_argument("--ref-low", default="", dest="ref_low", help="Нижняя граница нормы")
-    p_health.add_argument("--ref-high", default="", dest="ref_high", help="Верхняя граница нормы")
-    p_health.add_argument("--lab", default="ИНВИТРО", help="Лаборатория")
-    p_health.add_argument("--source", default="", help="Документ-источник")
-    p_health.add_argument("--category", default="blood", help="Категория системы (blood, urine, liver, etc.)")
-    p_health.add_argument("--specialty", default="Терапевт", help="Специальность врача (для consultation)")
-    p_health.add_argument("--icd10", default="", help="Код МКБ-10 (для consultation)")
-    p_health.add_argument("--recommendations", default="", help="Назначения и рекомендации")
-    p_health.add_argument("--doctor", default="", help="ФИО врача")
-    p_health.add_argument("--clinic", default="", help="Клиника")
+    p_health = subparsers.add_parser("register-health", help="The registration of the medical fact or the consultation into the time series")
+    p_health.add_argument("--patient", required=True, choices=["andrey", "misha", "yulia", "pavel", "mom"], help="The patient ID")
+    p_health.add_argument("--type", choices=["fact", "consultation"], default="fact", help="The record type (fact or consultation)")
+    p_health.add_argument("--date", required=True, help="The test/visit date (YYYY-MM-DD)")
+    p_health.add_argument("--key", default="", help="The marker key (wbc, crp, alt, ast, etc.)")
+    p_health.add_argument("--name", required=True, help="The marker or the diagnosis name")
+    p_health.add_argument("--value", default="0", help="The indicator value")
+    p_health.add_argument("--unit", default="", help="The unit of measurement")
+    p_health.add_argument("--ref-low", default="", dest="ref_low", help="The lower norm boundary")
+    p_health.add_argument("--ref-high", default="", dest="ref_high", help="The upper norm boundary")
+    p_health.add_argument("--lab", default="ИНВИТРО", help="The laboratory")
+    p_health.add_argument("--source", default="", help="The source document")
+    p_health.add_argument("--category", default="blood", help="The system category (blood, urine, liver, etc.)")
+    p_health.add_argument("--specialty", default="Терапевт", help="The doctor specialty (for the consultation)")
+    p_health.add_argument("--icd10", default="", help="The ICD-10 code (for the consultation)")
+    p_health.add_argument("--recommendations", default="", help="The prescriptions and the recommendations")
+    p_health.add_argument("--doctor", default="", help="The doctor full name")
+    p_health.add_argument("--clinic", default="", help="The clinic")
 
-    p_fin = subparsers.add_parser("register-finance", help="Регистрация финансового баланса или операции (Air-Gap)")
-    p_fin.add_argument("--account", required=True, choices=["broker_account", "broker_account", "capital_account", "capital_account"], help="Счет брокера")
-    p_fin.add_argument("--type", choices=["snapshot", "cashflow"], default="snapshot", help="Тип записи (snapshot или cashflow)")
-    p_fin.add_argument("--total", required=True, help="Общая стоимость счета или сумма притока")
-    p_fin.add_argument("--pnl-rub", default="0", dest="pnl_rub", help="P/L в рублях")
-    p_fin.add_argument("--pnl-pct", default="0", dest="pnl_pct", help="P/L в процентах")
-    p_fin.add_argument("--cash", default="0", help="Остаток свободных денежных средств (кэш)")
-    p_fin.add_argument("--flow", default="DIVIDEND", choices=["DIVIDEND", "COUPON", "CONTRIBUTION"], help="Тип притока")
-    p_fin.add_argument("--ticker", default="", help="Тикер актива")
-    p_fin.add_argument("--date", default="", help="Дата операции/среза (YYYY-MM-DD)")
-    p_fin.add_argument("--note", default="", help="Примечание")
-    p_fin.add_argument("--source", default="", help="Документ-источник")
+    p_fin = subparsers.add_parser("register-finance", help="The registration of the financial balance or the operation (Air-Gap)")
+    p_fin.add_argument("--account", required=True, choices=["broker_account", "broker_account", "capital_account", "capital_account"], help="The broker account")
+    p_fin.add_argument("--type", choices=["snapshot", "cashflow"], default="snapshot", help="The record type (snapshot or cashflow)")
+    p_fin.add_argument("--total", required=True, help="The total account value or the inflow amount")
+    p_fin.add_argument("--pnl-rub", default="0", dest="pnl_rub", help="The P/L in the rubles")
+    p_fin.add_argument("--pnl-pct", default="0", dest="pnl_pct", help="The P/L in the percent")
+    p_fin.add_argument("--cash", default="0", help="The free cash balance (the cash)")
+    p_fin.add_argument("--flow", default="DIVIDEND", choices=["DIVIDEND", "COUPON", "CONTRIBUTION"], help="The inflow type")
+    p_fin.add_argument("--ticker", default="", help="The asset ticker")
+    p_fin.add_argument("--date", default="", help="The operation/slice date (YYYY-MM-DD)")
+    p_fin.add_argument("--note", default="", help="The note")
+    p_fin.add_argument("--source", default="", help="The source document")
 
-    p_task = subparsers.add_parser("register-task", help="Регистрация задачи со всеми подзадачами в доску Tasks/")
-    p_task.add_argument("--project", required=True, choices=["mars", "kot", "pm", "Studio", "general"], help="Целевой проект/доска")
-    p_task.add_argument("--title", required=True, help="Основная задача")
-    p_task.add_argument("--subtasks", default="", help="Подзадачи через точку с запятой (;)")
-    p_task.add_argument("--priority", default="normal", choices=["normal", "high", "urgent"], help="Приоритет")
-    p_task.add_argument("--due", default="", help="Дедлайн (YYYY-MM-DD)")
-    p_task.add_argument("--section", default="", help="Название секции (H2) на доске")
+    p_task = subparsers.add_parser("register-task", help="The registration of the task with all the subtasks into the Tasks/ board")
+    p_task.add_argument("--project", required=True, choices=["mars", "kot", "pm", "Studio", "general"], help="The target project/board")
+    p_task.add_argument("--title", required=True, help="The main task")
+    p_task.add_argument("--subtasks", default="", help="The subtasks separated by a semicolon (;)")
+    p_task.add_argument("--priority", default="normal", choices=["normal", "high", "urgent"], help="The priority")
+    p_task.add_argument("--due", default="", help="The deadline (YYYY-MM-DD)")
+    p_task.add_argument("--section", default="", help="The section name (H2) on the board")
 
-    p_doc = subparsers.add_parser("register-doc", help="Регистрация документа и привязка к CONTEXT.md")
-    p_doc.add_argument("--file", required=True, help="Путь к документу .md")
-    p_doc.add_argument("--summary", default="", help="Краткое назначение документа")
-    p_doc.add_argument("--task", default="", help="Название задачи для телеметрии")
+    p_doc = subparsers.add_parser("register-doc", help="The registration of the document and the binding to the CONTEXT.md")
+    p_doc.add_argument("--file", required=True, help="The path to the .md document")
+    p_doc.add_argument("--summary", default="", help="The brief purpose of the document")
+    p_doc.add_argument("--task", default="", help="The task name for the telemetry")
 
-    p_script = subparsers.add_parser("register-script", help="Регистрация системного скрипта")
-    p_script.add_argument("--file", required=True, help="Путь к python-скрипту")
-    p_script.add_argument("--subcommand", default="", help="Имя подкоманды в sys_cli.py")
-    p_script.add_argument("--cmd-help", default="", help="Справка подкоманды")
-    p_script.add_argument("--task", default="", help="Название задачи для телеметрии")
+    p_script = subparsers.add_parser("register-script", help="The registration of the system script")
+    p_script.add_argument("--file", required=True, help="The path to the python script")
+    p_script.add_argument("--subcommand", default="", help="The subcommand name in the sys_cli.py")
+    p_script.add_argument("--cmd-help", default="", help="The subcommand help")
+    p_script.add_argument("--task", default="", help="The task name for the telemetry")
 
-    p_sk = subparsers.add_parser("register-skill", help="Регистрация скилла и манифестов")
-    p_sk.add_argument("--name", required=True, help="Имя скилла (kebab-case)")
-    p_sk.add_argument("--desc", required=True, help="Описание скилла")
-    p_sk.add_argument("--domain", default="system_island_6", help="Домен/Остров скилла")
+    p_sk = subparsers.add_parser("register-skill", help="The registration of the skill and the manifests")
+    p_sk.add_argument("--name", required=True, help="The skill name (kebab-case)")
+    p_sk.add_argument("--desc", required=True, help="The skill description")
+    p_sk.add_argument("--domain", default="system_island_6", help="The domain/Island of the skill")
 
-    p_l1 = subparsers.add_parser("audit-l1", help="Быстрый L1 аудит одного артефакта (<50 мс)")
-    p_l1.add_argument("--target", required=True, help="Путь к проверяемому файлу")
+    p_l1 = subparsers.add_parser("audit-l1", help="The fast L1 audit of the single artifact (<50 ms)")
+    p_l1.add_argument("--target", required=True, help="The path to the checked file")
 
-    p_l2 = subparsers.add_parser("audit-l2", help="Полный L2 аудит системы")
+    p_l2 = subparsers.add_parser("audit-l2", help="The full L2 audit of the system")
 
     args = parser.parse_args()
     if not args.command:

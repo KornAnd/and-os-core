@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-validate_system.py — Модульный мастер-диспетчер самодиагностики и аудита AnD os.
-Архитектура Health Grid (Ring 0 - Ring 4):
-  - Ring 0: FSSyntaxProbe (ФС, байт-код, синтаксис, семантика путей)
-  - Ring 1: GraphProbe (Граф знаний, 0% сирот, межостровные магистрали)
-  - Ring 2: ContractProbe (AST контракты CLI, непротиворечивость правил, IPC схемы)
-  - Ring 3: ManifestProbe (Манифесты ядра, безопасность, Air-Gap, DEV_PROTOCOL)
-  - Ring 3.5: SkillProbe (Параллельный SOS аудит 50 скиллов)
-  - Ring 4: RuntimeProbe (Живой рантайм, LaunchAgents порты, дисковый предохранитель)
+validate_system.py — Modular master dispatcher of the self-diagnostics and audit of AnD os.
+Health Grid architecture (Ring 0 - Ring 4):
+  - Ring 0: FSSyntaxProbe (FS, bytecode, syntax, path semantics)
+  - Ring 1: GraphProbe (knowledge graph, 0% orphans, cross-island highways)
+  - Ring 2: ContractProbe (CLI AST contracts, rule consistency, IPC schemas)
+  - Ring 3: ManifestProbe (kernel manifests, security, Air-Gap, DEV_PROTOCOL)
+  - Ring 3.5: SkillProbe (parallel SOS audit of the 50 skills)
+  - Ring 4: RuntimeProbe (live runtime, LaunchAgents ports, disk fuse)
 """
 
 import os
@@ -16,7 +16,9 @@ import json
 import shutil
 import argparse
 import time
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict
 
 # Keep read-only audits from creating __pycache__ files, including in child probes.
 sys.dont_write_bytecode = True
@@ -29,6 +31,26 @@ if VAULT_ROOT not in sys.path:
 LIB_DIR = os.path.join(SCRIPT_DIR, "..", "lib")
 if LIB_DIR not in sys.path:
     sys.path.insert(0, LIB_DIR)
+
+DEFAULT_POLICY = {"blocking": True, "timeout_sec": 120}
+
+
+def load_probe_policy(vault_root: str, probe_names) -> Dict[str, Dict[str, Any]]:
+    """Loads and_os/etc/probe_policy.json (audit R3, F4): the declarative
+    blocking/advisory + per-probe timeout contract of the Health Grid.
+    A missing or corrupt policy degrades to all-blocking 120s defaults."""
+    policy_path = os.path.join(vault_root, "and_os", "etc", "probe_policy.json")
+    try:
+        with open(policy_path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        base = {**DEFAULT_POLICY, **data.get("default", {})}
+        declared = data.get("probes", {})
+        return {name: {**base, **declared.get(name, {})} for name in probe_names}
+    except (OSError, ValueError) as err:
+        sys.stderr.write(f"[validate_system] Notice: probe policy unavailable ({err}); "
+                         f"defaults applied (blocking, {DEFAULT_POLICY['timeout_sec']}s)\n")
+        return {name: dict(DEFAULT_POLICY) for name in probe_names}
+
 
 from and_os.lib.health_grid.fs_syntax_probe import FSSyntaxProbe
 from and_os.lib.health_grid.graph_probe import GraphProbe
@@ -58,18 +80,29 @@ def run_full_grid_audit(
 
     results = {}
     probe_failures = {}
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        future_map = {
-
-            executor.submit(probe_cls.run, vault_root, fix=fix, verbose=verbose): name
-            for name, probe_cls in probes
-        }
+    probe_timeouts = {}
+    policy = load_probe_policy(vault_root, [name for name, _ in probes])
+    executor = ThreadPoolExecutor(max_workers=8)
+    future_map = {
+        executor.submit(probe_cls.run, vault_root, fix=fix, verbose=verbose): name
+        for name, probe_cls in probes
+    }
+    try:
         for future, name in future_map.items():
+            timeout = int(policy.get(name, DEFAULT_POLICY).get("timeout_sec", DEFAULT_POLICY["timeout_sec"]))
             try:
-                results[name] = future.result()
+                results[name] = future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                # A probe thread cannot be killed in-process; the audit
+                # records the failure, prints the report and force-exits.
+                probe_timeouts[name] = timeout
+                probe_failures[name] = f"probe timeout after {timeout}s (hung probe)"
+                print(f"[!] Probe {name} timed out after {timeout}s", file=sys.stderr)
             except Exception as e:
                 probe_failures[name] = f"{type(e).__name__}: {e}"
-                print(f"[!] Ошибка исполнения зонда {name}: {probe_failures[name]}", file=sys.stderr)
+                print(f"[!] Probe execution error {name}: {probe_failures[name]}", file=sys.stderr)
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
 
     expected_probes = {name for name, _ in probes}
     missing_probes = sorted(expected_probes - set(results) - set(probe_failures))
@@ -100,6 +133,8 @@ def run_full_grid_audit(
         "disk_free_gb": free_gb,
         "total_issues": total_issues + status_only_failures + len(probe_failures),
         "probe_failures": probe_failures,
+        "probe_timeouts": probe_timeouts,
+        "probe_policy": policy,
         "probes": {k: v.to_dict() for k, v in results.items()},
         "report_persistence": "not_requested"
     }
@@ -118,14 +153,24 @@ def run_full_grid_audit(
     return payload
 
 
+def _force_exit_on_timeouts(report: dict) -> None:
+    """A hung probe thread cannot be killed in-process (Python threads are
+    not killable). Once the report is fully printed, the audit force-exits
+    via os._exit(1) so a hung thread cannot keep the process alive
+    (R3-CON-1 / F4(e); the report is printed BEFORE this call)."""
+    timeouts = report.get("probe_timeouts") or {}
+    if timeouts:
+        names = ", ".join(f"{name} (> {timeout}s)" for name, timeout in sorted(timeouts.items()))
+        sys.stderr.write(f"[!] Force-exit: hung probe(s): {names}; leaving via os._exit(1).\n")
+        os._exit(1)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="AnD os v8.1 Health Grid System Auditor")
-    parser.add_argument("--check", action="store_true", help="Развернутый аудит системы")
-    parser.add_argument("--fix", action="store_true", help="Автоматическое устранение найденных дефектов")
-    parser.add_argument("--compact", "-c", action="store_true", help="Токеноэффективная экспресс-сводка (1 строка)")
-    parser.add_argument("--json", action="store_true", help="Вывод в формате JSON")
-    parser.add_argument("--save-report", action="store_true", help="Явно сохранить срез в and_os/var/system_health.json")
-    parser.add_argument("--deep", action="store_true", help="Глубокая развернутая проверка")
+    parser = argparse.ArgumentParser(description="AnD os v1.0.0 Health Grid System Auditor")
+    parser.add_argument("--fix", action="store_true", help="Automatic elimination of the found defects")
+    parser.add_argument("--compact", "-c", action="store_true", help="Token-efficient express summary (1 line)")
+    parser.add_argument("--json", action="store_true", help="JSON format output")
+    parser.add_argument("--save-report", action="store_true", help="Explicitly save the snapshot to and_os/var/system_health.json")
     args = parser.parse_args()
 
     verbose = not (args.compact or args.json)
@@ -135,9 +180,9 @@ def main():
             from and_os.lib.core.root_config import get_system_version
             ver_str = f"v{get_system_version()}"
         except Exception:
-            ver_str = "v8.1.0"
-        mode_str = "ИСПРАВЛЕНИЕ (--fix)" if args.fix else "ДИАГНОСТИКА (Health Grid)"
-        print(f"\nЗапуск Health Grid валидации AnD os ({ver_str}): режим {mode_str}\n" + "=" * 65)
+            ver_str = "v1.0.0"
+        mode_str = "REPAIR (--fix)" if args.fix else "DIAGNOSTICS (Health Grid)"
+        print(f"\nLaunching the Health Grid validation of AnD os ({ver_str}): mode {mode_str}\n" + "=" * 65)
 
     report = run_full_grid_audit(
         VAULT_ROOT, fix=args.fix, verbose=verbose, save_report=args.save_report
@@ -146,6 +191,7 @@ def main():
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
+        _force_exit_on_timeouts(report)
         return 0 if all_passed else 1
 
     if args.compact:
@@ -165,17 +211,18 @@ def main():
         )
         failed = len(report.get("probe_failures", {}))
         print(
-            f"{tag} Зонды: PASS {passed}/{expected}; завершено {completed}/{expected}; "
-            f"ошибок запуска {failed}; проблем {report['total_issues']}; "
-            f"время {report['elapsed_seconds']}с; свободно {report['disk_free_gb']} ГБ; "
-            f"срез: {report['report_persistence']}"
+            f"{tag} Probes: PASS {passed}/{expected}; completed {completed}/{expected}; "
+            f"launch errors {failed}; issues {report['total_issues']}; "
+            f"time {report['elapsed_seconds']}s; free {report['disk_free_gb']} GB; "
+            f"snapshot: {report['report_persistence']}"
         )
+        _force_exit_on_timeouts(report)
         return 0 if all_passed else 1
 
-    # Подробный человекочитаемый вывод
+    # Detailed human-readable output
     for probe_name, pdata in report["probes"].items():
         st_icon = "🟢" if pdata["passed"] else "🔴"
-        print(f"{st_icon} {pdata['name']}: {'OK' if pdata['passed'] else 'ДЕФЕКТЫ'}")
+        print(f"{st_icon} {pdata['name']}: {'OK' if pdata['passed'] else 'DEFECTS'}")
         if pdata["errors"]:
             for err in pdata["errors"]:
                 print(f"    - [ERROR] {err}")
@@ -184,22 +231,25 @@ def main():
                 print(f"    - [WARN] {w}")
 
     for probe_name, error in report.get("probe_failures", {}).items():
-        print(f"🔴 Зонд {probe_name} не завершился: {error}")
+        print(f"🔴 Probe {probe_name} did not finish: {error}")
     if report["report_persistence"] == "failed":
-        print(f"🔴 Не удалось сохранить срез аудита: {report['report_persistence_error']}")
+        print(f"🔴 Failed to save the audit snapshot: {report['report_persistence_error']}")
 
     print("\n" + "=" * 65)
     if report["report_persistence"] == "failed":
-        print("ИТОГ: Проверка здоровья завершена, но сохранение отчета завершилось ошибкой.")
-        return 1
-    if report["status"] == "PASS":
-        print(f"ИТОГ: Все обязательные зонды пройдены за {report['elapsed_seconds']}с.")
-        return 0
-    if report["status"] == "FAIL":
-        print(f"ИТОГ: Аудит не завершен; зондов с ошибкой: {len(report.get('probe_failures', {}))}.")
-        return 1
-    print(f"ИТОГ: Обнаружено потенциальных дефектов: {report['total_issues']}.")
-    return 1
+        print("RESULT: the health check finished, but the report save ended with an error.")
+        exit_code = 1
+    elif report["status"] == "PASS":
+        print(f"RESULT: all mandatory probes passed in {report['elapsed_seconds']}s.")
+        exit_code = 0
+    elif report["status"] == "FAIL":
+        print(f"RESULT: the audit did not finish; probes with errors: {len(report.get('probe_failures', {}))}.")
+        exit_code = 1
+    else:
+        print(f"RESULT: potential defects detected: {report['total_issues']}.")
+        exit_code = 1
+    _force_exit_on_timeouts(report)
+    return exit_code
 
 
 if __name__ == "__main__":

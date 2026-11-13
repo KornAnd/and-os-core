@@ -193,15 +193,15 @@ def main():
     parser = argparse.ArgumentParser(description="AnD os Eval-Driven Development (EDD) Framework")
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
-    p_def = subparsers.add_parser("define", help="Определить новый набор эвалов")
-    p_def.add_argument("feature", help="Название фичи или подсистемы")
-    p_def.add_argument("--desc", default="", help="Описание требований")
-    p_def.add_argument("--domain", default="core", help="Домен системы")
+    p_def = subparsers.add_parser("define", help="Define a new eval suite")
+    p_def.add_argument("feature", help="Feature or subsystem name")
+    p_def.add_argument("--desc", default="", help="Requirements description")
+    p_def.add_argument("--domain", default="core", help="System domain")
 
-    p_chk = subparsers.add_parser("check", help="Запустить проверку эвалов и рассчитать метрики")
-    p_chk.add_argument("feature", help="Название фичи")
+    p_chk = subparsers.add_parser("check", help="Run the eval check and compute metrics")
+    p_chk.add_argument("feature", help="Feature name")
 
-    p_lst = subparsers.add_parser("list", help="Список доступных наборов эвалов")
+    p_lst = subparsers.add_parser("list", help="List available eval suites")
 
     args = parser.parse_args()
     vault_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -229,9 +229,9 @@ def main():
     elif args.subcommand == "list":
         suites = engine.list_evals()
         if not suites:
-            print("ℹ️ Нет определённых наборов эвалов.")
+            print("ℹ️ No eval suites defined.")
         else:
-            print(f"📋 НАБОРЫ ЭВАЛОВ СИСТЕМЫ ({len(suites)}):")
+            print(f"📋 SYSTEM EVAL SUITES ({len(suites)}):")
             for s in suites:
                 print(f"  • {s['feature']:<25} | Domain: {s.get('domain', 'core'):<10} | {s.get('description', '')}")
 

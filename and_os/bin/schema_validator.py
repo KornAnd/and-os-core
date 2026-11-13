@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-schema_validator.py — Движок валидации IPC-схем ответов системных модулей (Pydantic / Schema Engine).
-Принцип: Data Contract Validation.
+schema_validator.py — IPC response schema validation engine for system modules (Pydantic / Schema Engine).
+Principle: Data Contract Validation.
 
-Проверяет структуру JSON-ответов от state_manager, task_db_engine, pdf_twin_converter.
+Validates the JSON response structure of state_manager, task_db_engine, pdf_twin_converter.
 """
 
 import sys
@@ -32,8 +32,8 @@ def validate_domain_states(json_data):
 
 def main():
     parser = argparse.ArgumentParser(description="IPC Schema Validator")
-    parser.add_argument("--json-file", type=str, help="Путь к JSON файлу")
-    parser.add_argument("--type", type=str, choices=["states"], default="states", help="Тип схемы")
+    parser.add_argument("--json-file", type=str, help="Path to the JSON file")
+    parser.add_argument("--type", type=str, choices=["states"], default="states", help="Schema type")
 
     args = parser.parse_args()
 

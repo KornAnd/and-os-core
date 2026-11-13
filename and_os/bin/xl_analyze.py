@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Анализатор Excel/Google Sheets: чтение формул, связей, структуры.
+"""Excel/Google Sheets analyzer: reading formulas, links, structure.
 
-Запуск: python3 xl_analyze.py <путь к файлу> [--sheet имя] [--formulas] [--structure]
+Run: python3 xl_analyze.py <path to file> [--sheet name] [--formulas] [--structure]
 """
 
 import sys, os, json

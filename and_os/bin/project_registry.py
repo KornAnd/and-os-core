@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-project_registry.py — Единый Реестр Внешних Программных Систем и Веб-Сервисов ANDREY OS (v1.0.0).
-Каталогизирует все автономные внешние сервисы, веб-приложения (React, Vite, Python, Streamlit),
-их порты запуска, команды, стеки и схемы данных в SQLite (task_vault.db).
+project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.0.0).
+Catalogs all autonomous external services and web applications (React, Vite, Python, Streamlit),
+their launch ports, commands, stacks and data schemas in SQLite (task_vault.db).
 """
 
 import os
@@ -30,7 +30,7 @@ DEFAULT_PROJECTS = [
         "repo_path": "and_os/opt/apps/ftrack_gantt_mars",
         "data_source": "~/.pulsar_cache/ftrack_gantt/ftrack_gantt_mars.json",
         "run_command": "sys_cli.py daemon restart --target mars_gantt",
-        "description": "Интерактивный дашборд готовности эпизодов, шотов и ассетов проекта Марс.",
+        "description": "Interactive dashboard of episode, shot and asset readiness for the Mars project.",
         "status": "PRODUCTION"
     },
     {
@@ -42,7 +42,7 @@ DEFAULT_PROJECTS = [
         "repo_path": "and_os/opt/apps/ftrack_gantt_kot",
         "data_source": "~/.pulsar_cache/ftrack_gantt/ftrack_gantt_kot.json",
         "run_command": "sys_cli.py daemon restart --target kot_gantt",
-        "description": "Интерактивный дашборд производства сериала Кот ученый.",
+        "description": "Interactive production dashboard for the Kot Ucheny series.",
         "status": "PRODUCTION"
     },
     {
@@ -51,10 +51,10 @@ DEFAULT_PROJECTS = [
         "category": "System Terminal",
         "stack": "Python Web / AnD os Kernel Bus",
         "local_port": 8099,
-        "repo_path": "~/Yandex.Disk.localized/WORK/pulsar/AND_Terminal",
+        "repo_path": "./pulsar/AND_Terminal",
         "data_source": "http://localhost:8099",
-        "run_command": "python3 ~/Yandex.Disk.localized/WORK/pulsar/AND_Terminal/server.py",
-        "description": "Графический веб-терминал и операционный пульт управления AnD os.",
+        "run_command": "python3 ./pulsar/AND_Terminal/server.py",
+        "description": "Graphical web terminal and operations console for AnD os.",
         "status": "STANDBY"
     },
     {
@@ -66,7 +66,7 @@ DEFAULT_PROJECTS = [
         "repo_path": "System/Omniroute",
         "data_source": "http://localhost:20128",
         "run_command": "omniroute start",
-        "description": "Локальный AI-шлюз и прокси-маршрутизатор запросов к LLM.",
+        "description": "Local AI gateway and proxy router for LLM requests.",
         "status": "STANDBY"
     }
 ]
@@ -133,7 +133,7 @@ def register_project(project_dict):
     ))
     conn.commit()
     conn.close()
-    print(f"✅ Внешний проект '{project_dict.get('name')}' зарегистрирован в SQLite реестре!")
+    print(f"✅ External project '{project_dict.get('name')}' registered in the SQLite registry!")
 
 def get_registered_projects():
     """Returns all registered external projects."""
@@ -150,7 +150,7 @@ def get_registered_projects():
 if __name__ == "__main__":
     init_external_projects_db()
     projects = get_registered_projects()
-    print(f"🌐 [Project Registry] Проиндексировано внешних веб-приложений и сервисов: {len(projects)}")
+    print(f"🌐 [Project Registry] External web apps and services indexed: {len(projects)}")
     for p in projects:
         print(f"  • [{p['id']}] {p['name']} ({p['category']})")
-        print(f"    Стек: {p['stack']} | Порт: :{p['local_port']} | Команда: `{p['run_command']}`\n")
+        print(f"    Stack: {p['stack']} | Port: :{p['local_port']} | Command: `{p['run_command']}`\n")

@@ -3,6 +3,8 @@ name: system-architect
 description: "Use when bootstrapping new software projects, web services, games, 3D pipelines, or core modules. Enforces Spec-Before-Code, C4/ADR design docs, and runnable skeletons."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: STRATEGIC
@@ -14,20 +16,20 @@ probe_cmd: "python3 and_os/bin/architect_engine.py list > /dev/null"
 
 # 🏛️ System Architect Skill (AnD os System Architecture Engine)
 
-> 💡 **TL;DR:** Master architectural bootstrap engine for AnD os v9.2. Strictly enforces **Spec-Before-Code Protocol (Phase 0)** before any application code is authored. Selects the appropriate Domain Beacon across the 9 Logical Islands, generates canonical `DESIGN_DOC.md` (C4 L1-L2, ADRs, Data Contracts, DEV_PROTOCOL invariants), scaffolds battle-tested runnable skeletons from `and_os/etc/blueprints/`, and conducts automated smoke verification.
-> 🔗 **Cross-Links:** [[SYSTEM|SYSTEM.md]] | [[and_os/etc/DEV_PROTOCOL|DEV_PROTOCOL.md]] | [[and_os/lib/skills/task-graph/SKILL|task-graph]] | [[and_os/lib/skills/dev-flow/SKILL|dev-flow]]
+> 💡 **TL;DR:** Master architectural bootstrap engine for AnD os. Strictly enforces **Spec-Before-Code Protocol (Phase 0)** before any application code is authored. Selects the appropriate Domain Beacon across the 9 Logical Islands, generates canonical `DESIGN_DOC.md` (C4 L1-L2, ADRs, Data Contracts, DEV_PROTOCOL invariants), scaffolds battle-tested runnable skeletons from `and_os/etc/blueprints/`, and conducts automated smoke verification.
+> 🔗 **Cross-Links:** [[SYSTEM|SYSTEM.md]] | [[and_os/lib/skills/system-architect/references/ARCHITECTURE_GENESIS_MATRIX|ARCHITECTURE_GENESIS_MATRIX.md]] | [[and_os/etc/DEV_PROTOCOL|DEV_PROTOCOL.md]] | [[and_os/lib/skills/task-graph/SKILL|task-graph]] | [[and_os/lib/skills/dev-flow/SKILL|dev-flow]]
 
 ---
 
 ## 🎯 Purpose & Trigger
 
 Activated whenever the user requests the start, design, or bootstrap of a new software system or pipeline:
-1. **Pulsar Local Dashboard (:8080–:8099):** Offline-first cached analytics (*e.g., "Сделай локальный сайт для проекта X"*).
-2. **Deployable Public Web / Cloud:** Client/Server architecture, Dockerfile, zero hardcoded secrets (*e.g., "Спроектируй веб-портал Ta-Bu под сервер"*).
-3. **Xcode Native Game / App:** Swift 6, SpriteKit, EscPlanet engine (*e.g., "Начнем разработку игры"*).
-4. **Hybrid 3D + Generative AI Pipeline:** Blender greybox, ComfyUI, Parallax Guard, DaVinci (*e.g., "Спроектируй 3D+AI пайплайн для шота"*).
-5. **Interactive Tool / Canvas:** Single-file web SPA tool (*e.g., "Сделай интерактивный холст"*).
-6. **Core Service / CLI / Daemon:** AnD os microkernel extension (*e.g., "Создай новую системную утилиту в and_os"*).
+1. **Pulsar Local Dashboard (:8080–:8099):** Offline-first cached analytics (*e.g., "Make a local site for project X"*).
+2. **Deployable Public Web / Cloud:** Client/Server architecture, Dockerfile, zero hardcoded secrets (*e.g., "Design a server-hosted web portal for Ta-Bu"*).
+3. **Xcode Native Game / App:** Swift 6, SpriteKit, EscPlanet engine (*e.g., "Let's start game development"*).
+4. **Hybrid 3D + Generative AI Pipeline:** Blender greybox, ComfyUI, Parallax Guard, DaVinci (*e.g., "Design a 3D+AI pipeline for a shot"*).
+5. **Interactive Tool / Canvas:** Single-file web SPA tool (*e.g., "Make an interactive canvas"*).
+6. **Core Service / CLI / Daemon:** AnD os microkernel extension (*e.g., "Create a new system utility in and_os"*).
 
 ---
 
@@ -37,6 +39,7 @@ Activated whenever the user requests the start, design, or bootstrap of a new so
 - **Violating Domain Beacons:** Placing executable code inside the Obsidian Vault (violates Rule #27 Muscle Realm Isolation).
 - **Direct Vault Edits:** Editing user knowledge notes without MCP `mcp-vault-guard` (`vault_patch`) (violates Rule #19 Dual-Speed Governance).
 - **Ad-hoc Custom Protocols:** Bypassing platform SDKs or hardcoding external API calls into offline frontend dashboards (violates Rule #59 and Rule #64).
+- **Leaky Abstractions:** Directly coupling UI/Presentation views with raw SQL or remote network gateways (violates Clean Architecture Dependency Invariant).
 
 ---
 
@@ -60,11 +63,14 @@ flowchart TD
 
 ---
 
-## 📋 Verification Checklist
+## 📋 Verification Checklist (Genesis Quality Gate)
 
 - [ ] Project directory mapped to the designated Domain Beacon.
 - [ ] Port verified and collision-free within `:8080–:8099` (if web).
-- [ ] `DESIGN_DOC.md` authored with explicit ADR, Data Contract, and Rule numbers.
+- [ ] `docs/DESIGN_DOC.md` authored with explicit MADR, Data Contract, and Rule numbers.
+- [ ] LLM-Native Anchor `AGENTS.md` deployed in project root (< 300 tokens, strict command harness).
+- [ ] 12-Factor config deployed (`.env.example` + fail-fast startup validator).
+- [ ] Clean Architecture layer boundaries respected (Pure Domain separated from I/O Adapters).
 - [ ] Runnable skeleton deployed from `and_os/etc/blueprints/`.
 - [ ] Automated smoke test executed and passes with green exit code 0 (< 200ms).
 - [ ] Pre-flight `sys_cli verify` executed cleanly.

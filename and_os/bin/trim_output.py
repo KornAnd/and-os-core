@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-trim_output.py — Обертка для песочного выполнения CLI-команд с авто-усечением логов (Правило №24).
-Сохраняет Head (первые N строк) + Tail (последние M строк), фильтруя дубликаты и вырезая избыточный шум.
+trim_output.py — Sandbox CLI execution wrapper with automatic log truncation (Rule #24).
+Keeps Head (first N lines) + Tail (last M lines), filtering duplicates and cutting excess noise.
 """
 
 import sys
@@ -17,14 +17,14 @@ def trim_text(text: str, head: int = 15, tail: int = 20) -> str:
     tail_lines = lines[-tail:]
     omitted = len(lines) - (head + tail)
     
-    result = head_lines + [f"\n--- ✂️ [СИСТЕМА ANDREY OS: Усечено {omitted} строк логов лога для экономии токенов (Правило №24)] ✂️ ---\n"] + tail_lines
+    result = head_lines + [f"\n--- ✂️ [ANDREY OS SYSTEM: {omitted} log lines truncated for token economy (Rule #24)] ✂️ ---\n"] + tail_lines
     return "\n".join(result)
 
 def main():
-    parser = argparse.ArgumentParser(description="Песочное выполнение команды с усечением длинных логов.")
-    parser.add_argument("--head", type=int, default=15, help="Количество первых строк")
-    parser.add_argument("--tail", type=int, default=20, help="Количество последних строк")
-    parser.add_argument("cmd", nargs=argparse.REMAINDER, help="Команда для выполнения")
+    parser = argparse.ArgumentParser(description="Sandboxed command execution with long-log truncation.")
+    parser.add_argument("--head", type=int, default=15, help="Number of head lines")
+    parser.add_argument("--tail", type=int, default=20, help="Number of tail lines")
+    parser.add_argument("cmd", nargs=argparse.REMAINDER, help="Command to execute")
 
     args = parser.parse_args()
 
@@ -35,7 +35,7 @@ def main():
         sys.exit(0)
 
     if not args.cmd:
-        print("Ошибка: Укажите команду для запуска или передайте поток через pipe", file=sys.stderr)
+        print("Error: specify a command to run or pipe a stream in", file=sys.stderr)
         sys.exit(1)
 
     cmd_str = " ".join(args.cmd)
@@ -51,7 +51,7 @@ def main():
             
         sys.exit(res.returncode)
     except Exception as e:
-        print(f"Ошибка песочного запуска: {e}", file=sys.stderr)
+        print(f"Sandbox run error: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

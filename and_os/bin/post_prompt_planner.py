@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-post_prompt_planner.py — Автоматический генератор карт процессов (Post-Prompt Execution Map / DAG Planner).
-Принцип: Think in Code (Правило №16), Task Execution Graph (Правило №20).
+post_prompt_planner.py — Automatic generator of process maps (Post-Prompt Execution Map / DAG Planner).
+Principle: Think in Code (Rule #16), Task Execution Graph (Rule #20).
 
-Назначение:
-  Принимает текст сложной задачи (--task "...") и моментально генерирует декомпозированную
-  карту процессов (DAG) с назначением primary skill, CLI-модулей, входных/выходных артефактов и критериев DoD.
+Purpose:
+  Takes the text of a complex task (--task "...") and instantly generates a decomposed
+  process map (DAG) with the primary skill assignment, CLI modules, input/output artifacts and DoD criteria.
 
-Использование:
-  python3 post_prompt_planner.py --task "Аналитика Ftrack по Марсу и подготовка контента CG_core"
+Usage:
+  python3 post_prompt_planner.py --task "Ftrack analytics for Mars and CG_core content preparation"
   python3 post_prompt_planner.py --task "..." --json
 """
 
@@ -39,7 +39,7 @@ def generate_execution_plan(task_text):
         "script": "sys_cli.py state --get-all",
         "inputs": ["Clippings/quick_knowledge_db.json", "domain_states.json"],
         "outputs": ["Quick Context Summary"],
-        "dod": "Контекст извлечен без чтения лишних файлов"
+        "dod": "Context extracted without reading extra files"
     })
     step_num += 1
 
@@ -54,7 +54,7 @@ def generate_execution_plan(task_text):
                     "script": item["script"],
                     "inputs": [f"{item['domain']} raw data"],
                     "outputs": [f"Processed {item['domain']} artifact"],
-                    "dod": f"Этап {item['domain']} выполнен с подтверждением DoD"
+                    "dod": f"Stage {item['domain']} completed with a DoD confirmation"
                 })
                 step_num += 1
                 break
@@ -67,7 +67,7 @@ def generate_execution_plan(task_text):
         "script": "sys_cli.py audit",
         "inputs": ["Generated Artifacts"],
         "outputs": ["and_os/lib/skills/telemetry.md"],
-        "dod": "13 векторов аудита пройдены, телеметрия записана"
+        "dod": "13 audit vectors passed, telemetry recorded"
     })
 
     plan = {
@@ -81,8 +81,8 @@ def generate_execution_plan(task_text):
 
 def main():
     parser = argparse.ArgumentParser(description="Post-Prompt Execution Map Generator")
-    parser.add_argument("--task", type=str, required=True, help="Текст входящей задачи")
-    parser.add_argument("--json", action="store_true", help="Вывод в формате JSON")
+    parser.add_argument("--task", type=str, required=True, help="Text of the incoming task")
+    parser.add_argument("--json", action="store_true", help="JSON format output")
 
     args = parser.parse_args()
     plan = generate_execution_plan(args.task)
@@ -90,15 +90,15 @@ def main():
     if args.json:
         print(json.dumps(plan, ensure_ascii=False, indent=2))
     else:
-        print(f"\n🗺️  КАРТА ЦЕЛЕВОГО ПРОЦЕССА (Post-Prompt Execution DAG)")
-        print(f"📋 Задача: {plan['task_name']}")
-        print(f"⏱️  Создано: {plan['created_at']} | Всего этапов: {plan['total_steps']}\n" + "-" * 65)
+        print(f"\n🗺️  TARGET PROCESS MAP (Post-Prompt Execution DAG)")
+        print(f"📋 Task: {plan['task_name']}")
+        print(f"⏱️  Created: {plan['created_at']} | Total stages: {plan['total_steps']}\n" + "-" * 65)
 
         for s in plan["execution_dag"]:
-            print(f"Шаг {s['step']}: {s['name']}")
+            print(f"Step {s['step']}: {s['name']}")
             print(f"  ├─ Primary Skill: {s['primary_skill']}")
             print(f"  ├─ CLI Script   : {s['script']}")
-            print(f"  ├─ Вход / Выход : {', '.join(s['inputs'])}  ➔  {', '.join(s['outputs'])}")
+            print(f"  ├─ In / Out     : {', '.join(s['inputs'])}  ➔  {', '.join(s['outputs'])}")
             print(f"  └─ DoD Criterion: {s['dod']}\n")
 
 if __name__ == "__main__":

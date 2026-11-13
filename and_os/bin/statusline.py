@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-statusline.py — Динамическая статус-строка ядра (Runtime Statusline Beacon).
-AnD os v8.4 — Остров 8 (Kernel & AND_Terminal :8099).
+statusline.py — Dynamic kernel statusline (Runtime Statusline Beacon).
+AnD os v1.0.0 — Island 8 (Kernel & AND_Terminal :8099).
 
-Выводит компактный срез реального времени в 1 строку (0-токенный терминальный маяк):
-- Текущая папка / контекст;
-- Статус Git (ветка + dirty flag);
-- Счетчик сессии / Бюджет контекста;
-- Состояние острова 8 (AND_Terminal) и фоновых портов (:8087, :8092);
-- Статус активных шотов в пайплайне.
+Prints a compact real-time snapshot in a single line (0-token terminal beacon):
+- Current folder / context;
+- Git status (branch + dirty flag);
+- Session counter / context budget;
+- Island 8 (AND_Terminal) and background ports (:8087, :8092) state;
+- Active pipeline shots status.
 """
 
 import os
@@ -29,13 +29,15 @@ def get_git_info() -> str:
         return "no-git"
 
 def get_context_stats() -> str:
-    cfile = os.path.join(VAULT_ROOT, "and_os", "var", "cache", "sessions", "tool_count_default_session.json")
+    # Rule #71 (Vault Purity): session counters are cache data, system home.
+    cfile = os.path.join(os.path.expanduser("~/.and_os"), "var", "cache", "sessions", "tool_count_default_session.json")
     if os.path.exists(cfile):
         try:
             with open(cfile, "r", encoding="utf-8") as f:
                 d = json.load(f)
                 return f"tools:{d.get('count', 0)}"
-        except Exception:
+        except (OSError, ValueError):
+            # Cache file is optional; its absence means "no tools counted yet".
             pass
     return "tools:0"
 
@@ -44,7 +46,7 @@ def format_statusline(color: bool = True) -> str:
     git_info = get_git_info()
     ctx_info = get_context_stats()
     
-    # Цветовая палитра ANSI
+    # ANSI color palette
     C_BLUE = "\033[38;2;30;102;245m" if color else ""
     C_GREEN = "\033[38;2;64;160;43m" if color else ""
     C_MAGENTA = "\033[38;2;136;57;239m" if color else ""

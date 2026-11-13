@@ -98,10 +98,19 @@ def audit_single_skill(skill_name: str, skill_path: str, run_probes: bool = Fals
             probe_cmd = fm.get("probe_cmd")
             if run_probes and probe_cmd:
                 try:
+                    # Rule #68 (golden interpreter): probe commands that use a bare
+                    # `python3` must resolve to the canonical venv, never to a PATH
+                    # shadow (audit R2: bare-`python3` probes compiled non-golden
+                    # cpython pyc into lib/core/__pycache__).
+                    probe_env = os.environ.copy()
+                    venv_bin = os.path.join(VAULT_ROOT, "and_os", ".venv", "bin")
+                    if os.path.isdir(venv_bin):
+                        probe_env["PATH"] = venv_bin + os.pathsep + probe_env.get("PATH", "")
                     p_res = subprocess.run(
                         probe_cmd,
                         shell=True,  # nosec: probe runner
                         cwd=VAULT_ROOT,
+                        env=probe_env,
                         capture_output=True,
                         text=True,
                         timeout=3.0
@@ -198,8 +207,8 @@ def main():
         return
 
     print("=================================================================")
-    print(f"🚀 SOS Parallel Multi-Core Skill Auditor (AnD os v8.1)")
-    print(f"⚡ Проверено скиллов: {audit_data['total']} за {audit_data['elapsed_ms']} мс")
+    print(f"🚀 SOS Parallel Multi-Core Skill Auditor (AnD os v1.0.0)")
+    print(f"⚡ Skills checked: {audit_data['total']} in {audit_data['elapsed_ms']} ms")
     print("=================================================================")
     
     has_issues = False
@@ -211,9 +220,9 @@ def main():
             print(f"  🟡 [WARN] {s['name']} (v{s['version']} | {s['lifecycle']}): {', '.join(s['warnings'])}")
 
     if not has_issues:
-        print(f"✅ ВСЕ {audit_data['healthy']} активных скиллов валидны, герметичны и полностью здоровы!")
+        print(f"✅ ALL {audit_data['healthy']} active skills are valid, hermetic and fully healthy!")
     else:
-        print(f"⚠️ Обнаружено неисправных скиллов: {audit_data['unhealthy']}")
+        print(f"⚠️ Unhealthy skills detected: {audit_data['unhealthy']}")
         sys.exit(1)
 
 

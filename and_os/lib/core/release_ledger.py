@@ -137,7 +137,7 @@ def get_compact_motd_summary() -> str:
     """Returns a token-efficient single-line summary (<30 tokens) for MOTD and agent headers."""
     latest = get_latest_release()
     if not latest:
-        return "AnD os v9.4.0 (Production Release)"
+        return "AnD os v1.0.0 (Production Release)"
     return f"v{latest['version']} ({latest['release_date']}): {latest['summary']}"
 
 
@@ -213,6 +213,18 @@ def sync_projections() -> None:
             f.write("\n".join(md_lines))
     except OSError as e:
         sys.stderr.write(f"[release_ledger] Warning writing CHANGELOG: {e}\n")
+
+    # 3. Synchronize rules_fast_index.json
+    try:
+        compiler_path = os.path.join(VAULT_ROOT, "and_os/bin/rules_compiler.py")
+        if os.path.exists(compiler_path):
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("rules_compiler", compiler_path)
+            rc_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(rc_mod)
+            rc_mod.compile_rules_index()
+    except Exception as e:
+        sys.stderr.write(f"[release_ledger] Warning compiling rules index: {e}\n")
 
 
 def seed_from_existing_json() -> None:

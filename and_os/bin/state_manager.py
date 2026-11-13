@@ -103,7 +103,7 @@ def auto_sync_states():
     today_str = today.strftime("%Y-%m-%d")
 
     # 1. Health: Strict Weekly Interval (7 Days Gate)
-    # Здоровье обновляется контролируемо не чаще 1 раза в 7 дней
+    # Health updates are controlled: at most once every 7 days
     health_last_updated = states.get("health", {}).get("last_updated")
     allow_health_sync = False
     if not health_last_updated:
@@ -124,7 +124,7 @@ def auto_sync_states():
             states["health"]["last_updated"] = today_str
 
     # 2. Finance: STRICTLY MANUAL — AUTO-SYNC FORBIDDEN
-    # Финансы ведутся Андреем только вручную. Любое авто-обновление заблокировано.
+    # Finances are maintained by Andrey manually only. Any auto-update is blocked.
     if "finance" in states:
         states["finance"]["auto_sync"] = "DISABLED (Manual updates only by Andrey)"
 
@@ -147,13 +147,13 @@ def auto_sync_states():
 
 def main():
     parser = argparse.ArgumentParser(description="State Manager Module")
-    parser.add_argument("--get", type=str, help="Получить состояние конкретного домена")
-    parser.add_argument("--get-all", action="store_true", help="Получить состояние всех доменов")
-    parser.add_argument("--sync-auto", action="store_true", help="Авто-синхронизация состояний из frontmatter .md заметок")
-    parser.add_argument("--set", type=str, help="Установить домен для изменения")
-    parser.add_argument("--key", type=str, help="Ключ состояния")
-    parser.add_argument("--val", type=str, help="Значение состояния")
-    parser.add_argument("--json", action="store_true", help="Форматировать вывод в JSON")
+    parser.add_argument("--get", type=str, help="Get the state of a specific domain")
+    parser.add_argument("--get-all", action="store_true", help="Get the state of all domains")
+    parser.add_argument("--sync-auto", action="store_true", help="Auto-sync states from .md note frontmatter")
+    parser.add_argument("--set", type=str, help="Set the domain to modify")
+    parser.add_argument("--key", type=str, help="State key")
+    parser.add_argument("--val", type=str, help="State value")
+    parser.add_argument("--json", action="store_true", help="Format the output as JSON")
 
     args = parser.parse_args()
 

@@ -1,6 +1,6 @@
 """
 dispatcher.py — Core In-Process Operation Registry & Secure Dispatcher
-AnD os v8.1 — Core Architecture Layer (Unix-Grade Microkernel Dispatch)
+AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Dispatch)
 
 Defines:
   - OperationHandler: Callable interface (OperationRequest -> OperationResult)

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-build_native.py — Системный компилятор Python-проектов в нативные бинарники (Правило №32).
+build_native.py — System compiler of Python projects into native binaries (Rule #32).
 
-Поддерживаемые компиляторы:
-  - PyInstaller (основной)
-  - Nuitka (высокая производительность C-translation)
-  - py2app (нативные macOS .app бандлы)
+Supported compilers:
+  - PyInstaller (primary)
+  - Nuitka (high-performance C-translation)
+  - py2app (native macOS .app bundles)
 
-Использование:
+Usage:
   python3 and_os/bins/build_native.py --app ftrack_gantt_mars --tool pyinstaller
   python3 and_os/bins/build_native.py --app vpn_service_app --tool nuitka --onefile
 """
@@ -18,27 +18,27 @@ import subprocess
 import argparse
 
 def check_preflight(source_path: str) -> tuple[bool, str]:
-    """Проверяет синтаксис файла и доступное место на диске перед компиляцией."""
+    """Checks the file syntax and the free disk space before compilation."""
     import py_compile, shutil
-    # 1. Синтаксис
+    # 1. Syntax
     try:
         py_compile.compile(source_path, doraise=True)
     except py_compile.PyCompileError as e:
-        return False, f"Синтаксическая ошибка: {e}"
+        return False, f"Syntax error: {e}"
         
-    # 2. Место на диске (порог 3.0 ГБ согласно Правилу №43)
+    # 2. Free disk space (the 3.0 GB threshold per Rule #43)
     free_gb = shutil.disk_usage(os.path.dirname(source_path)).free / (1024**3)
     if free_gb < 3.0:
-        return False, f"Недостаточно места на диске: {free_gb:.1f} GB (требуется >= 3.0 GB)"
+        return False, f"Insufficient disk space: {free_gb:.1f} GB (>= 3.0 GB required)"
         
-    return True, f"OK (Синтаксис корректен, свободно {free_gb:.1f} GB)"
+    return True, f"OK (syntax is correct, {free_gb:.1f} GB free)"
 
 def resolve_app_path(app_id: str) -> str:
-    """Определяет путь к приложению: and_os/opt/apps, Pulsar или прямой абсолютный путь."""
+    """Resolves the application path: and_os/opt/apps, Pulsar or a direct absolute path."""
     from and_os.lib.core.root_config import resolve_vault_root
     vault_root = resolve_vault_root()
     from and_os.lib.core.root_config import resolve_pulsar_root
-    pulsar_root = resolve_pulsar_root() or os.path.expanduser("~/Yandex.Disk.localized/WORK/pulsar")
+    pulsar_root = resolve_pulsar_root() or os.path.expanduser("./pulsar")
     
     candidates = [
         os.path.join(vault_root, "and_os/opt/apps", app_id),
@@ -53,7 +53,7 @@ def resolve_app_path(app_id: str) -> str:
 def build_app(app_id, tool="pyinstaller", onefile=True, dry_run=False):
     app_dir = resolve_app_path(app_id)
     if not app_dir:
-        print(f"❌ Папка приложения '{app_id}' не найдена в and_os/opt/apps/ или Pulsar!")
+        print(f"❌ Application folder '{app_id}' not found in and_os/opt/apps/ or Pulsar!")
         sys.exit(1)
         
     main_py = os.path.join(app_dir, "server.py") if os.path.exists(os.path.join(app_dir, "server.py")) else ""
@@ -63,27 +63,27 @@ def build_app(app_id, tool="pyinstaller", onefile=True, dry_run=False):
             main_py = os.path.join(app_dir, "app.py")
             
     if not os.path.exists(main_py):
-        print(f"❌ Точка входа (server.py / main.py / app.py) не найдена в {app_dir}!")
+        print(f"❌ Entry point (server.py / main.py / app.py) not found in {app_dir}!")
         sys.exit(1)
         
     # Pre-flight Gate
     ok, msg = check_preflight(main_py)
     if not ok:
-        print(f"❌ [PRE-FLIGHT FAILED] Сборка отклонена: {msg}")
+        print(f"❌ [PRE-FLIGHT FAILED] Build rejected: {msg}")
         sys.exit(1)
         
     dist_dir = os.path.join(app_dir, "dist")
     build_dir = os.path.join(app_dir, "build")
     
     print(f"==========================================================")
-    print(f"🔨 [NATIVE BUILD] Компиляция приложения: {app_id}")
-    print(f"📦 Исходная точка входа: {main_py}")
-    print(f"🛠️  Инструмент компиляции: {tool}")
-    print(f"🛡️  Pre-flight проверка: {msg}")
+    print(f"🔨 [NATIVE BUILD] Compiling application: {app_id}")
+    print(f"📦 Source entry point: {main_py}")
+    print(f"🛠️  Compilation tool: {tool}")
+    print(f"🛡️  Pre-flight check: {msg}")
     print(f"==========================================================")
     
     if dry_run:
-        print("🔍 [DRY-RUN] Пре-компиляционная проверка пройдена успешно. Сборка готова к запуску.")
+        print("🔍 [DRY-RUN] Pre-compilation check passed successfully. Build is ready to start.")
         return
     
     if tool == "pyinstaller":
@@ -99,9 +99,9 @@ def build_app(app_id, tool="pyinstaller", onefile=True, dry_run=False):
         
         try:
             subprocess.run(cmd, check=True)
-            print(f"\n✅ Успешная сборка бинарника! Выходной каталог: {dist_dir}")
+            print(f"\n✅ Binary build succeeded! Output catalog: {dist_dir}")
         except Exception as e:
-            print(f"\n❌ Ошибка компиляции PyInstaller: {e}")
+            print(f"\n❌ PyInstaller compilation error: {e}")
             
     elif tool == "nuitka":
         cmd = [
@@ -112,9 +112,9 @@ def build_app(app_id, tool="pyinstaller", onefile=True, dry_run=False):
         ]
         try:
             subprocess.run(cmd, check=True)
-            print(f"\n✅ Успешная сборка Nuitka! Выходной каталог: {dist_dir}")
+            print(f"\n✅ Nuitka build succeeded! Output catalog: {dist_dir}")
         except Exception as e:
-            print(f"\n❌ Ошибка компиляции Nuitka: {e}")
+            print(f"\n❌ Nuitka compilation error: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Native app builder script")

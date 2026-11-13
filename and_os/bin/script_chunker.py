@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-script_chunker.py — инструмент умного извлечения фрагментов из крупных текстов/сценариев/книг.
-Принцип: Think in Code (Правило №16) & Context Budget (Правило №9).
+script_chunker.py — the tool of the smart extraction of the fragments from the large texts/scripts/books.
+The principle: Think in Code (Rule #16) & the Context Budget (Rule #9).
 
-Экономия: до 90% токенов за счёт выдачи ровно нужного Эпизода, Акта, Главы или Сцены.
+The economy: up to 90% of the tokens by providing the exactly needed Episode, Act, Chapter or Scene.
 
-Использование:
+Usage:
   python3 script_chunker.py --file "Book/Страшный Сон/Сон (book).md" --act 1
   python3 script_chunker.py --file "Product/Projects/Kot/Сценарий (Kot).md" --episode 5
   python3 script_chunker.py --file "Book/Лидерство в CG Искусство вдохновлять!/Лидерство в CG.md" --chapter 3
@@ -27,19 +27,19 @@ def get_abs_path(path_str):
 def extract_chunk(filepath, act=None, episode=None, chapter=None, scene=None, search=None, max_lines=150):
     abs_p = get_abs_path(filepath)
     if not os.path.exists(abs_p):
-        print(f"❌ Файл не найден: {abs_p}")
+        print(f"❌ The file was not found: {abs_p}")
         return
 
     with open(abs_p, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
 
     lines = content.splitlines()
-    print(f"📄 Извлечение из: {os.path.basename(abs_p)} (Всего строк: {len(lines)})")
+    print(f"📄 The extraction from: {os.path.basename(abs_p)} (The total lines: {len(lines)})")
     print("=" * 60)
 
     matched_lines = []
     
-    # Фильтр по Акту
+    # The filter by the Act
     if act is not None:
         pattern = re.compile(rf"(#+\s*.*(акт|act)\s*{act}\b|#+\s*{act}\s*акт)", re.IGNORECASE)
         recording = False
@@ -51,7 +51,7 @@ def extract_chunk(filepath, act=None, episode=None, chapter=None, scene=None, se
             if recording:
                 matched_lines.append(l)
 
-    # Фильтр по Эпизоду / Серии
+    # The filter by the Episode / the Series
     elif episode is not None:
         pattern = re.compile(rf"(#+\s*.*(эпизод|серия|ep|episode)\s*{episode}\b)", re.IGNORECASE)
         recording = False
@@ -63,7 +63,7 @@ def extract_chunk(filepath, act=None, episode=None, chapter=None, scene=None, se
             if recording:
                 matched_lines.append(l)
 
-    # Фильтр по Главе
+    # The filter by the Chapter
     elif chapter is not None:
         pattern = re.compile(rf"(#+\s*.*(глава|chapter)\s*{chapter}\b)", re.IGNORECASE)
         recording = False
@@ -75,7 +75,7 @@ def extract_chunk(filepath, act=None, episode=None, chapter=None, scene=None, se
             if recording:
                 matched_lines.append(l)
 
-    # Фильтр по Сцене / Шоту
+    # The filter by the Scene / the Shot
     elif scene is not None:
         pattern = re.compile(rf"(#+\s*.*(сцена|scene|эпизод|шot|shot)\s*{scene}\b)", re.IGNORECASE)
         recording = False
@@ -87,36 +87,36 @@ def extract_chunk(filepath, act=None, episode=None, chapter=None, scene=None, se
             if recording:
                 matched_lines.append(l)
 
-    # Контекстный поиск по ключевому слову
+    # The contextual search by the keyword
     elif search is not None:
         pattern = re.compile(re.escape(search), re.IGNORECASE)
         for idx, l in enumerate(lines):
             if pattern.search(l):
                 start = max(0, idx - 5)
                 end = min(len(lines), idx + 15)
-                matched_lines.append(f"--- [Строка {idx+1}] ---")
+                matched_lines.append(f"--- [The line {idx+1}] ---")
                 matched_lines.extend(lines[start:end])
                 matched_lines.append("...")
 
-    # Фоллбэк: если ничего не передано, отдаем первых N строк
+    # The fallback: if nothing was passed, provide the first N lines
     if not matched_lines:
         if act or episode or chapter or scene:
-            print(f"⚠️ Запрошенный блок (Акт {act} / Эпизод {episode} / Глава {chapter} / Сцена {scene}) не найден по заголовкам. Вывод первых {max_lines} строк:")
+            print(f"⚠️ The requested block (the Act {act} / the Episode {episode} / the Chapter {chapter} / the Scene {scene}) was not found by the headers. The printing of the first {max_lines} lines:")
         matched_lines = lines[:max_lines]
 
     print("\n".join(matched_lines[:max_lines]))
     if len(matched_lines) > max_lines:
-        print(f"\n... [Вывод обрезан: показано {max_lines} из {len(matched_lines)} строк]")
+        print(f"\n... [The output was trimmed: shown the {max_lines} of the {len(matched_lines)} lines]")
 
 def main():
-    parser = argparse.ArgumentParser(description="Умный чанкинг файлов сценариев и книг")
-    parser.add_argument("--file", required=True, help="Путь к файлу сценария или книги")
-    parser.add_argument("--act", type=int, help="Номер Акта")
-    parser.add_argument("--episode", type=int, help="Номер Эпизода/Серии")
-    parser.add_argument("--chapter", type=int, help="Номер Главы")
-    parser.add_argument("--scene", type=str, help="Номер или ID Сцены/Шота")
-    parser.add_argument("--search", type=str, help="Ключевое слово или персонаж для поиска")
-    parser.add_argument("--lines", type=int, default=150, help="Максимальное количество выводимых строк")
+    parser = argparse.ArgumentParser(description="The smart chunking of the scripts and the books files")
+    parser.add_argument("--file", required=True, help="The path to the script or the book file")
+    parser.add_argument("--act", type=int, help="The number of the Act")
+    parser.add_argument("--episode", type=int, help="The number of the Episode/the Series")
+    parser.add_argument("--chapter", type=int, help="The number of the Chapter")
+    parser.add_argument("--scene", type=str, help="The number or the ID of the Scene/the Shot")
+    parser.add_argument("--search", type=str, help="The keyword or the character for the search")
+    parser.add_argument("--lines", type=int, default=150, help="The maximum count of the printed lines")
     
     args = parser.parse_args()
     extract_chunk(args.file, act=args.act, episode=args.episode, chapter=args.chapter, search=args.search, max_lines=args.lines)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-telemetry_logger.py — Модуль быстрых логов телеметрии (IPC Bus).
-Модульная программа для добавления валидированных записей в and_os/lib/skills/telemetry.md
-без загрузки всего файла в контекст LLM.
+telemetry_logger.py — Fast telemetry logging module (IPC Bus).
+Modular program for appending validated records to and_os/lib/skills/telemetry.md
+without loading the whole file into the LLM context.
 
-Использование:
-  python3 telemetry_logger.py --task "Название задачи" --mode WORK --skill "sys.audit" --ctx min --result success
+Usage:
+  python3 telemetry_logger.py --task "Task name" --mode WORK --skill "sys.audit" --ctx min --result success
 """
 
 import os
@@ -26,7 +26,7 @@ TELEMETRY_PATH = os.path.join(VAULT_ROOT, "and_os/lib/skills/telemetry.md")
 
 def log_telemetry(task, mode, skill, ctx, result):
     if not os.path.exists(TELEMETRY_PATH):
-        print(f"Ошибка: {TELEMETRY_PATH} не найден.")
+        print(f"Error: {TELEMETRY_PATH} not found.")
         sys.exit(1)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -54,11 +54,11 @@ def log_telemetry(task, mode, skill, ctx, result):
 
 def main():
     parser = argparse.ArgumentParser(description="Telemetry Logger Module")
-    parser.add_argument("--task", type=str, required=True, help="Название выполненной задачи")
-    parser.add_argument("--mode", type=str, choices=["QUICK", "WORK", "STRATEGIC", "SYSTEM"], default="WORK", help="Режим работы")
-    parser.add_argument("--skill", type=str, required=True, help="Использованный скилл/модуль")
-    parser.add_argument("--ctx", type=str, choices=["min", "work", "full", "compressed"], default="min", help="Уровень контекста")
-    parser.add_argument("--result", type=str, default="success", help="Результат задачи")
+    parser.add_argument("--task", type=str, required=True, help="Name of the completed task")
+    parser.add_argument("--mode", type=str, choices=["QUICK", "WORK", "STRATEGIC", "SYSTEM"], default="WORK", help="Work mode")
+    parser.add_argument("--skill", type=str, required=True, help="Skill/module used")
+    parser.add_argument("--ctx", type=str, choices=["min", "work", "full", "compressed"], default="min", help="Context level")
+    parser.add_argument("--result", type=str, default="success", help="Task result")
     
     args = parser.parse_args()
     log_telemetry(args.task, args.mode, args.skill, args.ctx, args.result)

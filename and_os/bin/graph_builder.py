@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-graph_builder.py — Движок генерации и оркестрации графов задач (Execution DAG).
-Часть стандарта Task Execution Graph (Правило №20).
+graph_builder.py — Engine of the task graphs generation and orchestration (Execution DAG).
+Part of the Task Execution Graph standard (Rule #20).
 
-Генерирует:
-1. Mermaid-диаграммы для вставки в Markdown-заметки (с подграфами, скиллами, скриптами).
-2. Obsidian Canvas (.canvas) с автоматическим расчётом пространственных координат (Swimlanes / Groups).
-3. Валидирует граф на ацикличность (DAG) и целостность зависимостей.
+Generates:
+1. Mermaid diagrams for insertion into the Markdown notes (with the subgraphs, the skills, the scripts).
+2. The Obsidian Canvas (.canvas) with the automatic calculation of the spatial coordinates (Swimlanes / Groups).
+3. Validates the graph for the acyclicity (DAG) and the integrity of the dependencies.
 
-Использование:
+Usage:
   python3 graph_builder.py --test --mermaid
   python3 graph_builder.py --test --canvas "output.canvas"
   python3 graph_builder.py --file input_dag.json --mermaid
@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 # ==============================================================================
-# Цветовая палитра Obsidian Canvas
+# Obsidian Canvas color palette
 # ==============================================================================
 # 1 = Red, 2 = Orange, 3 = Yellow, 4 = Green, 5 = Blue, 6 = Purple
 COLOR_MAP = {
@@ -57,34 +57,34 @@ SKILL_COLOR_MAP = {
 
 
 # ==============================================================================
-# Валидация DAG и Circuit Breaker
+# DAG validation and Circuit Breaker
 # ==============================================================================
 def validate_dag(nodes: List[Dict[str, Any]], check_circuit_breaker: bool = False) -> Tuple[bool, List[str]]:
-    """Проверяет граф на существование узлов, целостность зависимостей, ацикличность и лимит Circuit Breaker."""
+    """Checks the graph for the nodes existence, the dependencies integrity, the acyclicity and the Circuit Breaker limit."""
     errors = []
     node_ids = set()
 
     for node in nodes:
         nid = node.get("id")
         if not nid:
-            errors.append("Обнаружен узел без обязательного поля 'id'")
+            errors.append("A node without the mandatory 'id' field was found")
             continue
         if nid in node_ids:
-            errors.append(f"Дублирующийся идентификатор узла: '{nid}'")
+            errors.append(f"Duplicated node identifier: '{nid}'")
         node_ids.add(nid)
 
-        # Проверка правила Circuit Breaker (максимум 3 итерации для циклов самопроверки)
+        # Check of the Circuit Breaker rule (maximum 3 iterations for the self-check loops)
         mode = str(node.get("mode", "")).lower()
         pattern = str(node.get("pattern", "")).lower()
         if check_circuit_breaker or mode in ("loop", "evaluator-optimizer", "retry") or pattern in ("loop", "evaluator-optimizer"):
             if mode in ("loop", "evaluator-optimizer", "retry") or pattern in ("loop", "evaluator-optimizer"):
                 max_iter = node.get("max_iterations")
                 if max_iter is None:
-                    errors.append(f"Узел '{nid}' использует паттерн 'Loop' (Evaluator-Optimizer), но отсутствует поле 'max_iterations'. Требуется max_iterations <= 3 (Circuit Breaker Rule №20).")
+                    errors.append(f"Node '{nid}' uses the 'Loop' (Evaluator-Optimizer) pattern, but the 'max_iterations' field is missing. max_iterations <= 3 is required (Circuit Breaker Rule #20).")
                 elif not isinstance(max_iter, int) or max_iter > 3:
-                    errors.append(f"Узел '{nid}' задает max_iterations={max_iter}, что превышает лимит Circuit Breaker (максимум 3 итерации перед остановкой и эскалацией человеку).")
+                    errors.append(f"Node '{nid}' sets max_iterations={max_iter}, which exceeds the Circuit Breaker limit (maximum 3 iterations before the stop and the escalation to a human).")
 
-    # Проверка ссылок
+    # References check
     adj = defaultdict(list)
     in_degree = defaultdict(int)
     for nid in node_ids:
@@ -95,7 +95,7 @@ def validate_dag(nodes: List[Dict[str, Any]], check_circuit_breaker: bool = Fals
         deps = node.get("depends_on", [])
         for dep in deps:
             if dep not in node_ids:
-                errors.append(f"Узел '{nid}' ссылается на несуществующую зависимость '{dep}'")
+                errors.append(f"Node '{nid}' references a non-existent dependency '{dep}'")
             else:
                 adj[dep].append(nid)
                 in_degree[nid] += 1
@@ -103,7 +103,7 @@ def validate_dag(nodes: List[Dict[str, Any]], check_circuit_breaker: bool = Fals
     if errors:
         return False, errors
 
-    # Проверка на циклы через алгоритм Кана (Топологическая сортировка)
+    # Cycle check via the Kahn algorithm (topological sort)
     queue = deque([nid for nid in node_ids if in_degree[nid] == 0])
     visited_count = 0
 
@@ -116,17 +116,17 @@ def validate_dag(nodes: List[Dict[str, Any]], check_circuit_breaker: bool = Fals
                 queue.append(neighbor)
 
     if visited_count != len(node_ids):
-        errors.append("В графе обнаружен цикл! Задача должна быть направленным ациклическим графом (DAG).")
+        errors.append("A cycle was detected in the graph! The task must be a directed acyclic graph (DAG).")
         return False, errors
 
     return True, []
 
 
 # ==============================================================================
-# Расчет критического пути (Critical Path Method / CPM)
+# Critical path calculation (Critical Path Method / CPM)
 # ==============================================================================
 def calculate_critical_path(nodes: List[Dict[str, Any]]) -> Tuple[List[str], Set[Tuple[str, str]], int]:
-    """Рассчитывает самый длинный путь (критический путь) в графе DAG."""
+    """Calculates the longest path (the critical path) in the DAG graph."""
     node_map = {n["id"]: n for n in nodes}
     durations = {n["id"]: int(n.get("duration", 1)) for n in nodes}
 
@@ -142,7 +142,7 @@ def calculate_critical_path(nodes: List[Dict[str, Any]]) -> Tuple[List[str], Set
                 adj[dep].append(nid)
                 in_degree[nid] += 1
 
-    # Топологическая сортировка
+    # Topological sort
     queue = deque([nid for nid, deg in in_degree.items() if deg == 0])
     topo_order = []
     while queue:
@@ -153,7 +153,7 @@ def calculate_critical_path(nodes: List[Dict[str, Any]]) -> Tuple[List[str], Set
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
 
-    # Динамическое программирование для поиска длиннейшего пути
+    # Dynamic programming for the longest path search
     dist = {nid: durations[nid] for nid in node_map}
     parent = {nid: None for nid in node_map}
 
@@ -170,7 +170,7 @@ def calculate_critical_path(nodes: List[Dict[str, Any]]) -> Tuple[List[str], Set
     end_node = max(dist, key=dist.get)
     max_weight = dist[end_node]
 
-    # Восстановление пути
+    # Path reconstruction
     path = []
     curr = end_node
     while curr is not None:
@@ -187,15 +187,15 @@ def calculate_critical_path(nodes: List[Dict[str, Any]]) -> Tuple[List[str], Set
 
 
 # ==============================================================================
-# Генератор Mermaid
+# Mermaid generator
 # ==============================================================================
 def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
                      show_critical_path: bool = False) -> str:
-    """Генерирует чистый блок Mermaid с группировкой по фазам и опциональной подсветкой CPM."""
+    """Generates a clean Mermaid block with the phase grouping and the optional CPM highlight."""
     title = dag.get("title", "Execution Graph")
     nodes = dag.get("nodes", [])
 
-    # Расчет критического пути если запрошен
+    # Calculate the critical path if requested
     critical_nodes: Set[str] = set()
     critical_edges: Set[Tuple[str, str]] = set()
     if show_critical_path and nodes:
@@ -208,7 +208,7 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
         f"    %% {title}",
     ]
     if show_critical_path and critical_nodes:
-        lines.append(f"    %% ⚡ Critical Path (вес={cp_weight}): {' → '.join(critical_nodes)}")
+        lines.append(f"    %% ⚡ Critical Path (weight={cp_weight}): {' → '.join(critical_nodes)}")
 
     lines += [
         "    classDef skillNode fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#fff,rx:6px,ry:6px;",
@@ -220,10 +220,10 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
         "    classDef statusDone fill:#1c4532,stroke:#38a169,stroke-width:2px,color:#fff,rx:6px,ry:6px;",
     ]
 
-    # Группировка узлов по фазам
+    # Grouping the nodes by the phases
     phases = defaultdict(list)
     for node in nodes:
-        phase = node.get("phase", "Общие шаги")
+        phase = node.get("phase", "General steps")
         phases[phase].append(node)
 
     phase_counter = 1
@@ -243,11 +243,11 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
 
             status_icon = ""
             if status == "working":
-                status_icon = " 🟡 [В РАБОТЕ]"
+                status_icon = " 🟡 [WORKING]"
             elif status in ("blocked", "error"):
-                status_icon = " 🔴 [ЗАБЛОКИРОВАН]"
+                status_icon = " 🔴 [BLOCKED]"
             elif status in ("done", "completed", "success"):
-                status_icon = " 🟢 [ГОТОВО]"
+                status_icon = " 🟢 [DONE]"
 
             label_parts = [f"<b>{ntitle}{status_icon}</b>"]
             if skill:
@@ -264,8 +264,8 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
 
         lines.append("    end")
 
-    # Добавление связей с подсветкой критических рёбер
-    lines.append("\n    %% Зависимости (Edges)")
+    # Adding the edges with the critical edges highlight
+    lines.append("\n    %% Dependencies (Edges)")
     all_edges = []
     edge_added = False
     for node in nodes:
@@ -281,8 +281,8 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
             all_edges.append((nodes[i]["id"], nodes[i+1]["id"]))
             lines.append(f"    {nodes[i]['id']} --> {nodes[i+1]['id']}")
 
-    # Применение стилей статусов узлов
-    lines.append("\n    %% Стили статусов задач (Agent Status Awareness)")
+    # Applying the node status styles
+    lines.append("\n    %% Task status styles (Agent Status Awareness)")
     for node in nodes:
         nid = node["id"]
         status = str(node.get("status", "")).lower()
@@ -293,9 +293,9 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
         elif status in ("done", "completed", "success"):
             lines.append(f"    class {nid} statusDone;")
 
-    # Применение стилей критического пути
+    # Applying the critical path styles
     if show_critical_path and critical_nodes:
-        lines.append("\n    %% Подсветка критического пути")
+        lines.append("\n    %% Critical path highlight")
         for nid in critical_nodes:
             lines.append(f"    class {nid} criticalNode;")
         for idx, (src, dst) in enumerate(all_edges):
@@ -307,14 +307,14 @@ def generate_mermaid(dag: Dict[str, Any], direction: str = "TD",
 
 
 # ==============================================================================
-# Генератор Obsidian Canvas (.canvas)
+# Obsidian Canvas (.canvas) generator
 # ==============================================================================
 def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
                     show_critical_path: bool = False) -> Dict[str, Any]:
-    """Генерирует структуру Obsidian Canvas JSON с автоматическим расчётом сетки и групп."""
+    """Generates the Obsidian Canvas JSON structure with the automatic grid and the groups calculation."""
     nodes = dag.get("nodes", [])
 
-    # Расчет критического пути если запрошен
+    # Calculate the critical path if requested
     critical_nodes_set: Set[str] = set()
     critical_edges_set: Set[Tuple[str, str]] = set()
     if show_critical_path and nodes:
@@ -322,16 +322,16 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
         critical_nodes_set = set(cp_path)
     title = dag.get("title", "Task Execution Graph")
 
-    # Группировка по фазам
+    # Grouping by the phases
     phases = defaultdict(list)
     for node in nodes:
-        phase = node.get("phase", "Этап")
+        phase = node.get("phase", "Stage")
         phases[phase].append(node)
 
     canvas_nodes = []
     canvas_edges = []
 
-    # Геометрия карточек
+    # Card geometry
     CARD_WIDTH = 380
     CARD_HEIGHT = 180
     GAP_X = 140
@@ -343,7 +343,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
 
     group_idx = 1
     for phase_name, p_nodes in phases.items():
-        # Сортировка узлов внутри фазы: параллельные дорожки
+        # Sorting the nodes inside the phase: the parallel tracks
         n_count = len(p_nodes)
         phase_width = CARD_WIDTH + (GROUP_PADDING * 2)
         phase_height = (n_count * CARD_HEIGHT) + ((n_count - 1) * GAP_Y) + (GROUP_PADDING * 2) + 40
@@ -352,7 +352,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
         group_idx += 1
         group_y = 0
 
-        # Размещение группы
+        # Placing the group
         canvas_nodes.append({
             "id": group_id,
             "type": "group",
@@ -364,7 +364,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
             "color": str((group_idx % 6) + 1),
         })
 
-        # Размещение карточек внутри группы
+        # Placing the cards inside the group
         card_x = curr_x + GROUP_PADDING
         card_y = group_y + GROUP_PADDING + 30
 
@@ -380,29 +380,29 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
             mode = node.get("mode", "Sequential")
             file_link = node.get("file_link", "")
 
-            # Формирование текста карточки
+            # Formation of the card text
             lines = [f"### {ntitle}"]
             if skill:
-                lines.append(f"**🎯 Скилл:** `{skill}`")
+                lines.append(f"**🎯 Skill:** `{skill}`")
             if script:
-                lines.append(f"**⚙️ Скрипт:** `{script}`")
+                lines.append(f"**⚙️ Script:** `{script}`")
             if src_ref:
                 lines.append(f"**🔍 Source Evidence:** `{src_ref}`")
             if mode.lower() in ("parallel", "fork"):
-                lines.append("🔀 **Режим:** Параллельный")
+                lines.append("🔀 **Mode:** Parallel")
             if inputs:
-                lines.append(f"📥 **Вход:** {', '.join(inputs)}")
+                lines.append(f"📥 **In:** {', '.join(inputs)}")
             if outputs:
-                lines.append(f"📤 **Выход:** {', '.join(outputs)}")
+                lines.append(f"📤 **Out:** {', '.join(outputs)}")
             if dod:
-                lines.append(f"✅ **Критерий (DoD):** {dod}")
+                lines.append(f"✅ **Criterion (DoD):** {dod}")
 
             text_content = "\n".join(lines)
 
-            # Определение цвета (критический путь перекрывает базовый цвет)
+            # Determination of the color (the critical path overrides the base color)
             color = node.get("color") or SKILL_COLOR_MAP.get(skill, "5")
             if nid in critical_nodes_set:
-                color = "1"  # 1 = Red (критический путь)
+                color = "1"  # 1 = Red (critical path)
 
             node_def = {
                 "id": nid,
@@ -416,7 +416,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
             }
 
             if file_link:
-                # Если указана прямая заметка в vault
+                # If a direct note in the vault is specified
                 node_def["type"] = "file"
                 node_def["file"] = file_link
                 del node_def["text"]
@@ -428,7 +428,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
 
         curr_x += phase_width + GAP_X
 
-    # Формирование связей (Edges) согласно JSON Canvas Spec 1.0
+    # Formation of the edges per the JSON Canvas Spec 1.0
     import hashlib
     edge_counter = 1
     for node in nodes:
@@ -436,7 +436,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
         deps = node.get("depends_on", [])
         for dep in deps:
             if dep in node_positions and nid in node_positions:
-                # 16-символьный hex-идентификатор связи по стандарту JSON Canvas Spec 1.0
+                # 16-character hex identifier of the edge per the JSON Canvas Spec 1.0 standard
                 raw_hash = hashlib.sha256(f"{title}_{dep}_{nid}_{edge_counter}".encode("utf-8")).hexdigest()
                 edge_id = raw_hash[:16]
                 edge_counter += 1
@@ -449,7 +449,7 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
                     "toEnd": "arrow",
                 }
                 if (dep, nid) in critical_edges_set:
-                    edge_def["color"] = "1"   # красный (Preset 1)
+                    edge_def["color"] = "1"   # red (Preset 1)
                     edge_def["label"] = "⚡ Critical Path"
                 canvas_edges.append(edge_def)
 
@@ -461,77 +461,77 @@ def generate_canvas(dag: Dict[str, Any], layout: str = "horizontal",
             "frontmatter": {
                 "title": title,
                 "orchestrator": "task-graph",
-                "rules": "Правило №20",
+                "rules": "Rule #20",
             }
         }
     }
 
 
 # ==============================================================================
-# Пример тестового комплексного графа
+# Example of the test complex graph
 # ==============================================================================
 def get_test_dag() -> Dict[str, Any]:
-    """Возвращает пример комплексной рабочей задачи с параллелизмом."""
+    """Returns an example of a complex working task with the parallelism."""
     return {
-        "title": "Производственный аудит и сдача эпизода E275 (Марс)",
+        "title": "Production audit and the delivery of the episode E275 (Mars)",
         "nodes": [
             {
                 "id": "step_1",
-                "title": "1. Выгрузка сырых данных Ftrack",
-                "phase": "Фаза 1: Сбор первичных данных",
+                "title": "1. The raw Ftrack data export",
+                "phase": "Phase 1: The primary data collection",
                 "skill": "ftrack-sync",
                 "script": "ftrack_sync.py",
                 "inputs": ["Ftrack API", "Episode E275"],
                 "outputs": ["ftrack_e275_raw.json"],
-                "dod": "Данные по 53 шотам и 31 задаче загружены без ошибок",
+                "dod": "The data for the 53 shots and the 31 tasks was loaded without errors",
                 "mode": "Sequential",
                 "depends_on": [],
             },
             {
                 "id": "step_2a",
-                "title": "2A. Анализ выработки CFX/Анимации",
-                "phase": "Фаза 2: Параллельный анализ",
+                "title": "2A. The CFX/Animation output analysis",
+                "phase": "Phase 2: The parallel analysis",
                 "skill": "ftrack-sync",
                 "script": "ftrack_report.py",
                 "inputs": ["ftrack_e275_raw.json"],
-                "outputs": ["Выработка_E275.md"],
-                "dod": "Посчитаны часы, переработки и дельта отставания",
+                "outputs": ["Output_E275.md"],
+                "dod": "The hours, the overworks and the delay delta were computed",
                 "mode": "Parallel",
                 "depends_on": ["step_1"],
             },
             {
                 "id": "step_2b",
-                "title": "2B. Срез блокеров на доске Weeek",
-                "phase": "Фаза 2: Параллельный анализ",
+                "title": "2B. The blocker slice on the Weeek board",
+                "phase": "Phase 2: The parallel analysis",
                 "skill": "weeek-hub",
                 "script": "weeek_sync.py",
-                "inputs": ["Safari Live Sync", "Доска Марс #798"],
+                "inputs": ["Safari Live Sync", "Mars Board #798"],
                 "outputs": ["Weeek_Mars_Blockers.md"],
-                "dod": "Выявлены все задачи со статусом Blocked и задержкой >30д",
+                "dod": "All the tasks with the Blocked status and the delay >30d were identified",
                 "mode": "Parallel",
                 "depends_on": ["step_1"],
             },
             {
                 "id": "step_2c",
-                "title": "2C. Сверка состава артистов и ставок",
-                "phase": "Фаза 2: Параллельный анализ",
+                "title": "2C. The check of the artists roster and the rates",
+                "phase": "Phase 2: The parallel analysis",
                 "skill": "employee-hub",
                 "script": "doc_analyze.py",
-                "inputs": ["МАРС_СОТРУДНИКИ.xlsx"],
-                "outputs": ["Ресурсы_отдела_CFX.md"],
-                "dod": "Подтверждена доступность лидов и супервайзеров на финализацию",
+                "inputs": ["MARS_STAFF.xlsx"],
+                "outputs": ["CFX_Dept_Resources.md"],
+                "dod": "The availability of the leads and the supervisors for the finalization was confirmed",
                 "mode": "Parallel",
                 "depends_on": ["step_1"],
             },
             {
                 "id": "step_3",
-                "title": "3. Консолидация статус-отчёта и рисков",
-                "phase": "Фаза 3: Финализация и релиз",
+                "title": "3. The consolidation of the status report and the risks",
+                "phase": "Phase 3: The finalization and the release",
                 "skill": "status-report",
                 "script": "validate_system.py",
-                "inputs": ["Выработка_E275.md", "Weeek_Mars_Blockers.md", "Ресурсы_отдела_CFX.md"],
-                "outputs": ["Статус_Марс_E275_Финал.md"],
-                "dod": "Сформирован итоговый протокол с экшн-пойнтами и оценкой рисков",
+                "inputs": ["Output_E275.md", "Weeek_Mars_Blockers.md", "CFX_Dept_Resources.md"],
+                "outputs": ["Status_Mars_E275_Final.md"],
+                "dod": "The final protocol with the action points and the risk assessment was formed",
                 "mode": "Sequential",
                 "depends_on": ["step_2a", "step_2b", "step_2c"],
             },
@@ -540,92 +540,92 @@ def get_test_dag() -> Dict[str, Any]:
 
 
 def generate_vault_index_dag(vault_root: str = ".") -> Dict[str, Any]:
-    """Генерирует граф зависимостей и связей подсистем ANDREY OS (Graphify Pattern)."""
+    """Generates the dependency and the links graph of the ANDREY OS subsystems (Graphify Pattern)."""
     return {
-        "title": "Карта связей и подсистем ANDREY OS (Graph Index)",
-        "description": "Топологический граф: Манифесты -> Скиллы -> Скрипты -> Проекты -> Хранилище",
+        "title": "The links and the subsystems map of ANDREY OS (Graph Index)",
+        "description": "Topological graph: Manifests -> Skills -> Scripts -> Projects -> Storage",
         "nodes": [
             {
                 "id": "manifests",
-                "title": "Манифесты и Правила (№0-22)",
-                "phase": "Уровень 0: Архитектурное ядро",
+                "title": "Manifests and Rules (#0-22)",
+                "phase": "Level 0: The architectural core",
                 "skill": "system-audit",
                 "script": "SYSTEM.md, rules.md, system.json, AGENTS.md",
                 "inputs": ["Vault Root"],
-                "outputs": ["Контекст сессии"],
-                "dod": "Загружены правила Don't Load, Think in Code, DAG, Anti-Slop, Anti-Hallucination",
+                "outputs": ["Session context"],
+                "dod": "The Don't Load, Think in Code, DAG, Anti-Slop and Anti-Hallucination rules were loaded",
                 "mode": "Sequential",
                 "depends_on": [],
             },
             {
                 "id": "router",
                 "title": "Skill & Vault Routing",
-                "phase": "Уровень 1: Маршрутизация",
+                "phase": "Level 1: Routing",
                 "skill": "skill-router",
                 "script": "skill-router, vault-router, task-graph",
-                "inputs": ["Запрос пользователя"],
-                "outputs": ["Primary Skill + Режим работы + Execution DAG"],
-                "dod": "Определена единая точка входа и целевой каталог Nero/",
+                "inputs": ["The user request"],
+                "outputs": ["Primary Skill + Work mode + Execution DAG"],
+                "dod": "The single entry point and the target catalog Nero/ were determined",
                 "mode": "Sequential",
                 "depends_on": ["manifests"],
             },
             {
                 "id": "production_hub",
-                "title": "Продакшн и Команда (Марс, Кот, Studio)",
-                "phase": "Уровень 2: Доменные кластеры",
+                "title": "Production and Team (Mars, Kot, Studio)",
+                "phase": "Level 2: The domain clusters",
                 "skill": "ftrack-sync",
                 "script": "ftrack_sync.py, mattermost_sync.py, weeek_sync.py",
                 "inputs": ["Ftrack API", "Mattermost", "Weeek"],
-                "outputs": ["Статусы шотов", "Follow-up встреч", "Сметы"],
-                "dod": "Актуализированы производственные данные",
+                "outputs": ["Shot statuses", "Follow-up meetings", "Budgets"],
+                "dod": "The production data was actualized",
                 "mode": "Parallel",
                 "depends_on": ["router"],
             },
             {
                 "id": "docs_hub",
-                "title": "Универсальный нормализатор документов",
-                "phase": "Уровень 2: Доменные кластеры",
+                "title": "The universal document normalizer",
+                "phase": "Level 2: The domain clusters",
                 "skill": "document-hub",
                 "script": "convert_doc.py (MarkItDown), doc_analyze.py, xl_analyze.py",
-                "inputs": ["PDF", "XLSX", "DOCX", "PPTX", "Сканы"],
-                "outputs": ["Чистый Markdown для LLM"],
-                "dod": "Документ преобразован в Markdown с экономией 70% токенов",
+                "inputs": ["PDF", "XLSX", "DOCX", "PPTX", "Scans"],
+                "outputs": ["Clean Markdown for the LLM"],
+                "dod": "The document was converted into Markdown with a 70% token saving",
                 "mode": "Parallel",
                 "depends_on": ["router"],
             },
             {
                 "id": "ai_council",
-                "title": "AI & Стратегический аудит (LLM Council)",
-                "phase": "Уровень 2: Доменные кластеры",
+                "title": "AI & Strategic audit (LLM Council)",
+                "phase": "Level 2: The domain clusters",
                 "skill": "llm-council",
                 "script": "ai-rule, prompt-improver, llm-council",
-                "inputs": ["Идеи", "Промпты", "Архитектурные решения"],
-                "outputs": ["Критический вердикт", "Воркфлоу генерации"],
-                "dod": "Проведено стресс-тестирование без подхалимства модели",
+                "inputs": ["Ideas", "Prompts", "Architectural decisions"],
+                "outputs": ["The critical verdict", "The generation workflow"],
+                "dod": "The stress test without the model sycophancy was performed",
                 "mode": "Parallel",
                 "depends_on": ["router"],
             },
             {
                 "id": "health_hub",
-                "title": "Семейное здоровье и спорт (МЕДСИ, telemetry_sync, Ironman)",
-                "phase": "Уровень 2: Доменные кластеры",
+                "title": "The family health and sport (МЕДСИ, telemetry_sync, Ironman)",
+                "phase": "Level 2: The domain clusters",
                 "skill": "health-diagnostics-hub",
                 "script": "telemetry_sync_sync.py, endurance-training-plan",
-                "inputs": ["telemetry_sync Connect", "Бланки лабораторий", "МЕДСИ"],
-                "outputs": ["health_diagnostics.md", "Тренировочный микроцикл"],
-                "dod": "Соблюден медицинский шлюз и безопасность нагрузок",
+                "inputs": ["telemetry_sync Connect", "Lab forms", "МЕДСИ"],
+                "outputs": ["health_diagnostics.md", "The training microcycle"],
+                "dod": "The medical gateway and the load safety were honored",
                 "mode": "Parallel",
                 "depends_on": ["router"],
             },
             {
                 "id": "memory_validation",
-                "title": "Память, Валидация и Телеметрия",
-                "phase": "Уровень 3: Замыкание контура",
+                "title": "Memory, Validation and Telemetry",
+                "phase": "Level 3: The loop closing",
                 "skill": "knowledge-promoter",
                 "script": "validate_system.py, sync_context.py, telemetry.md",
-                "inputs": ["Результаты исполнения"],
+                "inputs": ["The execution results"],
                 "outputs": ["decision-log", "telemetry.md", "34 CONTEXT.md"],
-                "dod": "Система проверена на 100% целостность и знание сохранено в Nero/",
+                "dod": "The system was checked for the 100% integrity and the knowledge was saved in Nero/",
                 "mode": "Sequential",
                 "depends_on": ["production_hub", "docs_hub", "ai_council", "health_hub"],
             },
@@ -634,21 +634,21 @@ def generate_vault_index_dag(vault_root: str = ".") -> Dict[str, Any]:
 
 
 # ==============================================================================
-# Точка входа CLI
+# CLI entry point
 # ==============================================================================
 def main():
-    parser = argparse.ArgumentParser(description="Task Execution Graph Engine (Правило №20)")
-    parser.add_argument("--file", "-f", help="Путь к JSON-файлу со структурой DAG")
-    parser.add_argument("--test", action="store_true", help="Использовать тестовый эталонный граф задачи")
-    parser.add_argument("--vault-index", action="store_true", help="Построить граф связей и подсистем ANDREY OS")
-    parser.add_argument("--mermaid", action="store_true", help="Вывести Mermaid диаграмму в stdout")
-    parser.add_argument("--canvas", help="Путь для сохранения файла Obsidian Canvas (.canvas)")
-    parser.add_argument("--validate", action="store_true", help="Только проверить валидность DAG")
-    parser.add_argument("--direction", default="TD", choices=["TD", "LR"], help="Ориентация Mermaid: TD или LR")
+    parser = argparse.ArgumentParser(description="Task Execution Graph Engine (Rule #20)")
+    parser.add_argument("--file", "-f", help="Path to the JSON file with the DAG structure")
+    parser.add_argument("--test", action="store_true", help="Use the test reference task graph")
+    parser.add_argument("--vault-index", action="store_true", help="Build the graph of the links and the subsystems of ANDREY OS")
+    parser.add_argument("--mermaid", action="store_true", help="Print the Mermaid diagram to stdout")
+    parser.add_argument("--canvas", help="Path to save the Obsidian Canvas (.canvas) file")
+    parser.add_argument("--validate", action="store_true", help="Only check the DAG validity")
+    parser.add_argument("--direction", default="TD", choices=["TD", "LR"], help="Mermaid orientation: TD or LR")
     parser.add_argument("--critical-path", action="store_true",
-                        help="Рассчитать и подсветить критический путь (CPM, Правило №20)")
+                        help="Calculate and highlight the critical path (CPM, Rule #20)")
     parser.add_argument("--circuit-breaker", action="store_true",
-                        help="Проверить наличие поля max_iterations <= 3 в Loop-узлах (Circuit Breaker, Правило №20)")
+                        help="Check the max_iterations <= 3 field in the Loop nodes (Circuit Breaker, Rule #20)")
 
     args = parser.parse_args()
 
@@ -659,7 +659,7 @@ def main():
         dag_data = get_test_dag()
     elif args.file:
         if not os.path.exists(args.file):
-            print(f"[ОШИБКА] Файл не найден: {args.file}", file=sys.stderr)
+            print(f"[ERROR] File not found: {args.file}", file=sys.stderr)
             sys.exit(1)
         with open(args.file, "r", encoding="utf-8") as f:
             dag_data = json.load(f)
@@ -667,7 +667,7 @@ def main():
         try:
             dag_data = json.load(sys.stdin)
         except Exception as e:
-            print(f"[ОШИБКА] Не удалось прочитать JSON из stdin: {e}", file=sys.stderr)
+            print(f"[ERROR] Failed to read the JSON from stdin: {e}", file=sys.stderr)
             sys.exit(1)
     else:
         parser.print_help()
@@ -677,34 +677,34 @@ def main():
     valid, errors = validate_dag(nodes, check_circuit_breaker=args.circuit_breaker)
 
     if not valid:
-        print("[ОШИБКА ВАЛИДАЦИИ DAG]:", file=sys.stderr)
+        print("[DAG VALIDATION ERROR]:", file=sys.stderr)
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
         sys.exit(2)
 
     if args.validate:
-        print(f"✅ DAG '{dag_data.get('title', 'Без названия')}' успешно валидирован! Узлов: {len(nodes)}, циклов нет.")
+        print(f"✅ DAG '{dag_data.get('title', 'Untitled')}' validated successfully! Nodes: {len(nodes)}, no cycles.")
         return
 
-    # Показать критический путь в консоли
+    # Show the critical path in the console
     show_cp = args.critical_path
     if show_cp and nodes:
         cp_path, _, cp_weight = calculate_critical_path(nodes)
-        print(f"⚡ Критический путь (CPM, вес={cp_weight}): {' → '.join(cp_path)}\n")
+        print(f"⚡ Critical path (CPM, weight={cp_weight}): {' → '.join(cp_path)}\n")
 
-    # Генерация Mermaid
+    # Mermaid generation
     if args.mermaid or (not args.canvas and not args.validate):
         mermaid_code = generate_mermaid(dag_data, direction=args.direction,
                                         show_critical_path=show_cp)
         print(mermaid_code)
 
-    # Генерация Canvas
+    # Canvas generation
     if args.canvas:
         canvas_dict = generate_canvas(dag_data, show_critical_path=show_cp)
         os.makedirs(os.path.dirname(os.path.abspath(args.canvas)), exist_ok=True)
         with open(args.canvas, "w", encoding="utf-8") as f:
             json.dump(canvas_dict, f, ensure_ascii=False, indent=2)
-        print(f"✅ Canvas-файл успешно создан: {args.canvas} (узлов: {len(canvas_dict['nodes'])}, связей: {len(canvas_dict['edges'])})")
+        print(f"✅ Canvas file created successfully: {args.canvas} (nodes: {len(canvas_dict['nodes'])}, edges: {len(canvas_dict['edges'])})")
 
 
 if __name__ == "__main__":

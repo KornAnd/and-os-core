@@ -148,8 +148,10 @@ def print_status(task_id: Optional[str] = None):
                 curr_idx = data.get("current_phase_index", 0)
                 total = len(data.get("phases", []))
                 print(f" {status_icon} {data.get('task_id', p_file.stem):24} | Phase: {curr_idx + 1}/{total} | Status: {data.get('status')}")
-            except Exception:
-                pass
+            except Exception as e:
+                # Skip the unreadable plan file in the listing, but announce it
+                # (never silent — clean-code-guardian, R4-P4)
+                sys.stderr.write(f"[dag_planner] Notice: skipping unreadable plan {p_file.name} ({e})\n")
 
 def main():
     parser = argparse.ArgumentParser(description="DAG Phase Planner & Acceptance Criteria Engine")

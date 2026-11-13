@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 api_contract_generator.py — Typed API & Microkernel Contract Generator
-AnD os v8.1 — System Engineering Layer (Type-Safe Contracts & Schemas)
+AnD os v1.0.0 — System Engineering Layer (Type-Safe Contracts & Schemas)
 
 Generates strict OperationSpec contracts, JSON Schema, and Python dataclass interfaces
 from natural language descriptions, route definitions, or function signatures.

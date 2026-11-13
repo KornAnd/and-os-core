@@ -52,13 +52,18 @@ def update_procfs() -> dict:
         except (ValueError, OSError):
             vfs_up = False
 
-    # 3. Write sys.stat (~200 bytes)
+    # 3. Write sys.stat (~200 bytes). VERSION and RULES_COUNT come from the
+    # canonical SSoT (the 1.0 kernel versioning release, 13.11, declared I-1
+    # exception, version-only: before this they were hardcoded literals of a
+    # long-closed development series - a mesh format the banner gates
+    # cannot see, which is exactly how the drift survived until F1).
+    from and_os.lib.core.root_config import get_system_release
+    release = get_system_release(VAULT_ROOT)
     sys_stat_path = os.path.join(DIR_PROC, "sys.stat")
     with open(sys_stat_path, "w", encoding="utf-8") as f:
         f.write(f"OS=AnD_os\n")
-        f.write(f"VERSION=7.6.0\n")
-        f.write(f"RULES_COUNT=66\n")
-        f.write(f"SKILLS_COUNT=50\n")
+        f.write(f"VERSION={release.get('version', 'UNKNOWN')}\n")
+        f.write(f"RULES_COUNT={release.get('rules_count', 'UNKNOWN')}\n")
         f.write(f"TIMESTAMP={now}\n")
         f.write(f"DISK_FREE_GB={free_gb}\n")
         f.write(f"RESOURCE_GUARD={'OK' if free_gb >= 3.0 else 'WARN_DISK_LOW'}\n")

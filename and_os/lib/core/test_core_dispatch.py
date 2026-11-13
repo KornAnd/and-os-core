@@ -1,6 +1,6 @@
 """
 test_core_dispatch.py — Comprehensive Unit Tests for C5 Core Dispatcher & Registry
-AnD os v8.1 — Core Architecture Verification
+AnD os v1.0.0 — Core Architecture Verification
 """
 
 import unittest

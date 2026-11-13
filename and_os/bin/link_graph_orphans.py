@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-link_graph_orphans.py — Идемпотентная привязка изолированных заметок к корневым и категориальным хабам Obsidian.
+link_graph_orphans.py — Idempotent attachment of isolated notes to the root and category hubs of Obsidian.
 
-Цель:
-1. Для каждой изолированной заметки (orphan) определить ближайший видимый в графе хаб.
-2. Безопасно добавить навигационный футер (обратную ссылку) в конец файла (если его там нет).
-3. Добавить прямую ссылку на заметку в родительский индекс/хаб (если отсутствует),
-   обеспечивая 100% связность и кластеризацию в Force-Directed графе Obsidian.
+Goal:
+1. For each isolated note (orphan), determine the nearest hub visible in the graph.
+2. Safely add the navigation footer (a backlink) to the end of the file (if it is not there).
+3. Add a direct link to the note in the parent index/hub (if absent),
+   ensuring 100% connectivity and clustering in the Obsidian Force-Directed graph.
 """
 
 import os
@@ -38,8 +38,8 @@ DOMAIN_HUBS = {
 
 def find_target_hub(rel_path: str) -> tuple[str, str]:
     """
-    Определяет наиболее релевантный видимый хаб для заметки.
-    Возвращает (hub_rel_path, hub_name).
+    Determines the most relevant visible hub for the note.
+    Returns (hub_rel_path, hub_name).
     """
     parts = Path(rel_path).parts
     if len(parts) <= 1:
@@ -47,7 +47,7 @@ def find_target_hub(rel_path: str) -> tuple[str, str]:
     
     domain = parts[0]
     
-    # 1. Проверяем вложенные хабы для Clippings (например Clippings/Лидерство/Лидерство.md)
+    # 1. Check the nested hubs for Clippings (e.g. Clippings/<category>/<category>.md)
     if domain == "Clippings" and len(parts) >= 3:
         cat_folder = parts[1]
         cat_hub = f"Clippings/{cat_folder}/{cat_folder}.md"
@@ -55,11 +55,11 @@ def find_target_hub(rel_path: str) -> tuple[str, str]:
             return cat_hub, cat_folder
         return "Clippings/Clippings.md", "Clippings"
         
-    # 2. Проверяем Nero подпапки
+    # 2. Check the Nero subfolders
     if domain == "Nero":
         if len(parts) >= 3:
             sub = parts[1]
-            # Проверяем наличие специального хаба
+            # Check for the presence of a special hub
             if sub == "skills":
                 return "and_os/lib/skills/README.md", "Skills Registry"
             if sub == "core":
@@ -68,7 +68,7 @@ def find_target_hub(rel_path: str) -> tuple[str, str]:
                 return "and_os/etc/SYSTEM_MAP.md", "SYSTEM MAP" if (VAULT_ROOT / "and_os/etc/SYSTEM_MAP.md").exists() else ("Nero/Nero.md", "Nero")
         return "Nero/Nero.md", "Nero"
 
-    # 3. Стандартные доменные хабы
+    # 3. Standard domain hubs
     if domain in DOMAIN_HUBS:
         hub_path = DOMAIN_HUBS[domain]
         if (VAULT_ROOT / hub_path).exists():
@@ -78,7 +78,7 @@ def find_target_hub(rel_path: str) -> tuple[str, str]:
     return "Vault.md", "Vault"
 
 def safe_append_backlink(file_path: Path, hub_wikilink: str, hub_title: str) -> bool:
-    """Безопасно добавляет обратную ссылку в конец файла."""
+    """Safely appends a backlink to the end of the file."""
     try:
         content = file_path.read_text(encoding="utf-8")
     except Exception as e:
@@ -86,20 +86,20 @@ def safe_append_backlink(file_path: Path, hub_wikilink: str, hub_title: str) -> 
         return False
 
     link_target = hub_wikilink.replace(".md", "")
-    # Проверяем, не содержит ли файл уже ссылку на этот хаб
+    # Check whether the file already contains a link to this hub
     if f"[[{link_target}" in content or f"[[{Path(link_target).name}" in content:
         return False
 
-    # Формируем аккуратный футер
+    # Build a clean footer
     footer = f"\n\n---\n[[{link_target}|← {hub_title}]]\n"
     
-    # Записываем
+    # Write
     new_content = content.rstrip() + footer
     file_path.write_text(new_content, encoding="utf-8")
     return True
 
 def safe_add_link_to_hub(hub_file: Path, target_rel_path: str, target_name: str) -> bool:
-    """Добавляет ссылку на заметку в родительский хаб, если ее там нет."""
+    """Adds a link to the note in the parent hub if it is not there."""
     if not hub_file.exists():
         return False
         
@@ -112,15 +112,15 @@ def safe_add_link_to_hub(hub_file: Path, target_rel_path: str, target_name: str)
     target_link = target_rel_path.replace(".md", "")
     target_base = Path(target_link).name
     
-    # Проверяем, есть ли ссылка в хабе
+    # Check whether the link exists in the hub
     if f"[[{target_link}" in content or f"[[{target_base}" in content:
         return False
         
-    # Добавляем ссылку в конец хаба под заголовок связанных заметок или просто в список
+    # Add the link to the end of the hub under the related-notes heading or simply into the list
     entry = f"- [[{target_link}|{target_base}]]\n"
     
     if "## Ссылки" in content or "## Связанные заметки" in content or "## Файлы" in content:
-        # Добавляем в существующую секцию
+        # Add it to the existing section
         section_pattern = r"(##\s+(?:Ссылки|Связанные заметки|Файлы)[\s\S]*?)(\n##|\Z)"
         match = re.search(section_pattern, content)
         if match:
@@ -156,11 +156,11 @@ def main():
         hub_rel, hub_title = find_target_hub(rel_path)
         hub_path = VAULT_ROOT / hub_rel
         
-        # 1. Добавляем футер с бэклинком в заметку-сироту
+        # 1. Add the backlink footer to the orphan note
         if safe_append_backlink(p, hub_rel, hub_title):
             linked_count += 1
             
-        # 2. Добавляем ссылку в родительский хаб
+        # 2. Add the link to the parent hub
         if safe_add_link_to_hub(hub_path, rel_path, p.stem):
             hub_updated_count += 1
             

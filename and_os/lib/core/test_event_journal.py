@@ -1,6 +1,6 @@
 """
 test_event_journal.py — Comprehensive Unit Tests for C4B Canonical Event Journal
-AnD os v8.1 — Core Architecture Verification
+AnD os v1.0.0 — Core Architecture Verification
 """
 
 import os

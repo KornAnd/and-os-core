@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v8.5.
+refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.0.0.
 Analyzes Python & Swift ASTs for unused functions, dead code branches and orphan files.
 Conforms strictly to Rule #53 (Safe Deletion via .trash/ with audit log in DELETION_LOG.md).
 
@@ -93,7 +93,7 @@ class RefactorCleaner:
             f"`{item.get('identifier', 'file')}` in `{item.get('file')}` (Line {item.get('line')}) | Risk: {item.get('risk')}\n"
         )
         if not os.path.exists(self.log_file):
-            header = "# 🗑️ DELETION LOG — Журнал безопасной очистки кода и ассетов AnD os\n\n"
+            header = "# 🗑️ DELETION LOG — Safe cleanup journal for AnD os code and assets\n\n"
             with open(self.log_file, "w", encoding="utf-8") as f:
                 f.write(header)
         with open(self.log_file, "a", encoding="utf-8") as f:
@@ -124,18 +124,18 @@ def main():
         print("└─────────────────────────────────────────────────────────────┘")
 
         if findings:
-            print("\n🔍 НАЙДЕННЫЕ КАНДИДАТЫ:")
+            print("\n🔍 CANDIDATES FOUND:")
             for item in findings[:15]:
                 print(f"  [{item['risk']}] {item['file']}:{item['line']} -> {item['identifier']} ({item['type']})")
         else:
-            print("\n🟢 Мёртвый код не обнаружен. Архитектура чиста.")
+            print("\n🟢 No dead code found. Architecture is clean.")
 
     elif args.action == "log":
         if os.path.exists(cleaner.log_file):
             with open(cleaner.log_file, "r", encoding="utf-8") as f:
                 print(f.read())
         else:
-            print("ℹ️ Журнал DELETION_LOG.md пуст.")
+            print("ℹ️ DELETION_LOG.md journal is empty.")
 
 
 if __name__ == "__main__":

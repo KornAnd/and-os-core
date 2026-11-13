@@ -3,6 +3,8 @@ name: system-audit
 description: "Use when running full 5-ring Health Grid integrity validations across filesystem syntax, knowledge graph, AST, and background daemons."
 version: "1.0.0"
 lifecycle: ACTIVE
+ttl: STATIC
+reviewed: 2026-11-11
 domain: system
 island: 8
 context_tier: WORK
