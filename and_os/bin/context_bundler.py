@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Task Context Bundler & Output Trimming Utility
-AnD os v1.0.0 - Think in Code Context Squeezer
+AnD os v1.2.0 - Think in Code Context Squeezer
 
 Collects minimum sufficient context for tasks (signatures, decisions, status)
 without reading full multi-megabyte files into LLM memory.
@@ -9,6 +9,7 @@ without reading full multi-megabyte files into LLM memory.
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import glob
 import argparse

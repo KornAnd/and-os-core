@@ -1,6 +1,6 @@
 """
 Non-Destructive Asset & Shot Reference Resolver
-AnD os v1.0.0 — Island 7: 3D Pipeline Core (Production Skeleton)
+AnD os v1.2.0 — Island 7: 3D Pipeline Core (Production Skeleton)
 """
 
 import os

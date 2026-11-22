@@ -130,6 +130,7 @@ class RuntimeProbe:
         # (supervisor.runtime_root) — no hardcoded Vault or home paths.
         # Stale state (>24h) means the supervisor process is not running.
         supervisor_state_age_hours = None
+        runtime_root = ""
         services_cfg_path = os.path.join(vault_root, "and_os", "etc", "services.json")
         if os.path.exists(services_cfg_path):
             try:
@@ -155,6 +156,16 @@ class RuntimeProbe:
             except (OSError, json.JSONDecodeError, ValueError) as serr:
                 issues += 1
                 result.errors.append(f"Supervisor state freshness check failed: {serr}")
+
+        # 7.6 Preflight Freshness Meter (F-6, 20.11): reports how stale the
+        # last full preflight is. Informational only (no gate): preflight is a
+        # per-session behavior, not a daemon, so absence is measured, not failed.
+        preflight_age_hours = None
+        if runtime_root:
+            preflight_state = os.path.join(runtime_root, "var", "preflight_state.json")
+            if os.path.exists(preflight_state):
+                preflight_age_hours = round(
+                    (time.time() - os.path.getmtime(preflight_state)) / 3600.0, 2)
 
         # 8. Enterprise Vault Backup Health Check (and_os/bin/backup_engine.py)
         backup_engine = os.path.join(vault_root, "and_os", "bin", "backup_engine.py")
@@ -215,6 +226,7 @@ class RuntimeProbe:
             "terminal_files_ok": len(missing_term) == 0,
             "quick_db_entries": quick_db_entries,
             "supervisor_state_age_hours": supervisor_state_age_hours,
+            "preflight_age_hours": preflight_age_hours,
             "backup_healthy": backup_healthy,
             "backup_status": backup_status
         }

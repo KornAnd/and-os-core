@@ -6,6 +6,7 @@ Runs direct module imports in a single Python process to cut latency from 2.0 s 
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 from datetime import datetime
@@ -27,6 +28,14 @@ try:
     import telemetry_logger
 except ImportError as e:
     sys.stderr.write(f"[sync_service] Import warning: {e}\n")
+
+try:
+    if VAULT_ROOT not in sys.path:
+        sys.path.insert(0, VAULT_ROOT)
+    from and_os.lib.core.vault_safe_io import VaultSafeIOError
+except ImportError:
+    VaultSafeIOError = Exception  # fallback: telemetry errors stay catchable
+
 
 def run_session_init(fix=True, json_output=False):
     start_time = datetime.now()
@@ -83,17 +92,20 @@ def run_session_init(fix=True, json_output=False):
     except Exception as e:
         results["system_audit"] = {"success": False, "error": str(e)}
 
-    # 6. Log Telemetry
+    # 6. Log Telemetry (invoke row via the validated logger;
+    # Audit R5 decision R1: the old log_event() call did not exist
+    # and the AttributeError was swallowed by a blanket except)
     try:
-        telemetry_logger.log_event(
+        telemetry_logger.log_telemetry(
             task="Session Init Sync & Audit (Fast Engine)",
             mode="SYSTEM",
             skill="sys.init",
             ctx="min",
             result="success"
         )
-    except (ImportError, Exception) as e:
+    except (ImportError, ValueError, OSError, VaultSafeIOError) as e:
         sys.stderr.write(f"[sync_service] Telemetry logging failed: {e}\n")
+        results["telemetry"] = {"success": False, "error": str(e)}
 
     elapsed_sec = (datetime.now() - start_time).total_seconds()
     summary = {

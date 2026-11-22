@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-code_ast_shrinker.py — AST-based Python Code & Token Compressor (AnD os v1.0.0).
+code_ast_shrinker.py — AST-based Python Code & Token Compressor (AnD os v1.2.0).
 Core subsystem (and_os/lib/core/).
 Rule #16: Think in Code, Rule #44: Task Context Bundling.
 
@@ -71,7 +71,7 @@ def shrink_file(filepath: str) -> str:
     header = f"# [AST Shrink: {orig_chars} -> {new_chars} chars | Token Savings: -{ratio}%]\n"
     return header + compressed
 
-def main():
+def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description="Python AST Code Shrinker (Token Optimizer)")
     parser.add_argument("file", help="Target Python file")

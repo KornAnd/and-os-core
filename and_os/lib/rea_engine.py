@@ -1,11 +1,23 @@
 """
 rea_engine.py — High-Performance, Zero-Leak Reverse-Engineering Driver.
-Part of AnD os Core Infrastructure (and_os/lib/core/).
+Part of AnD os Infrastructure (and_os/lib/). Backend of the
+reverse-engineer-anything skill and the `sys_cli reverse` facade.
+18.11: relocated out of the I-1 immutable kernel zone (and_os/lib/core/)
+— a skill backend does not belong in the immutable kernel.
 
 Architectural Invariants:
   1. Zero Hardcoding: Dynamic Node/NPM/REA resolution with standard fallbacks.
-  2. Context Ceiling: Enforces token bounds (--token-limit 2000) on all operations.
-  3. Closed Contour: 100% local execution, zero-SaaS, untrusted content safety guard.
+  2. Context Ceiling: the facade token limit is forwarded to REA as the global
+     --token-limit flag on non-structured formats (md/yaml/toon). REA refuses
+     token windows on structured JSON output ("Token windows cannot preserve
+     structured output"), which therefore stays bounded by its own
+     per-operation probe limits (max_probe_bytes / max_entries) reported in
+     each Evidence envelope.
+  3. Local-First Execution: all artifact inspection runs 100% locally,
+     zero-SaaS. The only network touches are explicit and bounded:
+     check_update() queries the npm registry for the upstream version tag,
+     and get_base_cmd() falls back to a pinned 'npx --yes rea-agents@<ver>'
+     only when no local REA install or npx cache entry exists.
   4. Non-Destructive Update Signals: Checks upstream versions without silent mutations.
 """
 
@@ -80,12 +92,33 @@ class REAEngine:
             return [self.npx_path, "--yes", f"rea-agents@{self.DEFAULT_VERSION}"]
         raise RuntimeError("Neither 'rea', cached script, nor 'npx' executable found on system.")
 
-    def run_command(self, args: List[str], token_limit: Optional[int] = None) -> Dict[str, Any]:
-        """Executes a REA command with format enforcement."""
+    def run_command(self, args: List[str], token_limit: Optional[int] = None,
+                    fmt: str = "json") -> Dict[str, Any]:
+        """Executes a REA command with format selection and token-bound enforcement.
+
+        Token-window semantics (verified against rea@6.8.0): REA accepts the
+        global --token-limit flag only for non-structured formats (md/yaml/toon)
+        and refuses it on JSON output. JSON results therefore stay bounded by
+        REA's per-operation probe limits (max_probe_bytes / max_entries), which
+        are reported inside each Evidence envelope.
+        """
         base = self.get_base_cmd()
-        full_cmd = base + args
+        full_cmd = base + list(args)
         if "--format" not in full_cmd:
-            full_cmd.extend(["--format", "json"])
+            full_cmd.extend(["--format", fmt])
+        fmt_idx = full_cmd.index("--format")
+        effective_fmt = full_cmd[fmt_idx + 1] if fmt_idx + 1 < len(full_cmd) else "json"
+
+        structured = effective_fmt.lower() in ("json", "jsonl")
+        limit = token_limit if token_limit is not None else self.token_limit
+        first_arg = str(args[0]) if args else ""
+        token_applied = (
+            bool(limit) and limit > 0 and not structured
+            and bool(first_arg) and not first_arg.startswith("-")
+            and "--token-limit" not in full_cmd
+        )
+        if token_applied:
+            full_cmd.extend(["--token-limit", str(limit)])
 
         try:
             res = subprocess.run(
@@ -96,18 +129,22 @@ class REAEngine:
                 timeout=60
             )
             raw_out = res.stdout.strip()
-            
-            # Try to parse JSON output
-            data = None
-            if raw_out:
-                try:
-                    data = json.loads(raw_out)
-                except Exception:
-                    data = {"raw_output": raw_out}
+
+            if structured:
+                data = None
+                if raw_out:
+                    try:
+                        data = json.loads(raw_out)
+                    except Exception:
+                        data = {"raw_output": raw_out}
+            else:
+                data = raw_out
 
             return {
                 "success": res.returncode == 0,
                 "returncode": res.returncode,
+                "format": effective_fmt,
+                "token_limit_applied": token_applied,
                 "data": data,
                 "stderr": res.stderr.strip()
             }
@@ -139,7 +176,8 @@ class REAEngine:
             "rea_bin": self.rea_bin,
             "engine_version": str(version).strip(),
             "target_version_pinned": self.DEFAULT_VERSION,
-            "token_limit": self.token_limit
+            "token_limit": self.token_limit,
+            "token_limit_scope": "non-JSON formats (md/yaml/toon); JSON output bounded by REA probe limits (max_probe_bytes/max_entries)"
         }
 
     def check_update(self) -> Dict[str, Any]:
@@ -174,7 +212,7 @@ class REAEngine:
                 "error": str(e)
             }
 
-    def inspect_target(self, target_path: str) -> Dict[str, Any]:
+    def inspect_target(self, target_path: str, fmt: str = "json") -> Dict[str, Any]:
         """Inspects target artifact (Electron, ASAR, Mach-O, SQLite, directory)."""
         abs_path = os.path.abspath(target_path)
         if not os.path.exists(abs_path):
@@ -182,22 +220,34 @@ class REAEngine:
 
         # Route by target kind
         if abs_path.endswith(".asar") or os.path.isdir(abs_path):
-            return self.run_command(["inspect-desktop-application", abs_path])
+            return self.run_command(["inspect-desktop-application", abs_path], fmt=fmt)
         elif abs_path.endswith(".sqlite") or abs_path.endswith(".db"):
-            return self.run_command(["inspect-sqlite-database", abs_path])
+            return self.run_command(["inspect-sqlite-database", abs_path], fmt=fmt)
         else:
-            return self.run_command(["inspect-artifact", abs_path])
+            return self.run_command(["inspect-artifact", abs_path], fmt=fmt)
 
-    def search_symbols(self, target_path: str, pattern: str) -> Dict[str, Any]:
+    def analyze_target(self, target_path: str, fmt: str = "json") -> Dict[str, Any]:
+        """Analyzes an application or directory: structured overview via `rea analyze`.
+
+        Canonical route for directory targets (extracted bundles, JS/Electron
+        application folders), where file-only subcommands (search, decompile)
+        report `directory_requires_file`.
+        """
+        abs_path = os.path.abspath(target_path)
+        if not os.path.exists(abs_path):
+            return {"success": False, "error": f"Target path '{abs_path}' does not exist"}
+        return self.run_command(["analyze", abs_path], fmt=fmt)
+
+    def search_symbols(self, target_path: str, pattern: str, fmt: str = "json") -> Dict[str, Any]:
         """Searches string candidates or procedure symbols within an analyzed artifact."""
         abs_path = os.path.abspath(target_path)
         if not os.path.exists(abs_path):
             return {"success": False, "error": f"Target path '{abs_path}' does not exist"}
-        return self.run_command(["search", abs_path, pattern])
+        return self.run_command(["search", abs_path, pattern], fmt=fmt)
 
-    def decompile_procedure(self, target_path: str, procedure: str) -> Dict[str, Any]:
+    def decompile_procedure(self, target_path: str, procedure: str, fmt: str = "json") -> Dict[str, Any]:
         """Decompiles a specific procedure or function in the target."""
         abs_path = os.path.abspath(target_path)
         if not os.path.exists(abs_path):
             return {"success": False, "error": f"Target path '{abs_path}' does not exist"}
-        return self.run_command(["decompile", abs_path, "--procedure", procedure])
+        return self.run_command(["decompile", abs_path, "--procedure", procedure], fmt=fmt)

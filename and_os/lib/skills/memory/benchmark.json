@@ -1,0 +1,43 @@
+{
+  "skill": "memory",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "me-01",
+      "prompt": "Зафиксируй это решение в базу опыта: проблема, решение, домен core",
+      "expected": "memory",
+      "decoys": ["file-lifecycle", "clipping-finder"]
+    },
+    {
+      "id": "me-02",
+      "prompt": "Pre-flight recall: что мы знаем о ловушках этой темы перед стартом",
+      "expected": "memory",
+      "decoys": ["clipping-finder"]
+    },
+    {
+      "id": "me-03",
+      "prompt": "Запиши ADR: необратимое архитектурное решение с контекстом и последствиями",
+      "expected": "memory",
+      "decoys": ["file-lifecycle", "system-architect"]
+    },
+    {
+      "id": "me-04",
+      "prompt": "Разбери накопленную память: review, prune, дайджест для экспорта",
+      "expected": "memory",
+      "decoys": ["clipping-finder", "context-compressor"]
+    },
+    {
+      "id": "me-05",
+      "prompt": "Извлеки решение из сессии и кристаллизируй в learn-ноту через sys_cli learn",
+      "expected": "memory",
+      "decoys": ["file-lifecycle", "skill-creator"]
+    },
+    {
+      "id": "me-06",
+      "prompt": "Найди в накопленном опыте негативные инварианты по этой области",
+      "expected": "memory",
+      "decoys": ["clipping-finder"]
+    }
+  ]
+}

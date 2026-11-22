@@ -16,7 +16,8 @@ links:
   - "[[SYSTEM.md]]"
   - "[[and_os/etc/SYSTEM_MAP.md]]"
   - "[[AGENTS.md]]"
-  - "[[.opencode/rules.md]]"
+# Full rules corpus lives at .opencode/rules.md (hidden dot-dir, not a
+# resolvable Obsidian link — referenced as a plain path, not a wikilink).
 ---
 
 # 🛠️ DEV_PROTOCOL — Engineering Code of Conduct & Rigorous Debugging Protocol (v1.1)

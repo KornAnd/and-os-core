@@ -9,11 +9,13 @@ Exposes atomic, high-level operations:
   - audit_hygiene: Fast and deep hygiene audits (filenames, 0-byte notes, WebDAV limits).
 """
 
+import contextlib
 import os
 from typing import Dict, Any, Tuple, List, Optional
 from .hygiene import validate_name, sanitize_name
 from .graph import cascade_rename_links, clean_broken_image_links, scan_markdown_files
 from .context import sync_single_context, sync_all_contexts
+from .locks import vault_file_lock  # audit R-LLM-OBS F6
 
 class VaultEngine:
     def __init__(self, vault_root: Optional[str] = None):
@@ -44,26 +46,36 @@ class VaultEngine:
                 return {"success": False, "error": f"Invalid WebDAV filename: {errors}"}
 
         dst_full = os.path.join(self.vault_root, target_path)
-        os.makedirs(os.path.dirname(dst_full), exist_ok=True)
 
-        if os.path.exists(dst_full) and os.path.abspath(src_full) != os.path.abspath(dst_full):
-            return {"success": False, "error": f"Destination file already exists: {target_path}"}
+        # 2-4. Lock both endpoints (sorted order: two concurrent moves/patches
+        # cannot deadlock; audit R-LLM-OBS F6: the rename used to commit with
+        # no lock, before the wikilink cascade — a cascade failure left the
+        # note moved with stale links). The collision check lives INSIDE the
+        # lock so a concurrent move cannot create dst between check and rename.
+        with contextlib.ExitStack() as _locks:
+            for _name in sorted({src_rel_path, target_path}):
+                _locks.enter_context(vault_file_lock(_name))
 
-        # 2. Relocate file on disk
-        try:
-            os.rename(src_full, dst_full)
-        except OSError as e:
-            return {"success": False, "error": f"Filesystem rename error: {e}"}
+            os.makedirs(os.path.dirname(dst_full), exist_ok=True)
 
-        # 3. Cascade refactor wikilinks
-        updated_links_count = cascade_rename_links(self.vault_root, src_rel_path, target_path)
+            if os.path.exists(dst_full) and os.path.abspath(src_full) != os.path.abspath(dst_full):
+                return {"success": False, "error": f"Destination file already exists: {target_path}"}
 
-        # 4. Synchronize source and destination contexts
-        src_dir = os.path.dirname(src_full)
-        dst_dir = os.path.dirname(dst_full)
-        sync_single_context(src_dir, fix=True)
-        if src_dir != dst_dir:
-            sync_single_context(dst_dir, fix=True)
+            # 2. Relocate file on disk
+            try:
+                os.rename(src_full, dst_full)
+            except OSError as e:
+                return {"success": False, "error": f"Filesystem rename error: {e}"}
+
+            # 3. Cascade refactor wikilinks
+            updated_links_count = cascade_rename_links(self.vault_root, src_rel_path, target_path)
+
+            # 4. Synchronize source and destination contexts
+            src_dir = os.path.dirname(src_full)
+            dst_dir = os.path.dirname(dst_full)
+            sync_single_context(src_dir, fix=True)
+            if src_dir != dst_dir:
+                sync_single_context(dst_dir, fix=True)
 
         return {
             "success": True,

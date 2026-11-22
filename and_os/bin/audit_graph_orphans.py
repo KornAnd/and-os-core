@@ -8,12 +8,17 @@ Finds files that appear as orphans in the Obsidian visual graph:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import re
 import json
 from collections import defaultdict
 
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".cache", "repo"}
+# 21.11 (audit R-LLM-OBS F4): .venv/__pycache__/.archive_versions/backups are
+# system or hidden state — never graph nodes, never orphan-link targets.
+# Root cause of the 55 .venv LICENSE links in Vault.md: .venv .md files were
+# walked as orphans and routed to the root hub by the linker's fallback.
+IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".cache", "repo", ".venv", "__pycache__", ".archive_versions", "backups"}
 IGNORE_FILES = {".DS_Store"}
 
 # Files that Obsidian hides via userIgnoreFilters in app.json

@@ -5,6 +5,24 @@ Covers:
   - Root directory CONTEXT.md coverage (12/12) [Vector 6]
   - Orphan note indexing and graph connectivity (Zero-Isolation) [Vector 12]
   - 8 logical islands verification and cross-domain highways [Vector 18]
+
+Link classification vs LinkProbe (link_scan.py) — definitions aligned
+22.11 (external audit P3.1):
+  * "unresolved" here (unresolved_wikilinks, WARNING) = NOTE-GRAPH
+    integrity: a wikilink whose NFC-normalized target (alias/heading
+    stripped, .md dropped) matches zero or ambiguous candidates among
+    VISIBLE NOTES only. Attachments (.png/.pdf/.base), placeholders
+    and links inside point-in-time records all count, by design.
+  * LinkProbe's broken_live (BLOCKING) = the user-navigation
+    contract: unresolved NOTE links from live files, exempting
+    historical sources, non-blocking target prefixes, assets and
+    placeholders; it resolves to ANY disk file type (Obsidian
+    semantics), case-insensitively.
+  22.11 live reconciliation of the 193 unresolved: 146 resolve to
+  disk attachments, 21 historical/non-blocking, 18 placeholders,
+  5 assets, 3 residue (escaped-pipe / conceptual targets) — vs 4
+  broken_live there. Actionable dead links for users = LinkProbe's
+  blocking class; this metric tracks graph topology, not navigation.
 """
 
 import os
@@ -15,7 +33,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, Set, Tuple
 from and_os.lib.health_grid import BaseProbeResult
 
-IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".archive", ".archive_versions", ".vault_shadow", "vault_shadow", "backups", "scratch", "tmp", "var"}
+IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".venv", ".archive", ".archive_versions", ".vault_shadow", "vault_shadow", "backups", "scratch", "tmp", "var"}
 HIDDEN_GRAPH_NAMES = {"CONTEXT.md", "context_export.md", "context_lite.md"}
 
 
@@ -193,6 +211,45 @@ def scan_empty_target_artifacts(vault_root: str, excludes: Tuple[str, ...] = ())
     return sorted(found)
 
 
+def _closest_ancestor_pick(source_dir: str, candidates: List[str]) -> List[str]:
+    """Obsidian semantics for ambiguous bare-name links.
+
+    When several same-name notes exist, Obsidian resolves the link to the
+    note in the closest (deepest) ancestor directory of the source. The
+    18.11 graph tail was dominated by 25 bare [[CONTEXT]] footers in
+    learn notes (Nero/knowledge/engineers/) that the flat index could not
+    disambiguate; the learn-note template re-emits that footer, so the
+    resolver must match the editor instead of patching notes by hand.
+    Only the deepest ancestor level is kept; a tie there stays ambiguous.
+    """
+    in_ancestry = []
+    for cand in candidates:
+        cand_dir = os.path.dirname(cand)
+        if cand_dir == source_dir or source_dir.startswith(cand_dir + os.sep):
+            in_ancestry.append(cand)
+    if not in_ancestry:
+        return candidates
+    deepest = max(len(c.split(os.sep)) for c in in_ancestry)
+    return sorted({c for c in in_ancestry if len(c.split(os.sep)) == deepest})
+
+
+def _target_exists_on_disk(vault_root: str, source_dir: str,
+                           normalized: str, relative_target: str) -> bool:
+    """Non-note targets (.base files, images, exports) resolve to a real file.
+
+    Obsidian links are not limited to Markdown: a wikilink pointing at an
+    existing file (for example a .base database or a cover image) is a
+    valid link. Checked only for targets that failed every
+    index lookup, so the cost stays on the previously-broken set.
+    """
+    probes = (
+        os.path.join(vault_root, normalized),
+        os.path.join(vault_root, relative_target),
+        os.path.join(vault_root, source_dir, normalized),
+    )
+    return any(os.path.isfile(p) for p in probes)
+
+
 def _scan_visible_graph(vault_root: str) -> Dict[str, Any]:
     """Build a fresh, read-only graph from visible Markdown files.
 
@@ -211,6 +268,11 @@ def _scan_visible_graph(vault_root: str) -> Dict[str, Any]:
     unreadable: List[str] = []
     broken_links: List[Tuple[str, str]] = []
     basename_index: Dict[str, List[str]] = defaultdict(list)
+    # Infrastructure notes (CONTEXT.md maps) are hidden from the graph's
+    # node set, but links TO them still resolve in Obsidian. Index them
+    # separately so such links are not counted as broken (18.11 F5: the
+    # 3 240-vs-~1 400 overcount was dominated by [[.../CONTEXT]] links).
+    hidden_index: Dict[str, List[str]] = defaultdict(list)
 
     for root, dirs, files in os.walk(vault_root):
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
@@ -221,6 +283,11 @@ def _scan_visible_graph(vault_root: str) -> Dict[str, Any]:
             rel_path = unicodedata.normalize("NFC", os.path.relpath(full_path, vault_root))
             basename = unicodedata.normalize("NFC", filename)
             if basename in HIDDEN_GRAPH_NAMES or basename.lower().startswith("context_"):
+                stem = basename[:-3]
+                hidden_index[stem].append(rel_path)
+                hidden_index[basename].append(rel_path)
+                hidden_index[rel_path].append(rel_path)
+                hidden_index[rel_path[:-3]].append(rel_path)
                 continue
             try:
                 with open(full_path, "r", encoding="utf-8", errors="strict") as handle:
@@ -244,12 +311,13 @@ def _scan_visible_graph(vault_root: str) -> Dict[str, Any]:
     incoming: Dict[str, int] = defaultdict(int)
     outgoing: Dict[str, int] = defaultdict(int)
     for source, data in nodes.items():
+        source_dir = data["directory"]
         for target in data["targets"]:
             normalized = os.path.normpath(target)
             candidates: List[str] = []
             if normalized.startswith("/"):
                 normalized = normalized.lstrip("/")
-            relative_target = unicodedata.normalize("NFC", os.path.normpath(os.path.join(data["directory"], normalized)))
+            relative_target = unicodedata.normalize("NFC", os.path.normpath(os.path.join(source_dir, normalized)))
             if relative_target in nodes:
                 candidates = [relative_target]
             elif normalized in nodes:
@@ -258,11 +326,26 @@ def _scan_visible_graph(vault_root: str) -> Dict[str, Any]:
                 candidates = basename_index.get(normalized, [])
                 if not candidates:
                     candidates = basename_index.get(os.path.basename(normalized), [])
+                if not candidates:
+                    # Hidden infrastructure notes (CONTEXT.md maps): the
+                    # directory-joined relative path is a valid hidden key
+                    # too (fixes ../CONTEXT style links, 18.11 graph tail).
+                    candidates = hidden_index.get(relative_target, [])
+                    if not candidates:
+                        candidates = hidden_index.get(normalized, [])
+                        if not candidates:
+                            candidates = hidden_index.get(os.path.basename(normalized), [])
             resolved = sorted(set(candidates))
+            if len(resolved) > 1:
+                resolved = _closest_ancestor_pick(source_dir, resolved)
+            if not resolved:
+                if _target_exists_on_disk(vault_root, source_dir, normalized, relative_target):
+                    resolved = ["__disk__"]
             if len(resolved) == 1:
                 destination = resolved[0]
                 if destination != source:
-                    incoming[destination] += 1
+                    if destination != "__disk__":
+                        incoming[destination] += 1
                     outgoing[source] += 1
             else:
                 broken_links.append((source, target))

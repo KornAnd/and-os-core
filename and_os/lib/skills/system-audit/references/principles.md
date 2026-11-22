@@ -34,4 +34,4 @@ tags:
 **Status:** active
 
 ---
-[[CONTEXT|← Наверх]]
+[[and_os/lib/skills/CONTEXT|← Наверх]]

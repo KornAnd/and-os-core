@@ -6,6 +6,7 @@ Principles: APFS Native CoW (Rule #42, #43), Kernel Panic Recovery, Idempotency.
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import shutil
 import argparse
@@ -15,7 +16,7 @@ from datetime import datetime
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 SNAPSHOT_DIR = os.path.join(VAULT_ROOT, ".archive/snapshots")
 
-def create_apfs_snapshot(comment=""):
+def create_apfs_snapshot(comment="") -> tuple:
     """Creates a native APFS volume snapshot via tmutil."""
     print("📸 Creating the hardware APFS Local Snapshot (Copy-on-Write)...")
     try:
@@ -34,7 +35,7 @@ def create_apfs_snapshot(comment=""):
         print(f"  [!] tmutil exception: {e}")
         return False, str(e)
 
-def list_apfs_snapshots():
+def list_apfs_snapshots() -> None:
     """Prints the list of existing local APFS snapshots."""
     try:
         res = subprocess.run(["tmutil", "listlocalsnapshots", "/"], capture_output=True, text=True)
@@ -46,7 +47,7 @@ def list_apfs_snapshots():
     except Exception as e:
         print(f"  [!] Error: {e}")
 
-def create_manifest_snapshot(comment=""):
+def create_manifest_snapshot(comment="") -> str:
     """Creates a fast micro-snapshot of the critical kernel manifests (.archive/snapshots)."""
     os.makedirs(SNAPSHOT_DIR, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -80,8 +81,8 @@ def create_manifest_snapshot(comment=""):
     print(f"💾 Manifest micro-snapshot saved: .archive/snapshots/snap_{ts} ({copied} files).")
     return target_backup_dir
 
-def main():
-    parser = argparse.ArgumentParser(description="APFS & Core State Snapshot Manager (AnD os v1.0.0)")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="APFS & Core State Snapshot Manager (AnD os v1.2.0)")
     parser.add_argument("action", choices=["create", "list", "micro"], help="Snapshot action")
     parser.add_argument("--comment", "-m", type=str, default="", help="Snapshot description")
     args = parser.parse_args()

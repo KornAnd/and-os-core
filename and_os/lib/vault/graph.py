@@ -13,9 +13,14 @@ import os
 import re
 from typing import Dict, List, Set, Tuple, Any
 
+from ..apfs_shadow import create_shadow_copy
+from .locks import vault_file_lock  # 22.11 deep audit (S5)
+
 WIKILINK_REGEX = re.compile(r'(!?\[\[)([^\]]+)(\]\])')
 IMG_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
-IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "vault_shadow"}
+# 22.11 deep audit (S4): and_os/ is the Fast-Track core tree — scans and
+# cascades must never enter it (mirror of engine.audit_hygiene exclusion).
+IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "vault_shadow", "and_os"}
 
 def scan_markdown_files(vault_root: str) -> List[str]:
     """Returns a list of all .md files within the vault excluding ignored directories."""
@@ -104,8 +109,16 @@ def cascade_rename_links(vault_root: str, old_rel_path: str, new_rel_path: str) 
 
         new_content = WIKILINK_REGEX.sub(_replace_link, content)
         if changed and new_content != content:
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(new_content)
+            # 22.11 deep audit (S5): every cascade write is protected by the
+            # same per-file lock and APFS CoW shadow as the primary writer.
+            # Without them a crash mid-cascade lost the pre-state of the
+            # rewritten notes, and a parallel vault_patch raced the bare
+            # open('w') (TOCTOU). Each lock is held for one file write only,
+            # so a single operation holds at most one cascade lock at a time.
+            with vault_file_lock(os.path.relpath(filepath, vault_root)):
+                create_shadow_copy(filepath)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
             updated_files_count += 1
 
     return updated_files_count

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine.
-AnD os v1.0.0 (Rule №48: Zero-Cost Cross-Platform Unix Compatibility).
+AnD os v1.2.0 (Rule №48: Zero-Cost Cross-Platform Unix Compatibility).
 
 Automated script for deploying and migrating the operating system to a new computer (macOS / Linux / Windows).
 Checks:
@@ -17,6 +17,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import shutil
 import platform
@@ -31,7 +32,7 @@ REQUIREMENTS_FILE = ETC_DIR / "requirements.txt"
 SKILLS_DIR = VAULT_ROOT / "and_os" / "lib" / "skills"
 OPENCODE_SKILLS = VAULT_ROOT / ".opencode" / "skills"
 
-def get_platform_info():
+def get_platform_info() -> dict:
     return {
         "os": platform.system(),
         "release": platform.release(),
@@ -39,7 +40,7 @@ def get_platform_info():
         "python": sys.version.split()[0]
     }
 
-def check_runtimes():
+def check_runtimes() -> dict:
     results = {}
     
     # 1. Python check
@@ -75,7 +76,7 @@ def check_runtimes():
 
     return results
 
-def check_python_packages():
+def check_python_packages() -> dict:
     if not REQUIREMENTS_FILE.exists():
         return {"total": 0, "missing": [], "ok": []}
 
@@ -108,7 +109,7 @@ def check_python_packages():
 
     return {"total": len(reqs), "missing": missing, "ok": ok}
 
-def repair_symlinks():
+def repair_symlinks() -> dict:
     if not SKILLS_DIR.exists():
         return {"status": "error", "message": "Skills dir missing"}
     
@@ -125,7 +126,7 @@ def repair_symlinks():
                     sys.stderr.write(f"[bootstrap_system] Warning creating symlink {target_link}: {e}\n")
     return {"restored": restored}
 
-def run_bootstrap(install_mode=False, json_mode=False):
+def run_bootstrap(install_mode=False, json_mode=False) -> None:
     plat = get_platform_info()
     runtimes = check_runtimes()
     pkgs = check_python_packages()
@@ -163,7 +164,7 @@ def run_bootstrap(install_mode=False, json_mode=False):
     if json_mode:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print("=== 🚀 AnD os v1.0.0 SYSTEM BOOTSTRAP & PORTABILITY CHECK ===")
+        print("=== 🚀 AnD os v1.2.0 SYSTEM BOOTSTRAP & PORTABILITY CHECK ===")
         print(f"💻 Platform: {plat['os']} {plat['release']} ({plat['arch']})")
         print(f"🐍 Python: {runtimes['python']['version']} ({'✅ >=3.11' if runtimes['python']['meets_minimum'] else '❌ >=3.11 required'})")
         print(f"🟢 Node.js: {runtimes['node']['version'] or '⚠️ Not found (recommended for Pulsar/Terminal)'}")

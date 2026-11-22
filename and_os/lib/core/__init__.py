@@ -22,7 +22,6 @@ from and_os.lib.core.platform_compat import (
     get_os_type, normalize_path, notify, open_browser, get_secret,
     OS_MAC, OS_LINUX, OS_WINDOWS, CURRENT_OS
 )
-from and_os.lib.core.security_guard import scan_system_secrets, scan_file_for_leaks
 from and_os.lib.core.code_ast_shrinker import shrink_python_code, shrink_file
 from and_os.lib.core.operation_contract import (
     Capability, SideEffect, OperationError, OperationRequest,
@@ -41,7 +40,6 @@ __all__ = [
     "update_procfs", "read_sys_stat",
     "get_os_type", "normalize_path", "notify", "open_browser", "get_secret",
     "OS_MAC", "OS_LINUX", "OS_WINDOWS", "CURRENT_OS",
-    "scan_system_secrets", "scan_file_for_leaks",
     "shrink_python_code", "shrink_file",
     "Capability", "SideEffect", "OperationError", "OperationRequest",
     "OperationResult", "OperationSpec", "SchemaValidationError", "validate_schema"

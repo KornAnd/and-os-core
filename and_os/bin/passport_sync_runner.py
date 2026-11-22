@@ -10,6 +10,7 @@ under the single control plane (audit R2, WI-4.7).
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from pathlib import Path
 from typing import Any, Dict
 

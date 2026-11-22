@@ -1,0 +1,43 @@
+{
+  "skill": "skill-router",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "sr-01",
+      "prompt": "Распредели сложную многошаговую задачу по правильным скиллам, выбери primary",
+      "expected": "skill-router",
+      "decoys": ["skill-creator", "task-graph"]
+    },
+    {
+      "id": "sr-02",
+      "prompt": "Какой скилл должен взять этот неоднозначный запрос в работу",
+      "expected": "skill-router",
+      "decoys": ["clipping-finder", "memory"]
+    },
+    {
+      "id": "sr-03",
+      "prompt": "Арбитраж между конкурирующими доменными скиллами для входящей задачи",
+      "expected": "skill-router",
+      "decoys": ["skill-creator", "task-graph"]
+    },
+    {
+      "id": "sr-04",
+      "prompt": "Маршрутизиру промпт: определи intent, primary skill и secondary по порядку",
+      "expected": "skill-router",
+      "decoys": ["task-graph"]
+    },
+    {
+      "id": "sr-05",
+      "prompt": "Не понимаю, какой скилл подходит под эту задачу — выбери один primary",
+      "expected": "skill-router",
+      "decoys": ["clipping-finder", "skill-creator"]
+    },
+    {
+      "id": "sr-06",
+      "prompt": "Составь маршрут исполнения: primary skill, context sources, композиция",
+      "expected": "skill-router",
+      "decoys": ["task-graph", "dev-flow"]
+    }
+  ]
+}

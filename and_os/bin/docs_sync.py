@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.0.0.
+docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.2.0.
 Parses SSOT configurations (system.json, sys_cli.py, root_config.py) and generates:
   - and_os/docs/RUNBOOK.md (Production operations manual & CLI command directory)
   - Validates sync between documentation tables and codebase
@@ -121,7 +121,7 @@ class DocsSynchronizer:
         }
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os Documentation Synchronizer")
     parser.add_argument("--check", action="store_true", help="Проверить актуальность без записи")
 

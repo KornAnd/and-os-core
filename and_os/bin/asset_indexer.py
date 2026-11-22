@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Asset Indexer for ANDREY OS (v1.0.0)
+Asset Indexer for ANDREY OS (v1.1.0)
 Scans non-MD assets (images, archives, audio, binaries, code exports),
 maps them to parent context files, Obsidian wiki-links, file size/hashes,
 and builds and_os/var/asset_manifest.json + SQLite integration.
@@ -12,6 +12,9 @@ import re
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List
+import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 
 try:
     from and_os.lib.core.root_config import RootConfig
@@ -66,7 +69,7 @@ def scan_md_backlinks() -> Dict[str, List[str]]:
                     link_map[target_name].append(rel_md)
     return link_map
 
-def run_asset_indexing():
+def run_asset_indexing() -> dict:
     """Main indexing logic."""
     print("🔍 Scanning assets and collecting contextual links...")
     backlinks = scan_md_backlinks()

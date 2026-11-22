@@ -8,6 +8,7 @@ __pycache__/
 *.dylib
 
 # Database journals & locks
+*.db
 *.db-shm
 *.db-wal
 *.lock

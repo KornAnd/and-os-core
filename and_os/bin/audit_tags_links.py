@@ -11,6 +11,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from pathlib import Path
 _vroot = str(Path(__file__).resolve().parents[2])
 if _vroot not in sys.path:

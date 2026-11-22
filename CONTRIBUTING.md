@@ -48,3 +48,6 @@ AnD os is an engineering-grade deterministic microkernel designed for autonomous
 5. **Submit a Pull Request:**
    - Keep commits focused and well-documented.
    - Ensure all 9 pre-flight phases pass green.
+
+---
+[[Vault|← Vault]]

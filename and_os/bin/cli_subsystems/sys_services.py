@@ -10,7 +10,8 @@ import socket
 import subprocess
 import time
 from typing import Any
-from and_os.bin.cli_subsystems.base import BaseSubsystem, run_script, auto_log_telemetry, VAULT_ROOT
+from and_os.bin.cli_subsystems.base import (BaseSubsystem, run_script, auto_log_telemetry,
+                                            VAULT_ROOT, AI_SCRIPT_DIR)
 
 
 def _await_service_settle(state_path: str, svc_id: str, timeout: float,
@@ -140,6 +141,9 @@ class ServicesSubsystem(BaseSubsystem):
         p_skills.add_argument("--search", type=str, help="The search of the external agent skills")
         p_skills.add_argument("--inspect", type=str, help="The inspection of the external skill")
         p_skills.add_argument("--json", action="store_true", help="The output in the JSON")
+
+        # export-skills
+        p_exp = subparsers.add_parser("export-skills", help="The Zero-Leak standalone skills export for external harnesses (Rule #57/#58)")
 
         # skill
         p_skill = subparsers.add_parser("skill", help="The unified microkernel gateway to the skill modules")
@@ -385,6 +389,14 @@ class ServicesSubsystem(BaseSubsystem):
             from and_os.bin.sys_cli import cmd_skills
             cmd_skills(args)
             return 0
+
+        elif cmd == "export-skills":
+            script = os.path.join(AI_SCRIPT_DIR, "export_skills.py")
+            env = os.environ.copy()
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+            res = subprocess.run([sys.executable, script], env=env)
+            auto_log_telemetry("Zero-Leak skills export", skill="sys.export_skills")
+            return res.returncode
 
         elif cmd == "skill":
             from and_os.bin.sys_cli import cmd_skill

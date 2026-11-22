@@ -9,7 +9,7 @@ tags:
 
 # Метрики эффективности skill-системы
 
-Референс для `system-audit` (Performance Audit). Источники данных: `and_os/lib/skills/telemetry.md`, записи `decision-log`, записи `knowledge-promoter`, снимки `project-state`.
+Референс для `system-audit` (Performance Audit). Источники данных: `and_os/lib/skills/telemetry.md` (routing-лог: одна строка на WORK/STRATEGIC-задачу — с 2026-11-14 конвейер метрик 1–4, 7, 8, 11 питается реальными данными), записи `decision-log`, записи `knowledge-promoter`, снимки `status-report` (Operational Snapshot).
 
 ## Принцип измерения
 
@@ -39,6 +39,8 @@ tags:
 - YYYY-MM-DD | MODE | skill | тема/проект | route(ok|manual) | ctx(min|work|full|compressed) | iter | rework(0|n) | result(new|reused) | K(+|-) | D(+|-)
 ```
 
+**Invoke-строки (автолог ядра, Audit R5, decision R1):** CLI-вызовы (`sys_cli`, closed-loop) пишутся тем же логгером, но с доп. 12-м полем `| invoke` в конце строки. Это **не задачи** — они исключаются из метрик 1–4, 7 и 11 (считаются только строки задач: 11 полей, без маркера). `K(+)`/`D(+)` ставятся только при фактическом промоушене/фиксации решения; автолог пишет `-`. Логгер: `and_os/bin/telemetry_logger.py` (валидация enum, flock, vault_safe_write; legacy-значения `--result` нормализуются в invoke-строки).
+
 - `ctx=min` — точечный контекст (<10 фрагментов / <5k токенов).
 - `ctx=work` — рабочий контекст задачи (10–25 фрагментов / 5–20k токенов).
 - `ctx=full` — тяжелый анализ (>25 фрагментов / >20k токенов).
@@ -53,4 +55,4 @@ tags:
 3. **Не штрафуй за K(-)/D(-)** — не каждая задача должна давать знание или решение; важен только тренд метрик #5 и #6.
 
 ---
-[[CONTEXT|← Наверх]]
+[[and_os/lib/skills/CONTEXT|← Наверх]]

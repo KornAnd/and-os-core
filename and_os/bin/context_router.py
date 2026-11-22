@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.0.0).
+context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.1.0).
 Indexes all the CONTEXT.md in the Vault, keeps the registry in the SQLite (task_vault.db) and the JSON (context_map.json),
 provides the fast routing of the tasks to the needed contexts in the 0.005 s.
 """
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import sqlite3
 import re
@@ -21,11 +22,11 @@ except Exception:
 if str(VAULT_ROOT) not in sys.path:
     sys.path.insert(0, str(VAULT_ROOT))
 DB_PATH = VAULT_ROOT / "and_os" / "var" / "task_vault.db"
-JSON_SNAPSHOT = VAULT_ROOT / "Nero" / "ai" / "scratch" / "context_map.json"
+JSON_SNAPSHOT = VAULT_ROOT / "and_os" / "var" / "context_map.json"
 
 EXCLUDE_DIRS = {".git", ".obsidian", ".pdf_archive", "node_modules", "__pycache__", ".venv", "Trash", ".trash"}
 
-def extract_context_info(context_path):
+def extract_context_info(context_path) -> tuple:
     """Extracts summary and title from a CONTEXT.md file."""
     try:
         content = context_path.read_text(encoding="utf-8", errors="ignore")
@@ -55,7 +56,7 @@ def extract_context_info(context_path):
     except Exception as e:
         return context_path.parent.name, f"The reading error: {str(e)}"
 
-def count_child_md_files(directory):
+def count_child_md_files(directory) -> int:
     """Counts .md files inside directory (excluding CONTEXT.md)."""
     count = 0
     try:
@@ -66,7 +67,7 @@ def count_child_md_files(directory):
         sys.stderr.write(f"[context_router] Warning accessing directory {directory}: {e}\n")
     return count
 
-def sync_context_registry():
+def sync_context_registry() -> list:
     """Scans all CONTEXT.md files in Vault and updates SQLite + JSON snapshot."""
     print("🔍 The scanning and the indexation of all the CONTEXT.md files...")
     context_entries = []
@@ -129,7 +130,7 @@ def sync_context_registry():
     print(f"📁 The snapshot file was saved: and_os/var/context_map.json")
     return context_entries
 
-def sync_knowledge_clippings_db():
+def sync_knowledge_clippings_db() -> None:
     """Syncs Clippings/quick_knowledge_db.json into SQLite task_vault.db."""
     json_db = VAULT_ROOT / "Clippings" / "quick_knowledge_db.json"
     if not json_db.exists():
@@ -158,7 +159,7 @@ def sync_knowledge_clippings_db():
     except Exception as e:
         print(f"⚠️ The error of the synchronization of the knowledge in the SQLite: {e}")
 
-def sync_graph_registry_db():
+def sync_graph_registry_db() -> None:
     """Syncs and_os/etc/SYSTEM_GRAPH_REGISTRY.json into SQLite task_vault.db."""
     reg_file = VAULT_ROOT / "Nero" / "ai" / "reference" / "SYSTEM_GRAPH_REGISTRY.json"
     if not reg_file.exists():
@@ -195,7 +196,7 @@ def sync_graph_registry_db():
     except Exception as e:
         print(f"⚠️ The error of the synchronization of the graph of the dependencies: {e}")
 
-def route_task_to_context(query):
+def route_task_to_context(query) -> dict:
     """Fast unified routing across CONTEXT.md, Knowledge Clippings, and System Manifest Graph."""
     if not DB_PATH.exists():
         sync_context_registry()
@@ -350,7 +351,7 @@ def route_task_to_context(query):
         "manifests": manifest_results
     }
 
-def find_related_notes(note_path: str, limit: int = 4):
+def find_related_notes(note_path: str, limit: int = 4) -> list:
     """Find top semantically related notes and knowledge clippings for a given document (inspired by Smart Connections)."""
     target_p = Path(note_path)
     if not target_p.is_absolute():

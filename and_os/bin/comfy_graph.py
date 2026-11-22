@@ -27,6 +27,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 import re
@@ -38,7 +39,7 @@ import subprocess
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 VAULT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "../.."))
 DEFAULT_INVENTORY = os.path.join(VAULT_ROOT, "and_os", "lib", "workflows", "comfy", "models_inventory.md")
-TEMPLATES_DIR = os.path.join(VAULT_ROOT, "and_os", "lib", "skills", "comfy-builder", "references", "templates")
+TEMPLATES_DIR = os.path.join(VAULT_ROOT, "and_os", "lib", "skills", "comfy-studio", "references", "templates")
 LEGACY_TEMPLATES_DIR = os.path.join(VAULT_ROOT, "Nero", "skills", "comfyui", "references")
 DEFAULT_UPSTREAM_URL = "https://github.com/twwch/comfyui-workflow-skill.git"
 
@@ -561,7 +562,7 @@ def sync_upstream_templates(source: str = DEFAULT_UPSTREAM_URL) -> dict:
 
         # Sync node references if available
         src_nodes = os.path.join(source_dir, "references", "nodes")
-        dst_nodes = os.path.join(VAULT_ROOT, "and_os", "lib", "skills", "comfy-builder", "references", "nodes")
+        dst_nodes = os.path.join(VAULT_ROOT, "and_os", "lib", "skills", "comfy-studio", "references", "nodes")
         if os.path.exists(src_nodes):
             os.makedirs(dst_nodes, exist_ok=True)
             for f in os.listdir(src_nodes):

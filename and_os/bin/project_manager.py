@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.0.0.
+project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.2.0.
 Automatically registers new projects in Nero/pulsar (Island 7) or Nero/xcode (Island 9).
 
 Features:
@@ -12,6 +12,7 @@ Features:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import re
 import json
 import argparse

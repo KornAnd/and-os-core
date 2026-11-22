@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import os
 import py_compile
 import argparse

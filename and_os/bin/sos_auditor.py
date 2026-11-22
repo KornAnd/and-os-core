@@ -13,8 +13,9 @@ Verifies all active skills concurrently across CPU cores:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import time
-import py_compile
+import json
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, List
@@ -24,6 +25,20 @@ VAULT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
 SKILLS_DIR = os.path.join(VAULT_ROOT, "and_os", "lib", "skills")
 OPENCODE_SKILLS = os.path.join(VAULT_ROOT, ".opencode", "skills")
 BINDINGS_PATH = os.path.join(VAULT_ROOT, "and_os", "etc", "SKILL_BINDINGS.json")
+
+
+def _version_tag() -> str:
+    """Canonical version tag from and_os/etc/system.json (SSoT projection).
+
+    The banner must never hardcode a version: Rule #55 (1 entity = 1 file)
+    makes system.json the single version source for displayed tool banners.
+    """
+    try:
+        with open(os.path.join(VAULT_ROOT, "and_os", "etc", "system.json"), encoding="utf-8") as fh:
+            return "AnD os v" + json.load(fh).get("version", "unknown")
+    except (OSError, ValueError) as exc:
+        sys.stderr.write(f"sos_auditor: cannot read canonical version ({exc}); using plain banner\n")
+        return "AnD os"
 
 
 def load_cached_bindings() -> set:
@@ -106,6 +121,10 @@ def audit_single_skill(skill_name: str, skill_path: str, run_probes: bool = Fals
                     venv_bin = os.path.join(VAULT_ROOT, "and_os", ".venv", "bin")
                     if os.path.isdir(venv_bin):
                         probe_env["PATH"] = venv_bin + os.pathsep + probe_env.get("PATH", "")
+                    # C13 F4 (defense in depth for Rule #68 / Rule #50): even
+                    # if a probe command pins a non-golden interpreter, it
+                    # must not compile bytecode into the source tree.
+                    probe_env["PYTHONDONTWRITEBYTECODE"] = "1"
                     p_res = subprocess.run(
                         probe_cmd,
                         shell=True,  # nosec: probe runner
@@ -141,16 +160,23 @@ def audit_single_skill(skill_name: str, skill_path: str, run_probes: bool = Fals
     if REGISTERED_BINDINGS and skill_name not in REGISTERED_BINDINGS:
         result["warnings"].append(f"Skill '{skill_name}' is not registered in and_os/etc/SKILL_BINDINGS.json")
 
-    # 4. Check internal python scripts compilation
+    # 4. Check internal python scripts compilation (C13 F4: in-memory
+    # compile only — py_compile.compile() writes __pycache__/.pyc artifacts
+    # into the source tree on every audit run, breaching Rule #50 hermetic
+    # FHS. compile() gives the identical syntax check with zero I/O.)
     for root, _, files in os.walk(skill_path):
         for file in files:
             if file.endswith(".py"):
                 py_file = os.path.join(root, file)
                 try:
-                    py_compile.compile(py_file, doraise=True)
-                except py_compile.PyCompileError as pye:
+                    with open(py_file, "r", encoding="utf-8") as pf:
+                        compile(pf.read(), py_file, "exec")
+                except SyntaxError as syn:
                     result["valid"] = False
-                    result["errors"].append(f"Python compile error in {file}: {pye}")
+                    result["errors"].append(f"Python compile error in {file}: {syn}")
+                except OSError as oerr:
+                    result["valid"] = False
+                    result["errors"].append(f"Python read error in {file}: {oerr}")
 
     if result["errors"]:
         result["valid"] = False
@@ -195,7 +221,7 @@ def run_parallel_audit(run_probes: bool = False, max_workers: int = 8) -> Dict[s
     }
 
 
-def main():
+def main() -> None:
     run_probes = "--probe" in sys.argv
     as_json = "--json" in sys.argv
     
@@ -207,7 +233,7 @@ def main():
         return
 
     print("=================================================================")
-    print(f"🚀 SOS Parallel Multi-Core Skill Auditor (AnD os v1.0.0)")
+    print(f"🚀 SOS Parallel Multi-Core Skill Auditor ({_version_tag()})")
     print(f"⚡ Skills checked: {audit_data['total']} in {audit_data['elapsed_ms']} ms")
     print("=================================================================")
     

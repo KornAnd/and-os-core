@@ -1,0 +1,43 @@
+{
+  "skill": "system-audit",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "sa-01",
+      "prompt": "Сделай полный аудит ядра системы и всех quality gates",
+      "expected": "system-audit",
+      "decoys": ["skill-creator", "ui-inspector"]
+    },
+    {
+      "id": "sa-02",
+      "prompt": "Проверь целостность тестов: нет ли ослабленных гейтов, bare-suppression, раздутых таймингов",
+      "expected": "system-audit",
+      "decoys": ["dev-flow"]
+    },
+    {
+      "id": "sa-03",
+      "prompt": "Прогони security scan по and_os — есть ли секреты и уязвимости",
+      "expected": "system-audit",
+      "decoys": ["github-ops", "reverse-engineer-anything"]
+    },
+    {
+      "id": "sa-04",
+      "prompt": "Запусти Health Grid по всем кольцам и дай сводку по статусу системы",
+      "expected": "system-audit",
+      "decoys": ["status-report"]
+    },
+    {
+      "id": "sa-05",
+      "prompt": "Аудит публичного пакета: OWASP Top-10, STRIDE, поиск секретов в детерминированном скане",
+      "expected": "system-audit",
+      "decoys": ["reverse-engineer-anything"]
+    },
+    {
+      "id": "sa-06",
+      "prompt": "Полный pre-release аудит перед выходом на новую версию: grid, gates, composite, security",
+      "expected": "system-audit",
+      "decoys": ["skill-creator", "system-architect"]
+    }
+  ]
+}

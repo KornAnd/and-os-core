@@ -1,6 +1,6 @@
 """
 operations.py — Canonical Microkernel Built-in Operations
-AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Operations)
+AnD os v1.2.0 — Core Architecture Layer (Unix-Grade Microkernel Operations)
 
 Defines and registers core operations conforming strictly to OperationSpec:
   - system.ping (v1.0.0): Diagnostics & round-trip check
@@ -48,9 +48,14 @@ def handle_system_ping(request: OperationRequest) -> OperationResult:
 
 def handle_system_audit(request: OperationRequest) -> OperationResult:
     """Handler for system.audit operation (delegating to validate_system.py)."""
-    deep = request.params.get("deep", False)
     compact = request.params.get("compact", False)
     json_mode = request.params.get("json", True)
+
+    # C14 K2: validate_system.py only declares --fix/--compact/--json/
+    # --save-report. The old elif-chain passed phantom flags ('--check' in
+    # the json=false branch, '--deep' behind it) that the validator's
+    # argparse rejects with rc=2, and '--deep' was unreachable anyway.
+    # Format flags are now mapped 1:1; no flag = verbose text mode.
 
     vault_root = resolve_vault_root()
     validator_path = os.path.join(vault_root, "and_os/bin/validate_system.py")
@@ -71,12 +76,14 @@ def handle_system_audit(request: OperationRequest) -> OperationResult:
         cmd.append("--compact")
     elif json_mode:
         cmd.append("--json")
-    elif deep:
-        cmd.append("--deep")
-    else:
-        cmd.append("--check")
 
-    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=vault_root)
+    # C14 K2 (defense in depth, class C13 F4): the audit subprocess must not
+    # compile bytecode into the source tree even if sys.executable is a
+    # non-golden interpreter.
+    child_env = os.environ.copy()
+    child_env["PYTHONDONTWRITEBYTECODE"] = "1"
+
+    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=vault_root, env=child_env)
     success = (proc.returncode == 0)
 
     if success:
@@ -227,10 +234,11 @@ SPEC_SYSTEM_AUDIT = OperationSpec(
     description="Execute full Health Grid system audit verification",
     capabilities_required=(Capability.FS_READ, Capability.PROC_EXEC),
     side_effects=(SideEffect.NONE,),
+    # C14 K2: 'deep' removed from the declared contract — validate_system.py
+    # has no --deep flag, so the parameter was a no-op phantom.
     params_schema={
         "type": "object",
         "properties": {
-            "deep": {"type": "boolean"},
             "compact": {"type": "boolean"},
             "json": {"type": "boolean"}
         }

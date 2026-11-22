@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 video_harness.py — Autonomous technical QC validator for video and passes (Video E2E Harness).
-AnD os v1.0.0 — Island 7 & 5 (Pulsar & CG Production).
+AnD os v1.2.0 — Island 7 & 5 (Pulsar & CG Production).
 
 Provides end-to-end technical control of shot pipeline artifacts:
 1. Validation of raw playblasts (Blender Viewport Playblast) and depth video passes.
@@ -13,6 +13,7 @@ Provides end-to-end technical control of shot pipeline artifacts:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import subprocess
 from typing import Dict, Any, Optional

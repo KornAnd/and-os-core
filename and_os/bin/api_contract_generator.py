@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 api_contract_generator.py — Typed API & Microkernel Contract Generator
-AnD os v1.0.0 — System Engineering Layer (Type-Safe Contracts & Schemas)
+AnD os v1.2.0 — System Engineering Layer (Type-Safe Contracts & Schemas)
 
 Generates strict OperationSpec contracts, JSON Schema, and Python dataclass interfaces
 from natural language descriptions, route definitions, or function signatures.
@@ -9,6 +9,7 @@ from natural language descriptions, route definitions, or function signatures.
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 from typing import Dict, Any, List
@@ -62,7 +63,7 @@ SPEC_{self.operation_id.upper().replace(".", "_")} = OperationSpec(
         return code
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os Typed Contract Generator")
     parser.add_argument("operation_id", help="Operation ID (e.g. 'tasks.export')")
     parser.add_argument("--desc", default="Generated operation contract", help="Operation description")

@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| 1.2.x   | :white_check_mark: |
+| < 1.2   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -17,3 +17,6 @@ If you discover a security vulnerability or data isolation bypass in AnD os:
 3. Include reproduction steps, environment details, and sample inputs.
 
 We will acknowledge reports within 48 hours and work with you on a coordinated disclosure timeline.
+
+---
+[[Vault|← Vault]]

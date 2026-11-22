@@ -1,6 +1,6 @@
 """
 test_core_dispatch.py — Comprehensive Unit Tests for C5 Core Dispatcher & Registry
-AnD os v1.0.0 — Core Architecture Verification
+AnD os v1.2.0 — Core Architecture Verification
 """
 
 import unittest
@@ -80,6 +80,42 @@ class TestCoreDispatch(unittest.TestCase):
         res = self.dispatcher.dispatch(req)
         self.assertFalse(res.success)
         self.assertEqual(res.error.code, "OPERATION_NOT_FOUND")
+
+    def test_omitted_capabilities_fail_closed(self):
+        """C14 K7: omitting caller_capabilities grants NOTHING, not full access.
+        The old fail-open default let kernel callers (e.g. the terminal web
+        console) bypass capability enforcement entirely."""
+        req = OperationRequest(
+            operation_id="system.ping",
+            version="1.0.0",
+            params={"echo": "sensitive"},
+            caller="unprivileged_caller",
+        )
+        res = self.dispatcher.dispatch(req)  # no caller_capabilities passed
+        self.assertFalse(res.success)
+        self.assertEqual(res.error.code, "PERMISSION_DENIED")
+
+    def test_empty_capability_tuple_allowed_for_capless_spec(self):
+        """An operation with no required capabilities accepts an empty grant."""
+        capless = OperationSpec(
+            operation_id="capless.op",
+            version="1.0.0",
+            description="No capability required",
+            side_effects=(SideEffect.NONE,),
+        )
+
+        def handler(req: OperationRequest) -> OperationResult:
+            return OperationResult(
+                operation_id=req.operation_id,
+                success=True,
+                data={"ok": True},
+                postcondition_evidence={"done": True},
+            )
+
+        self.registry.register(capless, handler)
+        req = OperationRequest(operation_id="capless.op", version="1.0.0")
+        res = self.dispatcher.dispatch(req)  # fail-closed default: empty set
+        self.assertTrue(res.success)
 
     def test_missing_capabilities_denied(self):
         """Caller missing required capability is rejected with PERMISSION_DENIED."""

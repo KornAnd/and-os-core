@@ -21,7 +21,7 @@ class GovernanceSubsystem(BaseSubsystem):
         p_ver.add_argument("--verbose", "-v", action="store_true", help="Expanded report output")
 
         # audit
-        p_audit = subparsers.add_parser("audit", help="Run the 16-vector audit of the AnD os v1.0.0 system")
+        p_audit = subparsers.add_parser("audit", help="Run the 16-vector audit of the AnD os v1.2.0 system")
         p_audit.add_argument("--fix", action="store_true", help="Automatic repair of basic errors (L1-L3)")
         p_audit.add_argument("--compact", action="store_true", help="Compact output to save context")
         p_audit.add_argument("--json", action="store_true", help="JSON format output")

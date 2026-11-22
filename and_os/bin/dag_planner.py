@@ -6,6 +6,7 @@ Manages structured phased task plans in `and_os/var/plans/<task>.plan.json`.
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import os
 import json
 import time

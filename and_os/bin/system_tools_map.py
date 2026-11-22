@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 system_tools_map.py — The Automatic Generator of the Unified System Passport of the Toolkit and the Runtimes (Toolchain & Runtime Engine).
-The principle: the Zero-Token Routing Map, the Think in Code (Rule #16), the regulation of the execution environments of the AnD os v1.0.0.
+The principle: the Zero-Token Routing Map, the Think in Code (Rule #16), the regulation of the execution environments of the AnD os v1.2.0.
 
 Purpose:
   1. Scans the runtimes of the OS: Python (the version, the path, the installed packages), Node.js, Git, the OS Architecture.
@@ -17,6 +17,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from pathlib import Path
 _vroot = str(Path(__file__).resolve().parents[2])
 if _vroot not in sys.path:
@@ -40,7 +41,7 @@ JSON_OUTPUT = os.path.join(VAULT_ROOT, "and_os/etc/SYSTEM_TOOLCHAIN.json")
 MD_OUTPUT = os.path.join(VAULT_ROOT, "and_os/etc/SYSTEM_TOOLCHAIN.md")
 PROC_DIR = os.path.join(VAULT_ROOT, "and_os/proc")
 
-def get_cli_version(cmd_list):
+def get_cli_version(cmd_list) -> str:
     env = os.environ.copy()
     env["PATH"] = f"/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:{env.get('PATH', '')}"
     try:
@@ -52,7 +53,7 @@ def get_cli_version(cmd_list):
     except Exception:
         return "NOT_AVAILABLE"
 
-def get_app_plist_version(plist_path):
+def get_app_plist_version(plist_path) -> str:
     import plistlib
     if os.path.exists(plist_path):
         try:
@@ -63,7 +64,7 @@ def get_app_plist_version(plist_path):
             return "INSTALLED"
     return "NOT_INSTALLED"
 
-def collect_runtime_environment():
+def collect_runtime_environment() -> dict:
     """The collection of the information over the versions of the programming languages, the installed modules, the DCC and the applied systems."""
     python_ver = platform.python_version()
     python_path = sys.executable
@@ -82,6 +83,11 @@ def collect_runtime_environment():
     jq_ver = get_cli_version(["jq", "--version"])
     sqlite_ver = get_cli_version(["sqlite3", "--version"])
     tmux_ver = get_cli_version(["tmux", "-V"])
+    # 22.11 app-registry refresh: core-relevant CLIs discovered on the system
+    obsidian_cli_ver = get_cli_version(["obsidian-cli", "--version"])
+    xcodegen_ver = get_cli_version(["xcodegen", "--version"])
+    gemini_cli_ver = get_cli_version(["gemini", "--version"])
+    opencode_ver = get_cli_version(["opencode", "--version"])
 
     # DCC & Creative Software
     blender_ver = get_cli_version(["/Applications/Blender.app/Contents/MacOS/Blender", "--version"])
@@ -93,6 +99,14 @@ def collect_runtime_environment():
     obsidian_ver = get_app_plist_version("/Applications/Obsidian.app/Contents/Info.plist")
     mattermost_ver = get_app_plist_version("/Applications/Mattermost.app/Contents/Info.plist")
     telegram_ver = get_app_plist_version("/Applications/Telegram.app/Contents/Info.plist")
+    # 22.11 app-registry refresh: installed apps discovered via system_profiler
+    # (the agent shell keeps the /Applications deny zone — only this sanctioned
+    # scanner reads the plists; see fs_map.json)
+    obsidian_clipper_ver = get_app_plist_version("/Applications/Obsidian Web Clipper.app/Contents/Info.plist")
+    claude_ver = get_app_plist_version("/Applications/Claude.app/Contents/Info.plist")
+    gemini_app_ver = get_app_plist_version("/Applications/Gemini.app/Contents/Info.plist")
+    zoom_ver = get_app_plist_version("/Applications/zoom.us.app/Contents/Info.plist")
+    craft_anything_ver = get_app_plist_version("/Applications/Craft Anything.app/Contents/Info.plist")
 
     # Houdini check
     houdini_ver = "NOT_INSTALLED"
@@ -154,7 +168,8 @@ def collect_runtime_environment():
             "deno": deno_ver,
             "go": go_ver,
             "swift": swift_ver,
-            "git": git_ver
+            "git": git_ver,
+            "opencode": opencode_ver
         },
         "cli_tools": {
             "ffmpeg": ffmpeg_ver,
@@ -164,7 +179,10 @@ def collect_runtime_environment():
             "gh": gh_ver,
             "jq": jq_ver,
             "sqlite": sqlite_ver,
-            "tmux": tmux_ver
+            "tmux": tmux_ver,
+            "obsidian_cli": obsidian_cli_ver,
+            "xcodegen": xcodegen_ver,
+            "gemini_cli": gemini_cli_ver
         },
         "creative_and_dcc": {
             "blender": blender_ver,
@@ -178,7 +196,12 @@ def collect_runtime_environment():
             "obsidian": obsidian_ver,
             "mattermost": mattermost_ver,
             "telegram": telegram_ver,
-            "docker": docker_ver
+            "docker": docker_ver,
+            "obsidian_web_clipper": obsidian_clipper_ver,
+            "claude": claude_ver,
+            "gemini_app": gemini_app_ver,
+            "zoom": zoom_ver,
+            "craft_anything": craft_anything_ver
         }
     }
 
@@ -251,7 +274,7 @@ def _render_packages_markdown(packages_categorized: dict) -> str:
     return "".join(lines)
 
 
-def build_toolchain_map():
+def build_toolchain_map() -> dict:
     # 0. Collect Runtime Environment
     runtime_env = collect_runtime_environment()
 
@@ -303,7 +326,7 @@ tags:
 created: {toolchain_data['updated_at']}
 ---
 
-# 🛠️ SYSTEM TOOLCHAIN — Runtime Standard & Toolchain Specification AnD os v1.0.0
+# 🛠️ SYSTEM TOOLCHAIN — Runtime Standard & Toolchain Specification AnD os v1.2.0
 
 > **Specification for AI Agents and Developers:** Canonical specification of programming language versions, installed libraries, {len(scripts_info)} core scripts, and {len(skills_info)} active skills.  
 > **Automated Refresh:** `python3 and_os/bin/sys_cli.py env` or `python3 and_os/bin/system_tools_map.py --build`
@@ -320,6 +343,7 @@ created: {toolchain_data['updated_at']}
 | **Go** | `{runtime_env['runtimes']['go']}` | Compiled Backend Runtime | `Go (Homebrew)` | 🟢 Active |
 | **Swift** | `{runtime_env['runtimes']['swift']}` | Native Apple Ecosystem | `Apple Swift 6 Toolchain` | 🟢 Active |
 | **Git** | `{runtime_env['runtimes']['git']}` | `>= 2.40.x` | Apple Git | 🟢 Active |
+| **OpenCode** | `{runtime_env['runtimes']['opencode']}` | The agent harness of the AnD os (the bun runner, the MCP mesh) | OpenCode CLI | 🟢 Active |
 | **Platform** | `{runtime_env['os']}` | macOS Darwin Apple Silicon | Darwin Kernel | 🟢 Active |
 
 ---
@@ -336,6 +360,9 @@ created: {toolchain_data['updated_at']}
 | **jq** | `{runtime_env['cli_tools']['jq']}` | The streaming filtering and the parsing of the JSON in the terminal |
 | **SQLite3** | `{runtime_env['cli_tools']['sqlite']}` | The embedded storage of the indexes and the tasks (`task_vault.db`) |
 | **tmux** | `{runtime_env['cli_tools']['tmux']}` | The multiplexer of the terminal sessions |
+| **obsidian-cli** | `{runtime_env['cli_tools']['obsidian_cli']}` | The command-line bridge to the Obsidian vault (the core-app interaction) |
+| **xcodegen** | `{runtime_env['cli_tools']['xcodegen']}` | The generation of the Xcode project files (the Island 9) |
+| **gemini-cli** | `{runtime_env['cli_tools']['gemini_cli']}` | The Google LLM terminal agent |
 
 ---
 
@@ -360,6 +387,11 @@ created: {toolchain_data['updated_at']}
 | **Mattermost** | `{runtime_env['apps']['mattermost']}` | The corporate messenger of the studio of the Studio (`mattermost_sync.py`) |
 | **Telegram** | `{runtime_env['apps']['telegram']}` | The channels, the bots and the operational communication (`tg_bot_app`) |
 | **Docker** | `{runtime_env['apps']['docker']}` | The containerization of the microservices and the databases |
+| **Obsidian Web Clipper** | `{runtime_env['apps']['obsidian_web_clipper']}` | The web capture of the articles into the Clippings island |
+| **Claude** | `{runtime_env['apps']['claude']}` | The Anthropic LLM client (the tool_home is ~/.claude, the Claude Code CLI) |
+| **Gemini** | `{runtime_env['apps']['gemini_app']}` | The Google LLM client (the tool_home is ~/.gemini, the gemini-cli) |
+| **Zoom** | `{runtime_env['apps']['zoom']}` | The video calls and the production reviews |
+| **Craft Anything** | `{runtime_env['apps']['craft_anything']}` | The Craft note-taking suite (the *Craft components, the vendor is to confirm) |
 
 ---
 
@@ -407,7 +439,7 @@ created: {toolchain_data['updated_at']}
 
     return toolchain_data
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="System Toolchain & Runtime Map Generator")
     parser.add_argument("--build", action="store_true", default=True, help="Generate the map of the toolkit and the runtimes")
     parser.add_argument("--json", action="store_true", help="The output only in the JSON format")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 obsidian_blueprint_generator.py — Generator of the reference architecture and plugins passport of Obsidian.
-AnD os v1.0.0 — Production Environment Blueprint
+AnD os v1.2.0 — Production Environment Blueprint
 
 Creates or updates the single file `OBSIDIAN_STRUCTURE_BLUEPRINT.md` in the root / in and_os/etc/,
 containing the 100% specification:
@@ -15,6 +15,7 @@ The update cadence: once a month at the neural network launch or with the --forc
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import time
 from datetime import datetime, timedelta
@@ -64,7 +65,7 @@ PLUGIN_ROLES = {
     "obsidian-opencode": "The integration with the local OpenCode AI agents"
 }
 
-def load_json(path):
+def load_json(path) -> dict:
     if os.path.exists(path):
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -74,7 +75,7 @@ def load_json(path):
             return {}
     return {}
 
-def should_update(force=False):
+def should_update(force=False) -> bool:
     if force or not os.path.exists(TARGET_MD):
         return True
     
@@ -85,7 +86,7 @@ def should_update(force=False):
         return True
     return False
 
-def generate_blueprint():
+def generate_blueprint() -> dict:
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     
     # 1. Collection of the base Obsidian settings
@@ -152,7 +153,7 @@ def generate_blueprint():
     md.append("")
     md.append("# 🏛️ OBSIDIAN_STRUCTURE_BLUEPRINT — The Reference Passport of the Architecture and the Plugins")
     md.append("")
-    md.append("> 💡 **TL;DR:** The single reference passport of the full structure of the Obsidian Vault of System Architect (AnD os v1.0.0). "
+    md.append("> 💡 **TL;DR:** The single reference passport of the full structure of the Obsidian Vault of System Architect (AnD os v1.2.0). "
               "Contains the 100% specification of the catalogs, the base settings, the core and the 35 community plugins with their role and the configuration. "
               "Allows any LLM on any new computer to recreate the exact copy of the working environment instantly.")
     md.append(f"> 📅 **Generation / update date:** `{now_str}`  ")

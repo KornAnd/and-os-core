@@ -31,8 +31,10 @@ class ToolchainManager:
             try:
                 with open(cfg_path, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except (json.JSONDecodeError, OSError) as err:
+                # C14 K8: a corrupt lock file must be visible, not silently
+                # treated as "no config" (parity checks would run on defaults).
+                sys.stderr.write(f"[toolchain] Notice reading {cfg_path}: {err}\n")
         return {}
 
     def ensure_canonical_python(self, auto_reexec: bool = True) -> bool:

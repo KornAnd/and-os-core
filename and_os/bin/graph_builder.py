@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, Set, Tuple
 

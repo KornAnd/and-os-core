@@ -7,6 +7,7 @@ Validates the JSON response structure of state_manager, task_db_engine, pdf_twin
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 

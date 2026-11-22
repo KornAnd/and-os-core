@@ -11,9 +11,13 @@ Goal:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import re
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # vault root
+from and_os.lib.vault.locks import vault_file_lock  # audit R-LLM-OBS F6
 
 try:
     from and_os.lib.core.root_config import RootConfig
@@ -21,6 +25,21 @@ try:
 except Exception:
     VAULT_ROOT = Path(__file__).resolve().parents[2]
 ORPHANS_REPORT = VAULT_ROOT / "and_os/var/graph_orphans_report.json"
+
+# 21.11 (audit R-LLM-OBS F4): defense in depth — paths that must never become
+# graph link targets, even if a future audit report leaks them. System files
+# under these parts (or any hidden dot-dir) are not vault notes.
+_FORBIDDEN_PARTS = {".venv", "node_modules", "__pycache__", ".archive_versions", "backups", "vault_shadow", "tmp"}
+
+
+def _is_linkable(rel_path: str) -> bool:
+    """True only for real vault notes: .md, no hidden parts, no system dirs."""
+    if not rel_path.lower().endswith(".md"):
+        return False
+    parts = Path(rel_path).parts
+    if any(p.startswith(".") for p in parts):
+        return False
+    return not (set(parts) & _FORBIDDEN_PARTS)
 
 DOMAIN_HUBS = {
     "Clippings": "Clippings/Clippings.md",
@@ -78,60 +97,78 @@ def find_target_hub(rel_path: str) -> tuple[str, str]:
     return "Vault.md", "Vault"
 
 def safe_append_backlink(file_path: Path, hub_wikilink: str, hub_title: str) -> bool:
-    """Safely appends a backlink to the end of the file."""
-    try:
-        content = file_path.read_text(encoding="utf-8")
-    except Exception as e:
-        print(f"Error reading {file_path}: {e}")
-        return False
+    """Safely appends a backlink to the end of the file.
 
-    link_target = hub_wikilink.replace(".md", "")
-    # Check whether the file already contains a link to this hub
-    if f"[[{link_target}" in content or f"[[{Path(link_target).name}" in content:
-        return False
+    21.11 (audit R-LLM-OBS F4/F6): per-note flock + atomic tmp/os.replace
+    (was a raw write_text with no lock and no crash safety)."""
+    rel = str(file_path.relative_to(VAULT_ROOT))
+    with vault_file_lock(rel):
+        try:
+            content = file_path.read_text(encoding="utf-8")
+        except Exception as e:
+            print(f"Error reading {file_path}: {e}")
+            return False
 
-    # Build a clean footer
-    footer = f"\n\n---\n[[{link_target}|← {hub_title}]]\n"
-    
-    # Write
-    new_content = content.rstrip() + footer
-    file_path.write_text(new_content, encoding="utf-8")
+        link_target = hub_wikilink.replace(".md", "")
+        # Check whether the file already contains a link to this hub
+        if f"[[{link_target}" in content or f"[[{Path(link_target).name}" in content:
+            return False
+
+        # Build a clean footer
+        footer = f"\n\n---\n[[{link_target}|← {hub_title}]]\n"
+
+        # Atomic write
+        tmp_path = str(file_path) + ".tmp"
+        new_content = content.rstrip() + footer
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        os.replace(tmp_path, file_path)
     return True
 
 def safe_add_link_to_hub(hub_file: Path, target_rel_path: str, target_name: str) -> bool:
-    """Adds a link to the note in the parent hub if it is not there."""
+    """Adds a link to the note in the parent hub if it is not there.
+
+    21.11 (audit R-LLM-OBS F6): the whole read-check-write window is held
+    under a per-note flock (hub files are island files also touched by
+    agents and the vfs_sentinel CONTEXT sync)."""
     if not hub_file.exists():
         return False
-        
-    try:
-        content = hub_file.read_text(encoding="utf-8")
-    except Exception as e:
-        print(f"Error reading hub {hub_file}: {e}")
-        return False
-        
-    target_link = target_rel_path.replace(".md", "")
-    target_base = Path(target_link).name
-    
-    # Check whether the link exists in the hub
-    if f"[[{target_link}" in content or f"[[{target_base}" in content:
-        return False
-        
-    # Add the link to the end of the hub under the related-notes heading or simply into the list
-    entry = f"- [[{target_link}|{target_base}]]\n"
-    
-    if "## Ссылки" in content or "## Связанные заметки" in content or "## Файлы" in content:
-        # Add it to the existing section
-        section_pattern = r"(##\s+(?:Ссылки|Связанные заметки|Файлы)[\s\S]*?)(\n##|\Z)"
-        match = re.search(section_pattern, content)
-        if match:
-            new_section = match.group(1).rstrip() + "\n" + entry
-            content = content[:match.start()] + new_section + content[match.end()-len(match.group(2)):]
+
+    rel = str(hub_file.relative_to(VAULT_ROOT))
+    with vault_file_lock(rel):
+        try:
+            content = hub_file.read_text(encoding="utf-8")
+        except Exception as e:
+            print(f"Error reading hub {hub_file}: {e}")
+            return False
+
+        target_link = target_rel_path.replace(".md", "")
+        target_base = Path(target_link).name
+
+        # Check whether the link exists in the hub
+        if f"[[{target_link}" in content or f"[[{target_base}" in content:
+            return False
+
+        # Add the link to the end of the hub under the related-notes heading or simply into the list
+        entry = f"- [[{target_link}|{target_base}]]\n"
+
+        if "## Ссылки" in content or "## Связанные заметки" in content or "## Файлы" in content:
+            # Add it to the existing section
+            section_pattern = r"(##\s+(?:Ссылки|Связанные заметки|Файлы)[\s\S]*?)(\n##|\Z)"
+            match = re.search(section_pattern, content)
+            if match:
+                new_section = match.group(1).rstrip() + "\n" + entry
+                content = content[:match.start()] + new_section + content[match.end()-len(match.group(2)):]
+            else:
+                content = content.rstrip() + f"\n\n## Связанные материалы\n{entry}"
         else:
             content = content.rstrip() + f"\n\n## Связанные материалы\n{entry}"
-    else:
-        content = content.rstrip() + f"\n\n## Связанные материалы\n{entry}"
-        
-    hub_file.write_text(content, encoding="utf-8")
+
+        # 21.11 (audit R-LLM-OBS F6): atomic write (was raw write_text)
+        tmp_path = str(hub_file) + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        os.replace(tmp_path, hub_file)
     return True
 
 def main():
@@ -149,12 +186,22 @@ def main():
     hub_updated_count = 0
     
     for rel_path in orphans:
+        # 21.11 (audit R-LLM-OBS F4): never link system/hidden/non-md paths
+        # (defense in depth over the audit's IGNORE_DIRS)
+        if not _is_linkable(rel_path):
+            print(f"Skipped (system/hidden/non-md): {rel_path}")
+            continue
         p = VAULT_ROOT / rel_path
         if not p.exists():
             continue
             
         hub_rel, hub_title = find_target_hub(rel_path)
         hub_path = VAULT_ROOT / hub_rel
+        # 22.11 (audit R-LLM-OBS follow-up): a hub can never be its own target —
+        # self-link footers are graph noise (residual seen in Clippings/Финансы/Финансы.md).
+        if hub_rel == rel_path:
+            print(f"Skipped (self-hub): {rel_path}")
+            continue
         
         # 1. Add the backlink footer to the orphan note
         if safe_append_backlink(p, hub_rel, hub_title):

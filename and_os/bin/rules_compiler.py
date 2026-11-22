@@ -7,7 +7,8 @@ compact, token-efficient JSON index (and_os/etc/rules_fast_index.json)
 for 0-latency LLM session-start injection (OpenCode `instructions`).
 
 v2 design (token economy, finding C1):
-  - rules: 74 ultra-compact titles = canonical one-liner prefix before ':'
+  - rules: one ultra-compact title per canonical rule = one-liner prefix before ':'
+    (rule count is SSoT: and_os/etc/system.json; never hardcode it here)
     (the full per-rule text stays lazy in .opencode/rules.md)
   - source_sha256: sha256 over SYSTEM.md || rules.md || etc/system.json
     (three-source drift detection, no single-file blind spot)
@@ -34,6 +35,7 @@ Consumers (do not break):
 import os
 import re
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import time
 import hashlib
@@ -50,6 +52,11 @@ CG_TARGET_JSON = os.path.join(VAULT_ROOT, "and_os", "opt", "apps", "cg_workspace
 # Session-start injection budget (finding C1, approved 11.11): the index is
 # injected into every session, so its byte size is a hard contract.
 SIZE_BUDGET_BYTES = 6 * 1024
+
+# CG satellite budget (C13 F3): the sub-core capsule contract is a ~500-token
+# fast index loaded on every CG task. 3 KB ~= 750 tokens max with headroom;
+# the pre-C13 payload was 9.7 KB (~1700 tokens) — a 5.5x budget violation.
+CG_SATELLITE_BUDGET_BYTES = 3 * 1024
 
 # Three source files defining the index: any change to any of them must
 # invalidate the compiled sha256 (drift detection).
@@ -127,8 +134,10 @@ def build_domain_beacons() -> Dict[str, Dict[str, str]]:
 def parse_cg_rules_from_system_md() -> Dict[str, Dict[str, str]]:
     """Parses the SYSTEM.md rules table into {name, essence} pairs.
 
-    Used ONLY for the CG satellite, whose app reader expects the richer
-    {name, essence} shape (the global v2 index is titles-only).
+    Used ONLY for the CG satellite projection, which selects the rule
+    names; the essence is intentionally NOT duplicated into the satellite
+    (C13 F3) — the full rule text stays lazy in .opencode/rules.md, the
+    same pattern as the titles-only global v2 index.
     """
     rules_dict: Dict[str, Dict[str, str]] = {}
     if not os.path.exists(SYSTEM_MD):
@@ -168,12 +177,20 @@ def build_payload(compiled_sha: str) -> Dict[str, Any]:
 def compile_cg_satellite_projection(compiled_sha: str, cg_rules: Dict[str, Any]) -> Dict[str, Any]:
     """
     Compiles the CG / 3D+AI domain satellite index (cg_rules_fast.json).
-    Keeps the {name, essence} rule shape for the CG app reader.
+
+    C13 F3: a true fast index under the sub-core capsule contract. The
+    pre-C13 payload duplicated the full rule essences here (~1700 tokens),
+    breaching the <500-token budget 5.5x. Now it keeps rule numbers +
+    names only and points to .opencode/rules.md for the full rule text —
+    the same lazy pointer pattern as the global v2 index. Invariants and
+    phase routing are kept inline (they are CG-specific and not derivable
+    from the global index).
     """
     os.makedirs(os.path.dirname(CG_TARGET_JSON), exist_ok=True)
 
     cg_rule_keys = ["0", "0.5", "1", "3", "13", "16", "19", "27", "41", "42", "45", "57", "58", "61", "65", "68", "69"]
-    selected_rules = {k: cg_rules[k] for k in cg_rule_keys if k in cg_rules}
+    # names only — the essence stays lazy in .opencode/rules.md (Rule #0)
+    selected_rules = {k: cg_rules[k]["name"] for k in cg_rule_keys if k in cg_rules}
 
     cg_payload = {
         "domain": "cg_workspace",
@@ -182,44 +199,37 @@ def compile_cg_satellite_projection(compiled_sha: str, cg_rules: Dict[str, Any])
         "compiled_at": time.strftime("%Y-%m-%d"),
         "source_sha256": compiled_sha,
         "rules_count": len(selected_rules),
+        "rules": selected_rules,
+        "rules_fulltext": ".opencode/rules.md (lazy: read the section of the rule you need)",
         "production_invariants": {
-            "topology": "Quad-first geometry, zero non-manifold edges, apply scale (scale=1.0.0), pivot at center-bottom",
-            "hierarchy": "Max 10 logical semantic blocks with root_master armature hierarchy",
-            "linking": "Non-destructive shot assembly via Blender Library Linking & Overrides",
-            "passes": "Depth 16-bit, Surface Normals, Lineart, Z-buffer, Camera POV for ComfyUI",
-            "isolation": "Zero temporary files in ~/Downloads or Obsidian Vault root (Rule #41)",
-            "safety": "Free-First zero-cost nodes (Rule #45) & Air-Gap Vault Isolation (Rule #57, #58)",
-            "verification": "Anti-Beta-Tester Gate (Rule #61) - Mandatory execution of cg_core.py qa before report"
+            "topology": "Quad-first, zero non-manifold, apply scale=1.0, pivot center-bottom",
+            "hierarchy": "Max 10 semantic blocks, root_master armature",
+            "linking": "Non-destructive shot assembly: Blender Library Linking & Overrides",
+            "passes": "16-bit Depth, Normals, Lineart, Z-buffer, Camera POV for ComfyUI",
+            "isolation": "Zero temp files in ~/Downloads or Vault root (#41)",
+            "safety": "Free-First zero-cost ComfyUI nodes (#45); Air-Gap Vault Isolation (#57,#58)",
+            "verification": "Anti-Beta-Tester Gate (#61): run cg_core.py qa before any report"
         },
         "production_modality_matrix": {
-            "rule_of_thumb": "Blender builds 3D SPATIAL TRUTH (Mesh, Armature, UV, Camera, Passes); ComfyUI crafts PIXEL PERFECTION (Texture, Style, Latent Diffusion, Inpainting).",
+            "rule_of_thumb": "Blender = 3D spatial truth (Mesh/Armature/UV/Camera/Passes); ComfyUI = pixel perfection (Texture/Style/Latent/Inpainting)",
             "phase_routing": {
-                "Phase_1_Blockout": {
-                    "branch_dcc_blender": "tools/modeling/blockout_engine.py -> Procedural volumetric greybox, strict dimensions, scale=1.0",
-                    "branch_neural_ai": "tools/modeling/kits_engine.py + Text-to-3D reference -> Fast silhouette exploration",
-                    "gate": "cg_core.py qa audit --profile game (Must pass Zero Z-Fighting & scale=1.0)"
-                },
-                "Phase_1_Shading": {
-                    "branch_dcc_blender": "tools/shading/uv_engine.py + materials_engine.py -> Deterministic PBR procedural nodes, clean UV seams",
-                    "branch_neural_ai": "modules/comfy_bridge.py -> Multi-angle texture projection & neural inpainting over UV",
-                    "gate": "Zero missing UV maps on textured meshes"
-                },
-                "Phase_2_Layout_Animatic": {
-                    "branch_dcc_blender": "modules/layout_assembler.py + tools/animation/previs_engine.py -> Library Overrides, camera rail/turntable moves",
-                    "branch_neural_ai": "modules/shot_animatic.py -> Stepped storyboard frames to I2V latent video preview",
-                    "gate": "animatic.meta.json validated with Director sign-off"
-                },
-                "Phase_3_Shot_Production": {
-                    "branch_hybrid_bridge": "modules/shot_playblast_generator.py -> Headless render of OpenGL Playblast + 16-bit Z-Depth & Normals -> ComfyUI VHS diffusion pass -> DaVinci Resolve conform",
-                    "gate": "cg_core.py qa review --file <blend> -> 4-way contact sheet 3200x2400"
-                }
+                "Phase_1_Blockout": "blockout_engine.py (greybox, scale=1) | kits_engine.py+Text-to-3D (silhouette) | gate: qa audit --profile game",
+                "Phase_1_Shading": "uv_engine.py+materials_engine.py (PBR, clean seams) | comfy_bridge.py (texture projection, UV inpaint) | gate: zero missing UV maps",
+                "Phase_2_Layout": "layout_assembler.py+previs_engine.py (Overrides, camera rail) | shot_animatic.py (I2V latent preview) | gate: animatic.meta.json + Director sign-off",
+                "Phase_3_Shot": "shot_playblast_generator.py (Playblast + 16-bit Z + Normals -> ComfyUI VHS diffusion -> Resolve conform) | gate: qa review 4-way contact sheet"
             }
-        },
-        "rules": selected_rules
+        }
     }
 
     with open(CG_TARGET_JSON, "w", encoding="utf-8") as f:
-        json.dump(cg_payload, f, ensure_ascii=False, indent=2)
+        json.dump(cg_payload, f, ensure_ascii=False, indent=1)
+
+    size_b = os.path.getsize(CG_TARGET_JSON)
+    if size_b > CG_SATELLITE_BUDGET_BYTES:
+        raise ValueError(
+            f"CG satellite over budget: {size_b} B > {CG_SATELLITE_BUDGET_BYTES} B — "
+            f"shrink the projection payload"
+        )
 
     return cg_payload
 
@@ -278,6 +288,10 @@ def verify_rules_freshness() -> Tuple[bool, str]:
             return False, "Global index rules_count mismatch with rules dict"
 
         # 2. Check CG Satellite Index
+        cg_size_b = os.path.getsize(CG_TARGET_JSON)
+        if cg_size_b > CG_SATELLITE_BUDGET_BYTES:
+            return False, (f"CG satellite over budget: {cg_size_b} B > "
+                           f"{CG_SATELLITE_BUDGET_BYTES} B (sub-core capsule contract)")
         with open(CG_TARGET_JSON, "r", encoding="utf-8") as f:
             cg_data = json.load(f)
         if current_sha != cg_data.get("source_sha256", ""):

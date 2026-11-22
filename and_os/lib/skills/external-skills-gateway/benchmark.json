@@ -1,0 +1,43 @@
+{
+  "skill": "external-skills-gateway",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "eg-01",
+      "prompt": "Найди в skills.sh открытые скиллы для домена, которого ещё нет в нашей базе",
+      "expected": "external-skills-gateway",
+      "decoys": ["skill-creator", "clipping-finder"]
+    },
+    {
+      "id": "eg-02",
+      "prompt": "Оцени внешний скилл перед интеграцией: безопасность, drift, совместимость с ABI",
+      "expected": "external-skills-gateway",
+      "decoys": ["skill-creator", "system-audit"]
+    },
+    {
+      "id": "eg-03",
+      "prompt": "Поиски open-source агент-скиллов от Vercel Labs и GitHub по теме X",
+      "expected": "external-skills-gateway",
+      "decoys": ["clipping-finder", "github-ops"]
+    },
+    {
+      "id": "eg-04",
+      "prompt": "Фильтрация кандидатов внешних скиллов: какие можно подключать в AnD os",
+      "expected": "external-skills-gateway",
+      "decoys": ["skill-creator"]
+    },
+    {
+      "id": "eg-05",
+      "prompt": "Полноценный домен не покрывается нашими 50 скиллами — найди решение в экосистеме Agent Skills",
+      "expected": "external-skills-gateway",
+      "decoys": ["skill-creator", "deep-research"]
+    },
+    {
+      "id": "eg-06",
+      "prompt": "Проверь raw SKILL.md кандидата на вредоносные паттерны (curl|sh, sandbox bypass)",
+      "expected": "external-skills-gateway",
+      "decoys": ["system-audit"]
+    }
+  ]
+}

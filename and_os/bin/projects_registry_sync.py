@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from datetime import date
 from pathlib import Path
 

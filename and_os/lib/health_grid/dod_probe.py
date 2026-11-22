@@ -1,18 +1,23 @@
 """
 dod_probe.py — Ring 5: Definition of Done (DoD) Quality & Secret Leak Gate.
-AnD os v1.0.0 — Continuous Verification Loop.
+AnD os v1.2.0 — Continuous Verification Loop.
 
 Covers:
   - Phase 5 Secret Leak Scan: Validates absence of API keys ('sk-', 'ghp_', 'AKIA') in code.
   - Console Debug Leak Scan: Warns on dangling 'console.log' / 'debugger' in frontend code.
   - Video Asset Quality Gate: Validates FPS 24.0 in master shot metadata sidecars.
   - 3D Mesh Integrity Gate: Verifies sidecar meta.json presence for master blend assets.
+  - sec_audit EXECUTION gate (D4, 17.11): runs the OWASP Top-10 AST
+    scanner (scope and_os/) when the kernel changed since the last run;
+    known findings form a stored baseline, new findings warn (advisory,
+    never fail the ring) until triaged in the audit stage.
 """
 
 
 import os
 import re
 import json
+import subprocess
 import sys
 import time
 from typing import Dict, Any, List
@@ -20,6 +25,12 @@ from and_os.lib.health_grid import BaseProbeResult
 
 IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".archive", "var", ".venv", "venv"}
 
+# Lightweight standing gate. Ranges follow the SSoT:
+# and_os/lib/skills/system-audit/scripts/security_scan.py
+# SECRET_PATTERNS (D1, 17.11). Scope is deliberately narrower than the
+# SSoT walk: IGNORE_DIRS keeps .obsidian/.trash/.archive out of the
+# periodic pass; the deep scan of those surfaces is the manual
+# security_scan run (D2, 17.11: note-surface coverage split).
 SECRET_PATTERNS = [
     (re.compile(r'sk-[a-zA-Z0-9]{20,}'), "OpenAI / Claude API Key pattern"),
     (re.compile(r'ghp_[a-zA-Z0-9]{20,}'), "GitHub Personal Access Token"),
@@ -134,6 +145,85 @@ class DoDProbe:
                 f"Closed-loop memory nudge (Rule #13): kernel modified {kernel_age_days:.1f}d ago but no "
                 f"newer learned pattern in Nero/knowledge/engineers/ (newest pattern "
                 f"{(time.time() - newest_pattern) / 86400.0:.1f}d ago) — run sys_cli learn after kernel work")
+
+        # 5. sec_audit EXECUTION gate (D4, 17.11): the core_tools loop
+        # above only checks that sec_audit.py EXISTS; this block executes
+        # it (scope and_os/) when the kernel changed since the last run.
+        # Advisory by design: the first run bootstraps the finding
+        # baseline silently; later runs warn on findings NEW against the
+        # baseline but never increment issues_count — severity triage
+        # belongs to the audit stage, not the standing grid.
+        state_dir = os.path.join(vault_root, "and_os", "var", "state")
+        state_file = os.path.join(state_dir, "sec_audit_state.json")
+        sec_audit_state = {}
+        if os.path.exists(state_file):
+            try:
+                with open(state_file, "r", encoding="utf-8") as state_fh:
+                    sec_audit_state = json.load(state_fh)
+            except (OSError, json.JSONDecodeError) as err:
+                sys.stderr.write(
+                    f"[dod_probe] Notice: unreadable sec_audit state: {err}\n")
+        sec_audit_script = os.path.join(vault_root, "and_os", "bin", "sec_audit.py")
+        last_kernel_mtime = sec_audit_state.get("last_kernel_mtime", 0.0)
+        kernel_changed = bool(newest_kernel) and newest_kernel > last_kernel_mtime
+        if kernel_changed and os.path.exists(sec_audit_script):
+            started = time.time()
+            try:
+                proc = subprocess.run(
+                    [sys.executable, sec_audit_script, "and_os"],
+                    cwd=vault_root, capture_output=True, text=True,
+                    timeout=120)
+                elapsed = round(time.time() - started, 1)
+                if proc.returncode == 2:
+                    raise subprocess.SubprocessError(
+                        f"sec_audit usage error (exit 2): "
+                        f"{proc.stderr.strip()[:120]}")
+                current = {
+                    (sev, fpath, line, rule)
+                    for sev, fpath, line, rule in re.findall(
+                        r"\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s+(\S+?):(\d+)\s+->\s+(\S+)",
+                        proc.stdout)}
+                baseline = set(map(tuple, sec_audit_state.get("baseline", [])))
+                bootstrap = not baseline
+                # An empty result set against a non-empty baseline is
+                # treated as a parse/output regression, not as
+                # "everything fixed": keep the baseline, warn.
+                if not current and baseline:
+                    raise subprocess.SubprocessError(
+                        "sec_audit returned no parseable findings "
+                        "against a non-empty baseline (output regression?)")
+                new_findings = sorted(current - baseline)
+                os.makedirs(state_dir, exist_ok=True)
+                with open(state_file, "w", encoding="utf-8") as state_fh:
+                    json.dump({
+                        "last_kernel_mtime": newest_kernel,
+                        "last_run": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "elapsed_seconds": elapsed,
+                        "total": len(current),
+                        "new": len(new_findings),
+                        "baseline": sorted(current),
+                    }, state_fh, indent=2, ensure_ascii=False)
+                result.details["sec_audit"] = {
+                    "ran": True,
+                    "elapsed_s": elapsed,
+                    "total": len(current),
+                    "new_vs_baseline": len(new_findings),
+                    "bootstrap": bootstrap,
+                }
+                if not bootstrap and new_findings:
+                    for sev, fpath, line, rule in new_findings[:10]:
+                        result.warnings.append(
+                            f"sec_audit new finding [{sev}] {fpath}:{line} -> {rule} "
+                            f"(D4: OWASP scanner vs stored baseline; triage in audit stage)")
+            except (OSError, subprocess.SubprocessError) as err:
+                result.warnings.append(f"sec_audit execution failed (D4): {err}")
+                result.details["sec_audit"] = {"ran": False, "error": str(err)}
+        elif newest_kernel:
+            result.details["sec_audit"] = {
+                "ran": False,
+                "reason": "kernel unchanged since last run",
+                "last_run": sec_audit_state.get("last_run"),
+            }
 
         result.issues_count = issues
         result.passed = (issues == 0)

@@ -137,7 +137,7 @@ def get_compact_motd_summary() -> str:
     """Returns a token-efficient single-line summary (<30 tokens) for MOTD and agent headers."""
     latest = get_latest_release()
     if not latest:
-        return "AnD os v1.0.0 (Production Release)"
+        return "AnD os v1.2.0 (Production Release)"
     return f"v{latest['version']} ({latest['release_date']}): {latest['summary']}"
 
 

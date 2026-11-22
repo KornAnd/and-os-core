@@ -1,6 +1,6 @@
 """
 dispatcher.py — Core In-Process Operation Registry & Secure Dispatcher
-AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Dispatch)
+AnD os v1.2.0 — Core Architecture Layer (Unix-Grade Microkernel Dispatch)
 
 Defines:
   - OperationHandler: Callable interface (OperationRequest -> OperationResult)
@@ -12,6 +12,7 @@ Defines:
 
 from __future__ import annotations
 
+import sys
 import time
 import traceback
 from typing import Any, Callable, Dict, Optional, Tuple
@@ -137,8 +138,11 @@ class CoreDispatcher:
             )
 
         # 2. Check capabilities
-        if spec.capabilities_required and caller_capabilities is not None:
-            caller_caps_set = set(caller_capabilities)
+        # C14 K7: fail closed — an omitted capability grant is treated as an
+        # empty set (no access), never as full access. Callers must declare
+        # the capabilities they hold explicitly.
+        if spec.capabilities_required:
+            caller_caps_set = set(caller_capabilities) if caller_capabilities is not None else set()
             missing = [cap for cap in spec.capabilities_required if cap not in caller_caps_set]
             if missing:
                 elapsed = time.monotonic() - start_time

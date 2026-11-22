@@ -5,6 +5,7 @@ notify_macos.py — Нативный мост уведомлений macOS Notif
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import subprocess
 
 def send_notification(title, message, subtitle=""):

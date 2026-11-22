@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 statusline.py — Dynamic kernel statusline (Runtime Statusline Beacon).
-AnD os v1.0.0 — Island 8 (Kernel & AND_Terminal :8099).
+AnD os v1.2.0 — Island 8 (Kernel & AND_Terminal :8099).
 
 Prints a compact real-time snapshot in a single line (0-token terminal beacon):
 - Current folder / context;
@@ -13,6 +13,7 @@ Prints a compact real-time snapshot in a single line (0-token terminal beacon):
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import subprocess
 import json
 import shutil

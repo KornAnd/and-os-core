@@ -1,0 +1,43 @@
+{
+  "skill": "skill-creator",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "sc-01",
+      "prompt": "Создай новый скилл для домена X: имя, триггер, island binding, SKILL.md по ABI",
+      "expected": "skill-creator",
+      "decoys": ["skill-router", "system-architect"]
+    },
+    {
+      "id": "sc-02",
+      "prompt": "Прогони lint и diet по всей базе скиллов — найди bloat и drift",
+      "expected": "skill-creator",
+      "decoys": ["system-audit"]
+    },
+    {
+      "id": "sc-03",
+      "prompt": "ПРОВЕРЬ валидность frontmatter и кода в новом скилле перед регистрацией",
+      "expected": "skill-creator",
+      "decoys": ["dev-flow"]
+    },
+    {
+      "id": "sc-04",
+      "prompt": "Зарегистрируй скилл атомарно: symlink, REGISTRY, счётчики манифестов",
+      "expected": "skill-creator",
+      "decoys": ["file-lifecycle", "system-architect"]
+    },
+    {
+      "id": "sc-05",
+      "prompt": "Сделай A/B оценку description скилла: optimize/holdout split и delta gate",
+      "expected": "skill-creator",
+      "decoys": ["skill-router"]
+    },
+    {
+      "id": "sc-06",
+      "prompt": "Обнови и доработай существующий скилл: подтяни SKILL.md, провалидируй",
+      "expected": "skill-creator",
+      "decoys": ["system-architect", "file-lifecycle"]
+    }
+  ]
+}

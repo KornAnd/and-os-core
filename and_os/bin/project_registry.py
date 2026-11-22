@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.0.0).
+project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.1.0).
 Catalogs all autonomous external services and web applications (React, Vite, Python, Streamlit),
 their launch ports, commands, stacks and data schemas in SQLite (task_vault.db).
 """
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import sqlite3
 from pathlib import Path
@@ -71,7 +72,7 @@ DEFAULT_PROJECTS = [
     }
 ]
 
-def init_external_projects_db():
+def init_external_projects_db() -> None:
     """Ensures external_projects table exists in task_vault.db and populates defaults."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -107,7 +108,7 @@ def init_external_projects_db():
     with open(JSON_SNAPSHOT, "w", encoding="utf-8") as f:
         json.dump({"updated_at": today_str, "projects": DEFAULT_PROJECTS}, f, ensure_ascii=False, indent=2)
 
-def register_project(project_dict):
+def register_project(project_dict) -> None:
     """Registers or updates a new external project in the system registry."""
     init_external_projects_db()
     conn = sqlite3.connect(DB_PATH)
@@ -135,7 +136,7 @@ def register_project(project_dict):
     conn.close()
     print(f"✅ External project '{project_dict.get('name')}' registered in the SQLite registry!")
 
-def get_registered_projects():
+def get_registered_projects() -> list:
     """Returns all registered external projects."""
     if not DB_PATH.exists():
         init_external_projects_db()

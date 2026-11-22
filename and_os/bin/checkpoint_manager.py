@@ -10,6 +10,9 @@ Commands:
   list            - Show active checkpoints and metadata
   rollback <name> - Restore workspace files from CoW snapshot
   clear           - Remove old checkpoints (keeps last N)
+
+Storage (19.11.2026): ~/.and_os/checkpoints — OUTSIDE the vault, so snapshots
+do not appear as nodes in the Obsidian graph. Override: AND_OS_CHECKPOINT_ROOT.
 """
 
 import os
@@ -24,6 +27,12 @@ from typing import Dict, Any, List, Optional
 
 sys.dont_write_bytecode = True
 
+# SSoT for the store location lives in the VFS layer (19.11.2026 migration)
+_LIB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib")
+if _LIB_DIR not in sys.path:
+    sys.path.insert(0, _LIB_DIR)
+from vfs.var_retention import checkpoint_root  # noqa: E402
+
 # Load native macOS clonefile syscall
 try:
     libc = ctypes.cdll.LoadLibrary("/usr/lib/libSystem.B.dylib")
@@ -34,8 +43,21 @@ except Exception:
     _clonefile = None
 
 
+class CheckpointError(Exception):
+    """Fail-closed checkpoint operation error (C16 self-reference guard)."""
+
+
 def apfs_cow_clone(src: str, dst: str) -> bool:
     """Performs instant APFS Copy-on-Write clone of file or directory."""
+    src_abs = os.path.abspath(src)
+    dst_abs = os.path.abspath(dst)
+    if dst_abs == src_abs or dst_abs.startswith(src_abs + os.sep):
+        # C16: a destination nested inside the source makes the clone
+        # self-referencing (the tree would capture its own snapshot).
+        raise CheckpointError(
+            f"Refusing self-referencing clone: destination '{dst_abs}' "
+            f"is inside source '{src_abs}'"
+        )
     if os.path.exists(dst):
         if os.path.isdir(dst):
             shutil.rmtree(dst)
@@ -58,9 +80,36 @@ def apfs_cow_clone(src: str, dst: str) -> bool:
 class CheckpointManager:
     def __init__(self, vault_root: str):
         self.vault_root = os.path.abspath(vault_root)
-        self.storage_dir = os.path.join(self.vault_root, "and_os", "var", "checkpoints")
+        # The store lives outside the vault (Obsidian graph hygiene, 19.11.2026);
+        # SSoT resolver: vfs.var_retention.checkpoint_root.
+        self.storage_dir = checkpoint_root()
         self.metadata_file = os.path.join(self.storage_dir, "checkpoints.json")
         os.makedirs(self.storage_dir, exist_ok=True)
+
+    def _reject_self_referencing_target(self, target: str, src: str, dst: str) -> None:
+        """C16: a target that contains the checkpoint storage makes the clone
+        self-referencing (dst nested inside src). The store would then capture
+        its own snapshot recursively (15 GB nesting incident). Fail closed
+        before any clone, with an explicit fine-grained remedy."""
+        src_abs = os.path.abspath(src)
+        dst_abs = os.path.abspath(dst)
+        storage_abs = os.path.abspath(self.storage_dir)
+        if (
+            dst_abs == src_abs
+            or dst_abs.startswith(src_abs + os.sep)
+            or storage_abs == src_abs
+            or storage_abs.startswith(src_abs + os.sep)
+        ):
+            if os.path.abspath(self.storage_dir).startswith(self.vault_root + os.sep):
+                rel_storage = os.path.relpath(self.storage_dir, self.vault_root)
+            else:
+                rel_storage = self.storage_dir
+            raise CheckpointError(
+                f"Target '{target}' is self-referencing: it contains the checkpoint "
+                f"storage ({rel_storage}), so the clone would nest the store inside "
+                f"itself. Use fine-grained targets instead, e.g.: "
+                "and_os/bin, and_os/lib, and_os/etc, and_os/opt, and_os/sbin, and_os/docs."
+            )
 
     def _load_metadata(self) -> Dict[str, Any]:
         if os.path.exists(self.metadata_file):
@@ -112,12 +161,19 @@ class CheckpointManager:
             "Nero/xcode"
         ]
         cloned_paths = []
-        for td in target_dirs:
-            src = os.path.join(self.vault_root, td)
-            if os.path.exists(src):
-                dst = os.path.join(snap_dir, td.replace("/", "__"))
-                if apfs_cow_clone(src, dst):
-                    cloned_paths.append(td)
+        try:
+            for td in target_dirs:
+                src = os.path.join(self.vault_root, td)
+                if os.path.exists(src):
+                    dst = os.path.join(snap_dir, td.replace("/", "__"))
+                    self._reject_self_referencing_target(td, src, dst)
+                    if apfs_cow_clone(src, dst):
+                        cloned_paths.append(td)
+        except CheckpointError:
+            # C16: leave no empty snap skeleton behind a rejected target
+            if os.path.isdir(snap_dir) and not os.listdir(snap_dir):
+                shutil.rmtree(snap_dir, ignore_errors=True)
+            raise
 
         elapsed = round(time.time() - t0, 3)
 
@@ -273,7 +329,11 @@ def main() -> None:
     mgr = CheckpointManager(vault_root)
 
     if args.subcommand == "create":
-        res = mgr.create(args.name, targets=args.targets)
+        try:
+            res = mgr.create(args.name, targets=args.targets)
+        except CheckpointError as err:
+            print(f"❌ {err}", file=sys.stderr)
+            sys.exit(1)
         print(f"✅ Checkpoint '{res['name']}' created in {res['elapsed_seconds']}s (Git SHA: {res['git_sha']}, Targets: {', '.join(res['cloned_targets'])})")
     elif args.subcommand == "verify":
         res = mgr.verify(args.name)

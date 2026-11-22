@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backup_engine.py — Enterprise Backup Engine for AnD os v1.0.0.
+backup_engine.py — Enterprise Backup Engine for AnD os v1.2.0.
 Features:
   - 100% Full Obsidian Vault backup (All knowledge domains, configs, core).
   - Cross-Platform & Cloud-Ready universal ZIP format (Deflated level 6, Bit 11 UTF-8).
@@ -15,7 +15,9 @@ Features:
 """
 
 import os
+import re
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import time
 import glob
 import json
@@ -43,6 +45,74 @@ LOG_FILE = VAULT_ROOT / "and_os" / "var" / "log" / "backup.jsonl"
 STATE_FILE = VAULT_ROOT / "and_os" / "var" / "backup_state.json"
 LOCK_FILE = Path("/tmp/and_os_backup.lock")
 MAX_STORAGE_BYTES = 5 * 1024 * 1024 * 1024  # 5.0 GB Hard Quota (audit R4, P6, R4-BACKUP-1: Andrey's decision 12.11)
+MAX_BACKUP_LOG_LINES = 500  # 17.11 (Rule #72, data-growth bounding): backup.jsonl is append-only; keep the newest N lines (~1-3 months of daily runs)
+# 17.11 (Rule #72, Andrey decision): rotate, do not burn - the oldest lines
+# are replaced by the monthly archive backup_YYYYMM.jsonl (preserved), and
+# archives older than BACKUP_LOG_RETAIN_MONTHS are relocated to the system
+# home (outside the Vault and the 5GB backup quota).
+BACKUP_LOG_RETAIN_MONTHS = 12
+BACKUP_LOG_RELOCATE_DIR = Path(os.path.join(
+    os.path.expanduser("~"), ".and_os", "var", "archive", "backup_logs"))
+BACKUP_ARCHIVE_RE = re.compile(r"^backup_(\d{4})(\d{2})\.jsonl$")
+
+
+def _archive_month_for(line: str, fallback: str) -> str:
+    """YYYYMM from the record timestamp of the oldest archived line
+    (fallback: the run month)."""
+    try:
+        ts = json.loads(line).get("timestamp", "")
+        if isinstance(ts, str) and len(ts) >= 7:
+            return ts[:4] + ts[5:7]
+    except (ValueError, AttributeError) as err:
+        sys.stderr.write(
+            f"[backup_engine] Notice: archive month unparseable from record line, "
+            f"using fallback month: {err}\n")
+    return fallback
+
+
+def _relocate_old_backup_archives(log_dir: Path) -> None:
+    """Relocate backup_YYYYMM.jsonl archives older than
+    BACKUP_LOG_RETAIN_MONTHS to the system home."""
+    now = datetime.now()
+    for name in sorted(os.listdir(log_dir)):
+        m = BACKUP_ARCHIVE_RE.match(name)
+        if not m:
+            continue
+        age = (now.year - int(m.group(1))) * 12 + (now.month - int(m.group(2)))
+        if age < BACKUP_LOG_RETAIN_MONTHS:
+            continue
+        try:
+            BACKUP_LOG_RELOCATE_DIR.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(log_dir / name), str(BACKUP_LOG_RELOCATE_DIR / name))
+        except OSError as err:
+            sys.stderr.write(f"[backup_engine] archive relocation failed: {name}: {err}\n")
+
+
+def _rotate_backup_log() -> None:
+    """Rule #72 (17.11): bounded rotation of backup.jsonl. When the journal
+    exceeds MAX_BACKUP_LOG_LINES, the oldest lines are NOT burned - they are
+    replaced by (moved into) the monthly archive backup_YYYYMM.jsonl, so the
+    full history stays available; archives older than the retention horizon
+    are relocated to the system home. The backup cron child is the only
+    writer and holds no long-lived fd, so temp+replace is safe."""
+    try:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        if len(lines) <= MAX_BACKUP_LOG_LINES:
+            return
+        old = lines[: len(lines) - MAX_BACKUP_LOG_LINES]
+        newest = lines[len(lines) - MAX_BACKUP_LOG_LINES:]
+        month = _archive_month_for(old[0], datetime.now().strftime("%Y%m"))
+        with open(LOG_FILE.with_name(f"backup_{month}.jsonl"), "a", encoding="utf-8") as f:
+            f.writelines(old)
+        tmp = str(LOG_FILE) + ".rot.tmp"
+        with open(tmp, "w", encoding="utf-8") as tf:
+            tf.writelines(newest)
+        os.replace(tmp, LOG_FILE)
+        _relocate_old_backup_archives(LOG_FILE.parent)
+    except OSError as err:
+        sys.stderr.write(f"[backup_engine] log rotation failed: {err}\n")
+
 
 # Exclusions (clean transient caches only, preserve all vault content)
 EXCLUDE_DIRS = {
@@ -53,7 +123,8 @@ EXCLUDE_DIRS = {
     ".mypy_cache"
 }
 
-def log_event(event_type: str, details: dict):
+
+def log_event(event_type: str, details: dict) -> None:
     """Write structured event to backup.jsonl and state file."""
     record = {
         "timestamp": datetime.now().isoformat(),
@@ -63,7 +134,8 @@ def log_event(event_type: str, details: dict):
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    
+    _rotate_backup_log()
+
     # Update latest state summary
     try:
         STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -104,6 +176,12 @@ def should_exclude(rel_path: Path) -> bool:
         if p == ".DS_Store" or p.endswith(".pyc"):
             return True
     if len(parts) >= 2 and parts[0] == ".obsidian" and parts[1].startswith("workspace"):
+        return True
+    # D6 (17.11 security contour audit): plugin data.json files hold
+    # live plaintext credentials (e.g. jotbird editTokens) and must not
+    # be re-published to the cloud archive on every backup generation.
+    if (len(parts) >= 3 and parts[0] == ".obsidian"
+            and parts[1] == "plugins" and parts[-1] == "data.json"):
         return True
     return False
 

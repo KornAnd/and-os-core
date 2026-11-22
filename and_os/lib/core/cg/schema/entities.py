@@ -1,6 +1,6 @@
 """
 Production Entity Contracts & Data Schemas
-AnD os v1.0.0 — Island 7: 3D Pipeline Core (Schema-First Contract Standard)
+AnD os v1.2.0 — Island 7: 3D Pipeline Core (Schema-First Contract Standard)
 """
 
 from dataclasses import dataclass, field

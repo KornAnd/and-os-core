@@ -20,6 +20,7 @@ import os
 import sys
 import re
 import json
+import subprocess
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -58,14 +59,20 @@ def register_skill_in_mesh(vault_root: Path, skill_name: str, island_id: Optiona
     # 2. Update actual count across manifests
     actual_count = count_active_skills(skills_root)
     
-    # 2.1 system.json
-    sys_json = vault_root / "system.json"
+    # 2.1 Canonical manifest and_os/etc/system.json (SSoT). The root
+    # system.json is a generated projection of this file (step 2.7),
+    # so only the canonical copy is written here.
+    sys_json = vault_root / "and_os/etc/system.json"
     if sys_json.exists():
         try:
             data = json.loads(sys_json.read_text(encoding="utf-8"))
-            # Keep track in metadata
             data.setdefault("metadata", {})["activeSkillsCount"] = actual_count
-            sys_json.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            data["skills_count"] = actual_count
+            if isinstance(data.get("skills"), dict):
+                data["skills"]["skillsCount"] = actual_count
+            sys_json.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8")
         except (OSError, json.JSONDecodeError) as err:
             errors.append(f"Failed to update system.json: {err}")
 
@@ -80,7 +87,23 @@ def register_skill_in_mesh(vault_root: Path, skill_name: str, island_id: Optiona
         except OSError as err:
             errors.append(f"Failed to update AGENTS.md: {err}")
 
-    # 2.3 SYSTEM_MAP.md
+    # 2.3 SYSTEM.md (the skill word is spelled with \u escapes so this
+    # module stays ASCII-only in source, per the language invariant)
+    system_md = vault_root / "SYSTEM.md"
+    if system_md.exists():
+        try:
+            content = system_md.read_text(encoding="utf-8")
+            skill_word = "\u0441\u043a\u0438\u043b\u043b"
+            new_content = re.sub(
+                r"(\d+)\s+" + skill_word + r"(\w*)",
+                lambda m: f"{actual_count} {skill_word}{m.group(2)}",
+                content)
+            if new_content != content:
+                system_md.write_text(new_content, encoding="utf-8")
+        except OSError as err:
+            errors.append(f"Failed to update SYSTEM.md: {err}")
+
+    # 2.4 SYSTEM_MAP.md
     sys_map = vault_root / "and_os/etc/SYSTEM_MAP.md"
     if sys_map.exists():
         try:
@@ -91,7 +114,7 @@ def register_skill_in_mesh(vault_root: Path, skill_name: str, island_id: Optiona
         except OSError as err:
             errors.append(f"Failed to update SYSTEM_MAP.md: {err}")
 
-    # 2.4 SYSTEM_ARCHITECTURE_GRAPH.md
+    # 2.5 SYSTEM_ARCHITECTURE_GRAPH.md
     arch_graph = vault_root / "and_os/etc/SYSTEM_ARCHITECTURE_GRAPH.md"
     if arch_graph.exists():
         try:
@@ -102,7 +125,7 @@ def register_skill_in_mesh(vault_root: Path, skill_name: str, island_id: Optiona
         except OSError as err:
             errors.append(f"Failed to update SYSTEM_ARCHITECTURE_GRAPH.md: {err}")
 
-    # 2.5 and_os/lib/skills/README.md
+    # 2.6 and_os/lib/skills/README.md
     skills_readme = vault_root / "and_os/lib/skills/README.md"
     if skills_readme.exists():
         try:
@@ -113,16 +136,70 @@ def register_skill_in_mesh(vault_root: Path, skill_name: str, island_id: Optiona
         except OSError as err:
             errors.append(f"Failed to update and_os/lib/skills/README.md: {err}")
 
-    # 3. Add to and_os/lib/skills/REGISTRY.md if missing
+    # 2.7 Regenerate derived artifacts (the root projection hashes the
+    # canonical manifest; the rules fast index hashes SYSTEM.md +
+    # rules.md + the canonical manifest, so it must follow 2.3/2.1).
+    projector = vault_root / "and_os/bin/manifest_projector.py"
+    if projector.exists():
+        proj = subprocess.run(
+            [sys.executable, str(projector), "project-root"],
+            capture_output=True, text=True, cwd=str(vault_root))
+        if proj.returncode != 0:
+            errors.append(
+                "Failed to re-project root system.json: "
+                f"{proj.stderr.strip()[:200]}")
+    compiler = vault_root / "and_os/bin/rules_compiler.py"
+    if compiler.exists():
+        compiled = subprocess.run(
+            [sys.executable, str(compiler), "compile"],
+            capture_output=True, text=True, cwd=str(vault_root))
+        if compiled.returncode != 0:
+            errors.append(
+                "Failed to recompile rules fast index: "
+                f"{compiled.stderr.strip()[:200]}")
+
+    # 3. Add to and_os/lib/skills/REGISTRY.md if missing. The row must land
+    # inside the first status table (an EOF append lands outside every
+    # table and the registry probes ignore it); the enclosing section
+    # counter "(N)" is incremented in the same transaction.
     registry_md = vault_root / "and_os/lib/skills/REGISTRY.md"
     if registry_md.exists():
         try:
-            reg_text = registry_md.read_text(encoding="utf-8")
-            if f"| {skill_name} |" not in reg_text:
-                # Append to active table
-                row = f"| {skill_name} | ACTIVE | STATIC | System registered skill |\n"
-                reg_text = reg_text + row
-                registry_md.write_text(reg_text, encoding="utf-8")
+            reg_lines = registry_md.read_text(encoding="utf-8").splitlines()
+            if f"| {skill_name} |" not in "\n".join(reg_lines):
+                insert_at = None
+                sep_at = None
+                in_table = False
+                for i, line in enumerate(reg_lines):
+                    stripped = line.strip()
+                    if not in_table:
+                        if (stripped and "|" in stripped
+                                and set(stripped) <= set("|-: ")):
+                            sep_at = i
+                            in_table = True
+                    elif stripped.startswith("|"):
+                        insert_at = i + 1
+                    else:
+                        break
+                if insert_at is None:
+                    errors.append(
+                        "REGISTRY.md: no status table found for "
+                        "skill registration")
+                else:
+                    reg_lines.insert(
+                        insert_at,
+                        f"| {skill_name} | ACTIVE | STATIC | "
+                        f"System registered skill |")
+                    if sep_at is not None:
+                        for j in range(sep_at - 1, -1, -1):
+                            if reg_lines[j].startswith("## "):
+                                reg_lines[j] = re.sub(
+                                    r"\((\d+)\)\s*$",
+                                    lambda m: f"({int(m.group(1)) + 1})",
+                                    reg_lines[j], count=1)
+                                break
+                    registry_md.write_text(
+                        "\n".join(reg_lines) + "\n", encoding="utf-8")
         except OSError as err:
             errors.append(f"Failed to update REGISTRY.md: {err}")
 

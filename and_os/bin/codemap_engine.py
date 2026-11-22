@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 codemap_engine.py — Ultra-lightweight architectural code map generator (Codemaps Engine).
-AnD os v1.0.0 — Island 8 (Kernel & System Compiler).
+AnD os v1.2.0 — Island 8 (Kernel & System Compiler).
 
 Provides ~95% token economy when studying project structure:
 1. Scans the AST (Abstract Syntax Tree) of Python (.py) and Swift (.swift) sources.
@@ -15,6 +15,7 @@ Provides ~95% token economy when studying project structure:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import ast
 import json
 import re

@@ -4,7 +4,9 @@ validate_system.py — Modular master dispatcher of the self-diagnostics and aud
 Health Grid architecture (Ring 0 - Ring 4):
   - Ring 0: FSSyntaxProbe (FS, bytecode, syntax, path semantics)
   - Ring 1: GraphProbe (knowledge graph, 0% orphans, cross-island highways)
+  - Ring 1: LinkProbe (vault-wide wikilink dead-link gate, fingerprint-cached, R-2 20.11)
   - Ring 2: ContractProbe (CLI AST contracts, rule consistency, IPC schemas)
+  - Ring 2: RulesProbe (rules corpus integrity: stubs, dedup, SSoT counters, T0 mapping)
   - Ring 3: ManifestProbe (kernel manifests, security, Air-Gap, DEV_PROTOCOL)
   - Ring 3.5: SkillProbe (parallel SOS audit of the 50 skills)
   - Ring 4: RuntimeProbe (live runtime, LaunchAgents ports, disk fuse)
@@ -60,12 +62,22 @@ from and_os.lib.health_grid.skill_probe import SkillProbe
 from and_os.lib.health_grid.runtime_probe import RuntimeProbe
 from and_os.lib.health_grid.clean_code_probe import CleanCodeProbe
 from and_os.lib.health_grid.dod_probe import DoDProbe
+from and_os.lib.health_grid.bin_smoke_probe import BinSmokeProbe
+from and_os.lib.health_grid.rules_probe import RulesProbe
+from and_os.lib.health_grid.link_probe import LinkProbe
 
 
 def run_full_grid_audit(
     vault_root: str, fix: bool = False, verbose: bool = True, save_report: bool = False
 ) -> dict:
     t0 = time.time()
+
+    # Mutation canary (22.11, external audit C-03): the full grid must not
+    # write outside the sanctioned volatile zones. Surfaced in the payload
+    # (report-only for now; escalates to counted after the first live
+    # run confirms no daemon noise — no silent gates, Gate Integrity).
+    from and_os.lib.health_grid import mutation_canary
+    mutation_before = mutation_canary.snapshot(vault_root)
 
     probes = [
         ("fs_syntax", FSSyntaxProbe),
@@ -76,6 +88,9 @@ def run_full_grid_audit(
         ("skill", SkillProbe),
         ("runtime", RuntimeProbe),
         ("dod_gate", DoDProbe),
+        ("bin_smoke", BinSmokeProbe),
+        ("rules", RulesProbe),
+        ("link", LinkProbe),
     ]
 
     results = {}
@@ -132,6 +147,10 @@ def run_full_grid_audit(
         "expected_probe_count": len(probes),
         "disk_free_gb": free_gb,
         "total_issues": total_issues + status_only_failures + len(probe_failures),
+        # Surfaced, never counted: advisory findings (warnings) across all
+        # probes — code debt that must stay visible without flipping rings
+        # (T2, 17.11: advisories lived only inside probes.*.warnings).
+        "advisory_count": sum(len(r.warnings) for r in results.values()),
         "probe_failures": probe_failures,
         "probe_timeouts": probe_timeouts,
         "probe_policy": policy,
@@ -150,6 +169,15 @@ def run_full_grid_audit(
             payload["report_persistence"] = "failed"
             payload["report_persistence_error"] = f"{type(e).__name__}: {e}"
 
+    # Canary verdict over the whole grid run (var/.trash/.venv excluded).
+    mutation_report = mutation_canary.compare(
+        mutation_before, mutation_canary.snapshot(vault_root))
+    payload["mutation_canary"] = {"clean": mutation_canary.is_clean(mutation_report), **mutation_report}
+    if not mutation_canary.is_clean(mutation_report):
+        print("[!] Mutation canary: unexpected vault writes during grid run: "
+              f"+{mutation_report['added']} -{mutation_report['removed']} ~{mutation_report['modified']}",
+              file=sys.stderr)
+
     return payload
 
 
@@ -165,8 +193,8 @@ def _force_exit_on_timeouts(report: dict) -> None:
         os._exit(1)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="AnD os v1.0.0 Health Grid System Auditor")
+def main() -> int:
+    parser = argparse.ArgumentParser(description="AnD os v1.2.0 Health Grid System Auditor")
     parser.add_argument("--fix", action="store_true", help="Automatic elimination of the found defects")
     parser.add_argument("--compact", "-c", action="store_true", help="Token-efficient express summary (1 line)")
     parser.add_argument("--json", action="store_true", help="JSON format output")
@@ -180,7 +208,7 @@ def main():
             from and_os.lib.core.root_config import get_system_version
             ver_str = f"v{get_system_version()}"
         except Exception:
-            ver_str = "v1.0.0"
+            ver_str = "v1.2.0"
         mode_str = "REPAIR (--fix)" if args.fix else "DIAGNOSTICS (Health Grid)"
         print(f"\nLaunching the Health Grid validation of AnD os ({ver_str}): mode {mode_str}\n" + "=" * 65)
 

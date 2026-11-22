@@ -6,6 +6,7 @@ test case templates (unittest for Python, XCTest for Swift) to enforce Test-Driv
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import os
 import ast
 import re

@@ -2,12 +2,12 @@
   "$schema": "and-os-root-projection/v1",
   "root_marker": true,
   "canonical_manifest": "and_os/etc/system.json",
-  "canonical_sha256": "de945cb9448a344e2a867eb73c6bf29c2f2cc394c12cd1270f65bf6d73e0d499",
-  "generated_at": "2026-11-13T14:26:39",
+  "canonical_sha256": "e7b33232efab0303a521d49c6a89893da6ab57c97f545e8e84c24db4db18f303",
+  "generated_at": "2026-11-22T20:19:20",
   "generated_by": "and_os/bin/manifest_projector.py",
   "manifestVersion": "1.0.0",
   "name": "AnD os",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "status": "PRODUCTION_RELEASE",
-  "rulesCount": 76
+  "rulesCount": 81
 }

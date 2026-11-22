@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Component Lifecycle & Registration Engine (register_component.py)
-AnD os v1.0.0 - Modular Architecture Infrastructure
+AnD os v1.2.0 - Modular Architecture Infrastructure
 
 The automated tool for the safe addition, the update and the registration:
 1. The New Skills (and_os/lib/skills/<name>/SKILL.md -> the symlink .opencode/skills/ -> CONTEXT.md -> ROUTING.md)
@@ -12,6 +12,7 @@ Provides the 100% consistency of the metadata, the syntax validation and the pas
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from pathlib import Path
 _vroot = str(Path(__file__).resolve().parents[2])
 if _vroot not in sys.path:
@@ -265,8 +266,8 @@ def register_module(hub: str, name: str, source_file: str, role: str, commands: 
         "registry_updated": registry_updated
     }
 
-def main():
-    parser = argparse.ArgumentParser(description="AnD os v1.0.0 Component Registrar")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="AnD os v1.2.0 Component Registrar")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     
     # 1. new-skill

@@ -1,6 +1,6 @@
 """
 state.py — Provenance-Aware State Manager & Core SQLite Metadata Store
-AnD os v1.0.0 — Core Architecture Layer (Truth in State Standard)
+AnD os v1.2.0 — Core Architecture Layer (Truth in State Standard)
 
 Replaces synthetic default states with explicit provenance:
   - StateFreshness (VERIFIED, CACHED, STALE, UNKNOWN)
@@ -18,6 +18,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+import sys
 from typing import Any, Dict, Optional, Tuple
 
 from and_os.lib.core.vfs import DIR_VAR

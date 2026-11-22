@@ -12,6 +12,7 @@ Scans:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import time
 import json
 import shutil
@@ -114,6 +115,26 @@ def sync_terminal_delta() -> List[str]:
 
     return synced
 
+def write_preflight_stamp(hours: float) -> None:
+    """Writes the freshness stamp of the last full preflight (F-6, 20.11).
+
+    The runtime probe reports its age in Grid details (informational).
+    Channel is registered in and_os/etc/var_retention.json (Rule #72).
+    """
+    stamp_path = os.path.join(os.path.expanduser("~"), ".and_os", "var", "preflight_state.json")
+    payload = json.dumps(
+        {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "epoch": int(time.time()), "hours_window": hours},
+        ensure_ascii=False)
+    try:
+        os.makedirs(os.path.dirname(stamp_path), exist_ok=True)
+        tmp_path = stamp_path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as sf:
+            sf.write(payload)
+        os.replace(tmp_path, stamp_path)
+    except OSError as e:
+        sys.stderr.write(f"[sync_preflight] Warning writing preflight stamp: {e}\n")
+
+
 def generate_preflight_summary(hours: float = 12.0) -> Dict[str, Any]:
     """Generates a concise state summary for the agent."""
     synced = sync_terminal_delta()
@@ -149,7 +170,8 @@ def main():
         return
 
     summary = generate_preflight_summary(args.hours)
-    
+    write_preflight_stamp(args.hours)
+
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

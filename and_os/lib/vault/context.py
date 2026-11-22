@@ -13,7 +13,9 @@ import os
 import re
 from typing import Dict, List, Set, Tuple
 
-IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "vault_shadow"}
+# 22.11 deep audit (S4): and_os/ is the Fast-Track core tree — context sync
+# must never scan or rewrite it (mirror of engine.audit_hygiene exclusion).
+IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "vault_shadow", "and_os"}
 IGNORE_FILES = {".DS_Store", "CONTEXT.md"}
 
 def parse_context_links(context_file_path: str) -> Set[str]:

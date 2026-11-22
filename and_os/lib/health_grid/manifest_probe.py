@@ -13,7 +13,7 @@ import re
 import json
 import glob
 from datetime import datetime
-from typing import Dict, Any, List, Set, Tuple
+from typing import Dict, Any, List, Optional, Set, Tuple
 from and_os.lib.health_grid import BaseProbeResult
 from and_os.lib.i1_zones import load_i1_zones
 
@@ -168,6 +168,106 @@ def parse_skill_registry_table(content: str, disk_skills: set) -> Tuple[Set[str]
     return names, errors
 
 
+def check_registry_status_consistency(registry_content: str, disk_skills: set) -> List[str]:
+    """REGISTRY.md status consistency vs disk (C7 consolidation gate).
+
+    Closes the false-deprecated hole: before this check, a skill could be
+    declared DEPRECATED in REGISTRY.md while still present on disk as
+    ACTIVE (or listed in both the active table and the deprecation table)
+    and every probe would pass. Also verifies that each section header
+    counter "(N)" equals the actual row count of its table.
+
+    Checks:
+      1. every skill on disk appears in an active status table
+      2. no skill listed in the deprecation table exists on disk
+      3. no skill is listed in BOTH the active table and the
+         deprecation table
+      4. per-section declared counter equals the actual row count
+      5. at least one active status table exists
+
+    Returns a list of error strings (empty = consistent).
+    """
+    errors: List[str] = []
+    section_re = re.compile(r"^##\s+(.+?)\s*\((\d+)\)\s*$")
+    active_header = "| skill | status | volatility | note |"
+    deprecated_header = "| skill | status | reason | replacement |"
+
+    active: Dict[str, str] = {}
+    deprecated: Set[str] = set()
+    section: str = ""
+    declared: int = 0
+    rows: int = 0
+    table_kind: Optional[str] = None
+
+    def _close_section() -> None:
+        nonlocal rows
+        if section and rows != declared:
+            errors.append(
+                f"Registry section '{section}' declares {declared} skills "
+                f"but lists {rows}")
+        rows = 0
+
+    for line in registry_content.splitlines():
+        m = section_re.match(line)
+        if m:
+            _close_section()
+            section = m.group(1)
+            declared = int(m.group(2))
+            table_kind = None
+            continue
+        if not section:
+            continue
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            if rows:
+                _close_section()
+                section = ""
+                declared = 0
+            continue
+        if set(stripped) <= set("|-: "):
+            continue
+        lowered = stripped.lower()
+        if lowered.startswith(active_header):
+            table_kind = "active"
+            continue
+        if lowered.startswith(deprecated_header):
+            table_kind = "deprecated"
+            continue
+        if table_kind is None:
+            continue
+        rows += 1
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if not cells or not cells[0]:
+            continue
+        name = cells[0]
+        if table_kind == "active":
+            status = cells[1] if len(cells) > 1 else ""
+            if name in active:
+                errors.append(f"Registry: skill '{name}' is listed twice in active tables")
+            else:
+                active[name] = status
+        else:
+            deprecated.add(name)
+    if section:
+        _close_section()
+
+    if not active:
+        errors.append("Registry: no active status table found in REGISTRY.md")
+        return errors
+    missing = sorted(disk_skills - set(active))
+    if missing:
+        errors.append(f"Registry: disk skills missing from the active tables: {missing}")
+    false_dep = sorted(deprecated & disk_skills)
+    if false_dep:
+        errors.append(
+            f"Registry: DEPRECATED in REGISTRY.md but present on disk: {false_dep}")
+    double = sorted(set(active) & deprecated)
+    if double:
+        errors.append(
+            f"Registry: listed in both the active table and the deprecation table: {double}")
+    return errors
+
+
 class ManifestProbe:
     @staticmethod
     def run(vault_root: str, fix: bool = False, verbose: bool = True) -> BaseProbeResult:
@@ -195,6 +295,26 @@ class ManifestProbe:
             if os.path.isdir(os.path.join(skills_dir, d)) and os.path.exists(os.path.join(skills_dir, d, "SKILL.md"))
         ])
 
+        # SSoT hard gate (19.11 R-8): the machine manifest skills_count must
+        # equal the on-disk registry. Manifests that carry the delegation
+        # marker below display their count via this SSoT instead of a literal.
+        sstot_count = None
+        try:
+            with open(os.path.join(vault_root, "and_os", "etc", "system.json"), "r", encoding="utf-8") as fh:
+                sstot_count = json.load(fh).get("skills_count")
+        except (OSError, ValueError):
+            sstot_count = None
+        if sstot_count != actual_skills_count:
+            issues += 1
+            result.errors.append(
+                f"system.json skills_count={sstot_count} != on-disk skill registry "
+                f"({actual_skills_count}) — SSoT desynchronized (19.11 R-8 gate)")
+
+        # Marker of an explicit SSoT delegation (the Russian phrase
+        # "count is SSoT" in the manifest); manifests without it must
+        # still carry the enforced literal (legacy gate kept).
+        SSOT_DELEGATION_MARKER = "\u0441\u0447\u0451\u0442\u0447\u0438\u043a \u2014 SSoT"
+
         manifest_checks = [
             ("AGENTS.md", os.path.join(vault_root, "AGENTS.md"), rf"\u0440\u0435\u0435\u0441\u0442\u0440 {actual_skills_count} \u0441\u043a\u0438\u043b\u043b\u043e\u0432"),
             ("SYSTEM_MAP.md", os.path.join(vault_root, "and_os/etc/SYSTEM_MAP.md"), rf"{actual_skills_count} [Aa]ctive [Ss]kills"),
@@ -204,12 +324,15 @@ class ManifestProbe:
 
         sync_mismatches = []
         for name, m_path, pat in manifest_checks:
-            if os.path.exists(m_path):
-                with open(m_path, "r", encoding="utf-8") as mf:
-                    mc = mf.read()
-                if not re.search(pat, mc):
-                    sync_mismatches.append(f"{name} (expected: '{actual_skills_count}')")
-                    issues += 1
+            if not os.path.exists(m_path):
+                continue
+            with open(m_path, "r", encoding="utf-8") as mf:
+                mc = mf.read()
+            if SSOT_DELEGATION_MARKER in mc:
+                continue
+            if not re.search(pat, mc):
+                sync_mismatches.append(f"{name} (expected: '{actual_skills_count}')")
+                issues += 1
 
         if sync_mismatches:
             result.warnings.append(f"Skill counts desynchronized across manifests: {', '.join(sync_mismatches)}")
@@ -218,7 +341,6 @@ class ManifestProbe:
         version_consistency_ok = None
         canonical_version = ""
         try:
-            import json
             with open(sys_json, "r", encoding="utf-8") as jf:
                 s_data = json.load(jf)
             canonical_version = s_data.get("version", "")
@@ -374,6 +496,7 @@ class ManifestProbe:
         # registry table was outside every probe).
         registry_table_skills = 0
         registry_table_errors: List[str] = []
+        registry_status_errors: List[str] = []
         if os.path.exists(sys_md) and os.path.isdir(skills_dir):
             with open(sys_md, "r", encoding="utf-8") as sf:
                 registry_content = sf.read()
@@ -387,6 +510,16 @@ class ManifestProbe:
             if registry_table_errors:
                 issues += len(registry_table_errors)
                 result.errors.extend(registry_table_errors)
+            # 1.5 REGISTRY.md status consistency vs disk (C7 gate): a
+            # skill may not be DEPRECATED in REGISTRY while present on
+            # disk, and every disk skill must have an active-table row.
+            if os.path.exists(skills_reg):
+                with open(skills_reg, "r", encoding="utf-8") as rgf:
+                    registry_status_errors = check_registry_status_consistency(
+                        rgf.read(), disk_skills)
+                if registry_status_errors:
+                    issues += len(registry_status_errors)
+                    result.errors.extend(registry_status_errors)
 
         # 2. Security: DAC permissions (no world-writable files)
         world_writable = []
@@ -495,8 +628,11 @@ class ManifestProbe:
             "root_projection_checked": projection_checked,
             "version_consistency_ok": version_consistency_ok,
             "stale_banner_files": len(stale_banners),
-            "registry_table_skills": registry_table_skills,
+            # sorted list (not the raw set): the report must survive
+            # json.dumps in the `audit --json` channel (finding D-1)
+            "registry_table_skills": sorted(registry_table_skills),
             "registry_table_errors": len(registry_table_errors),
+            "registry_status_errors": len(registry_status_errors),
             "world_writable_files": len(world_writable),
             "secret_leaks_count": len(secret_leaks),
             "bare_excepts_count": len(bare_excepts),

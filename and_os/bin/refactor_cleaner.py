@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.0.0.
+refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.2.0.
 Analyzes Python & Swift ASTs for unused functions, dead code branches and orphan files.
 Conforms strictly to Rule #53 (Safe Deletion via .trash/ with audit log in DELETION_LOG.md).
 
@@ -87,7 +87,7 @@ class RefactorCleaner:
 
         return findings
 
-    def log_deletion(self, item: Dict[str, Any], status: str = "DELETED"):
+    def log_deletion(self, item: Dict[str, Any], status: str = "DELETED") -> None:
         entry = (
             f"- **[{time.strftime('%Y-%m-%d %H:%M:%S')}]** `{status}`: "
             f"`{item.get('identifier', 'file')}` in `{item.get('file')}` (Line {item.get('line')}) | Risk: {item.get('risk')}\n"
@@ -100,7 +100,7 @@ class RefactorCleaner:
             f.write(entry)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os Safe Refactor & Dead Code Cleaner")
     parser.add_argument("action", choices=["audit", "dry-run", "log"], help="Action: audit, dry-run, log")
     parser.add_argument("--dir", help="Target subdirectory to scan")

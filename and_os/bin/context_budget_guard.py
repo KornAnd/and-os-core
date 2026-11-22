@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-context_budget_guard.py — Context budget guard and phase compactor for AnD os v1.0.0.
+context_budget_guard.py — Context budget guard and phase compactor for AnD os v1.2.0.
 Island 8 (Kernel Core) <-> the agent's instrumental runtime.
 
 Provides:
@@ -14,6 +14,7 @@ Provides:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import time
 from typing import Dict, Any, Optional

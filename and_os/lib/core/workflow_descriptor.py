@@ -1,6 +1,6 @@
 """
 workflow_descriptor.py — Deterministic Skill Workflow Binding & Execution Engine
-AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Microkernel Workflows)
+AnD os v1.2.0 — Core Architecture Layer (Unix-Grade Microkernel Workflows)
 
 Defines:
   - StepDescriptor: Atomic step bound to an OperationRequest or deterministic handler
@@ -12,6 +12,7 @@ Defines:
 
 from __future__ import annotations
 
+import sys
 import time
 import uuid
 from dataclasses import dataclass, field

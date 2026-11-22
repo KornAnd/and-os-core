@@ -5,6 +5,7 @@ Keeps Head (first N lines) + Tail (last M lines), filtering duplicates and cutti
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import subprocess
 import argparse
 

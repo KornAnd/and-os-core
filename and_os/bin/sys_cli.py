@@ -12,8 +12,24 @@ Consolidates all system scripts and core modules into a single CLI with telemetr
 Core Invariants: Think in Code (Rule #16), IPC Data Bus, Hermetic FHS, Auto-Telemetry.
 """
 
+import sys  # R-10: must precede every and_os import (bytecode-leak guard below)
+
+# R-10 (21.11, F-6 recurrences #5/#6): bytecode-leak guard. A foreign
+# interpreter (e.g. a bare Homebrew python3.15) reaching the kernel before
+# the Rule #68 re-exec writes non-golden pyc files into the vault and
+# red-lines Ring 0 / quick_verify / the release gate. sys.dont_write_bytecode
+# is consulted per-import, so sealing it here - before any and_os import -
+# covers the whole process regardless of launcher; the stderr notice keeps
+# the caller informed about the interpreter skew.
+sys.dont_write_bytecode = True
+if sys.version_info[:2] != (3, 12):
+    sys.stderr.write(
+        "[sys_cli] WARNING (R-10): launched under Python %d.%d, golden toolchain is "
+        "3.12 (and_os/.venv). Bytecode writes disabled for this process; "
+        "Rule #68 re-exec follows under the canonical venv.\n"
+        % (sys.version_info[0], sys.version_info[1]))
+
 import os
-import sys
 import json
 import time
 import socket
@@ -67,6 +83,48 @@ def run_script(script_name: str, args_list: list, no_bytecode: bool = False) -> 
         "returncode": res.returncode
     }
 
+def oc_permission_table_edit_bypass(db_paths: Optional[tuple] = None) -> List[tuple]:
+    """P1-2 (22.11 deep audit, AUDIT_SYSTEM_DEEP): detect 'Always allow'
+    `edit *` grants in the OpenCode sqlite `permission` table.
+
+    Such a grant SILENTLY disables the island ASK gate project-wide (only deny
+    rules are immune — AGENTS.md 22.11 decision), which the JSON `permissions`
+    arrays are blind to. That blind spot let `sys_cli hooks` print a false
+    green while a live `edit *` row nullified all island asks (incident 22.11).
+
+    Read-only. Returns [(db_path, row_id, resource), ...] for broad edit grants
+    (action == 'edit' AND resource == '*'). Empty list = no bypass grant present.
+    """
+    if db_paths is None:
+        env = os.environ.get("OC_PERMISSION_DB")
+        if env:
+            # os.pathsep-joined override (testability / non-standard layouts).
+            db_paths = tuple(p for p in env.split(os.pathsep) if p)
+        else:
+            db_paths = (
+                os.path.expanduser("~/.local/share/opencode/opencode.db"),
+                os.path.expanduser("~/.local/share/opencode/opencode-.db"),
+            )
+    import sqlite3
+    bypass: List[tuple] = []
+    for db_path in db_paths:
+        if not db_path or not os.path.exists(db_path):
+            continue
+        con = None
+        try:
+            con = sqlite3.connect("file:%s?mode=ro" % db_path, uri=True, timeout=5)
+            cur = con.execute("SELECT id, action, resource FROM permission")
+            for row_id, action, resource in cur.fetchall():
+                if action == "edit" and resource == "*":
+                    bypass.append((db_path, row_id, resource))
+        except sqlite3.Error:
+            # Unreadable/corrupt DB: skip it (defensive read-only probe).
+            continue
+        finally:
+            if con is not None:
+                con.close()
+    return bypass
+
 def sync_global_rules() -> None:
     """Сквозная синхронизация канонических правил Obsidian Vault с глобальным окружением Antigravity и Pulsar."""
     sources = {
@@ -109,7 +167,7 @@ def sync_global_rules() -> None:
 
 def print_agent_motd() -> None:
     """L1 Fast Agent Capsule / MOTD Banner (~80 tokens). Output once on init/preflight."""
-    ver = "1.0.0"
+    ver = "1.2.0"
     rel_summary = ""
     try:
         from and_os.lib.core.root_config import get_system_version
@@ -489,7 +547,13 @@ def cmd_skill(args: Any) -> None:
         print(res["stdout"], end="")
     if res.get("stderr"):
         print(res["stderr"], file=sys.stderr, end="")
-    auto_log_telemetry(f"Skill bus {args.skill_action}: {getattr(args, 'skill_name', '')}", skill="sys.skill_bus")
+    # 18.11 R8 (F8): attribute the real skill — the old hardcoded
+    # "sys.skill_bus" token made 100% of bus-routed runs unattributable
+    # in the Rule #18 governance report.
+    skill_token = (getattr(args, "skill_name", None)
+                   or getattr(args, "consumer", None)
+                   or "sys.skill_bus")
+    auto_log_telemetry(f"Skill bus {args.skill_action}: {getattr(args, 'skill_name', '')}", skill=skill_token)
 
 def cmd_daemon(args: Any) -> None:
     import socket
@@ -701,7 +765,7 @@ def cmd_islands(args: Any) -> None:
             auto_log_telemetry(f"Islands info #{selected_info}", skill="sys.islands")
             return
 
-    print("=== 🏝️ Архитектура 9 Логических Островов AnD os v1.0.0 ===")
+    print("=== 🏝️ Архитектура 9 Логических Островов AnD os v1.2.0 ===")
     for isl in islands_data:
         full_p = os.path.join(VAULT_ROOT, isl["path"])
         exists = "🟢" if os.path.exists(full_p) else "🔴"
@@ -822,7 +886,7 @@ def main() -> None:
         from and_os.lib.core.root_config import get_system_version
         current_ver = get_system_version(VAULT_ROOT)
     except Exception:
-        current_ver = "1.0.0"
+        current_ver = "1.2.0"
 
     # UNIX Git-Style Fast-Path: If invoking a mapped subsystem command with --help or arguments,
     # register ONLY that targeted subsystem's parsers to bypass 59k function calls in monolithic argparse.
@@ -1015,7 +1079,7 @@ def main() -> None:
     p_init.add_argument("--json", action="store_true", help="Вывод в JSON")
 
     # Audit
-    p_audit = subparsers.add_parser("audit", help="Запуск 16-векторного аудита системы AnD os v1.0.0")
+    p_audit = subparsers.add_parser("audit", help="Запуск 16-векторного аудита системы AnD os v1.2.0")
     audit_mode = p_audit.add_mutually_exclusive_group()
     audit_mode.add_argument("--fix", action="store_true", help="Автоматически исправить дефекты")
     audit_mode.add_argument("--read-only", action="store_true", help="Проверка без телеметрии, кэша и байткода")
@@ -1430,12 +1494,26 @@ def main() -> None:
     p_dplan.add_argument("--phases", "-p", default="", help="Фазы через запятую (для new)")
     # Reverse-Engineering Engine Dispatcher (REA)
     p_rev = subparsers.add_parser("reverse", help="Диспетчер декомпиляции и статического анализа бинарников и приложений (REA)")
-    p_rev.add_argument("subaction", choices=["status", "inspect", "search", "decompile", "check-update"], help="Команда: status, inspect, search, decompile, check-update")
+    p_rev.add_argument("subaction", choices=["status", "analyze", "inspect", "search", "decompile", "check-update"], help="Команда: status, analyze, inspect, search, decompile, check-update")
     p_rev.add_argument("target", nargs="?", default="", help="Целевой файл или директория (Mach-O, ASAR, Electron, SQLite)")
     p_rev.add_argument("--pattern", "-p", default="", help="Шаблон поиска для search")
     p_rev.add_argument("--procedure", default="", help="Имя процедуры/функции для декомпиляции")
-    p_rev.add_argument("--token-limit", type=int, default=2000, help="Аппаратный потолок токенов (default: 2000)")
+    p_rev.add_argument("--token-limit", type=int, default=2000, help="Окно токенов для не-JSON форматов (default: 2000; JSON ограничен probe-лимитами REA)")
+    p_rev.add_argument("--format", default="json", choices=["json", "md", "yaml", "toon"], help="Формат вывода REA (default: json)")
     p_rev.add_argument("--json", action="store_true", help="Вывод в JSON")
+
+    # Multi-Contour Vacancy & Market Radar
+    p_vac = subparsers.add_parser("vacancy", help="Многоконтурный радар вакансий и B2B-лидов (andrey, tabu, yulia)")
+    p_vac.add_argument("--contour", "-c", choices=["andrey", "tabu", "yulia"], required=True, help="Целевой контур")
+    p_vac.add_argument("--confirm", action="store_true", help="Подтверждение фактического сетевого поиска")
+    p_vac.add_argument("--dry-run", action="store_true", help="Запуск скоринга без записи карточек")
+
+    p_sc = subparsers.add_parser("skill-count", help="SSoT-проектор счётчика активных скиллов (диск -> манифесты, идемпотентно)")
+    p_sc.add_argument("--dry-run", action="store_true", help="Отчёт о расхождении без записи")
+    p_sc.add_argument("--json", action="store_true", help="Машинный формат отчёта")
+
+    p_hou = subparsers.add_parser("houdini", help="Houdini MCP bridge (fxhoudinimcp): status/check/call/sanitize/check-payload/capture/launch")
+    p_hou.add_argument("extra_args", nargs=argparse.REMAINDER, help="Аргументы подкоманды houdini_bridge.py")
 
     args, unknown = parser.parse_known_args()
     if hasattr(args, "extra_args") and unknown:
@@ -1650,32 +1728,106 @@ def main() -> None:
         ret = sub.execute(args) if sub else 1
         sys.exit(ret)
     elif args.command == "hooks":
-        # Hardware-Level Lifecycle Hooks Audit
-        settings_file = "~/.gemini/settings.json"
-        hooks_config = "~/.gemini/config/hooks.json"
-        session_gate = os.path.join(AI_SCRIPT_DIR, "session_gate.py")
-        vault_guard = os.path.join(AI_SCRIPT_DIR, "vault_guard_hook.py")
+        # Governance Gate Audit (reworked 21.11, audit R-LLM-OBS): the
+        # canonical mechanical gate for Rule #19 is the OpenCode native
+        # `permissions` array. A gate is ACTIVE only when the rules are
+        # actually registered in the config — file existence alone is
+        # explicitly NOT sufficient (the old audit printed false green).
+        import json as _json
+        GATE_ISLANDS = ("Nero", "Product", "Story", "Ta-Bu", "Book",
+                        "Clippings", "Industry", "Tasks", "Studio")
+        oc_global = os.path.expanduser("~/.config/opencode/opencode.json")
+        oc_home = os.path.expanduser("~/.opencode/opencode.json")
 
-        s_ok = os.path.exists(settings_file)
-        h_ok = os.path.exists(hooks_config)
+        def _gate_rules(path):
+            """Return (island_ask_count, deny_count, error_or_None)."""
+            try:
+                with open(path, "r", encoding="utf-8") as fh:
+                    cfg = _json.load(fh)
+            except OSError as err:
+                return 0, 0, f"unreadable: {err}"
+            except ValueError as err:
+                return 0, 0, f"invalid JSON: {err}"
+            perms = cfg.get("permissions")
+            if not isinstance(perms, list):
+                return 0, 0, "no 'permissions' array"
+            asks = 0
+            denies = 0
+            for rule in perms:
+                if not isinstance(rule, dict):
+                    continue
+                if rule.get("action") != "edit":
+                    continue
+                top = os.path.basename(
+                    str(rule.get("resource", "")).split("*")[0].rstrip("/"))
+                if rule.get("effect") == "ask" and top in GATE_ISLANDS:
+                    asks += 1
+                elif rule.get("effect") == "deny":
+                    denies += 1
+            return asks, denies, None
+
+        g_asks, g_denies, g_err = _gate_rules(oc_global)
+        h_asks, h_denies, h_err = _gate_rules(oc_home)
+        gate_active = g_asks >= len(GATE_ISLANDS)
+
+        # P1-2 (22.11 deep audit): the JSON arrays above are blind to the
+        # sqlite `permission` table, where an 'Always allow' `edit *` grant
+        # silently disables the ASK gate project-wide. Query it (read-only)
+        # and demote the gate if a broad edit grant is present (false-green fix).
+        oc_edit_bypass = oc_permission_table_edit_bypass()
+        if oc_edit_bypass:
+            gate_active = False
+
+        # Legacy Gemini PreToolUse hook: retired for OpenCode (21.11),
+        # reported as-is for the record (no false green either way).
+        gemini_hooks = os.path.expanduser("~/.gemini/config/hooks.json")
+        gemini_state = "🔴 MISSING (file absent)"
+        gh = None
+        try:
+            with open(gemini_hooks, "r", encoding="utf-8") as fh:
+                gh = _json.load(fh)
+        except (OSError, ValueError):
+            # Retired legacy file (21.11): absence/corruption is the expected
+            # state and is itself the reported result (see gemini_state).
+            gh = None
+        if gh is not None:
+            entry = gh.get("vault-guard-gate")
+            if not isinstance(entry, dict):
+                gemini_state = "🔴 MISSING (no vault-guard-gate entry)"
+            elif not entry.get("enabled"):
+                gemini_state = "🔴 DISABLED"
+            elif "vault_guard_hook.py" in _json.dumps(entry):
+                gemini_state = "🟢 REGISTERED+ACTIVE"
+            else:
+                gemini_state = "🟠 ENABLED but re-pointed (wrong script)"
+        session_gate = os.path.join(AI_SCRIPT_DIR, "session_gate.py")
         sg_ok = os.path.exists(session_gate) and os.access(session_gate, os.X_OK)
-        vg_ok = os.path.exists(vault_guard) and os.access(vault_guard, os.X_OK)
 
         print("┌─────────────────────────────────────────────────────────────┐")
-        print("│  ⚡ AnD os v1.0.0 Hardware Lifecycle Hooks Status          │")
+        print("│  ⚡ AnD os v1.2.0 Hardware Lifecycle Hooks Status          │")
         print("├─────────────────────────────────────────────────────────────┤")
-        print(f"│  1. SessionStart Hook (session_gate.py) : {'🟢 ACTIVE' if sg_ok and s_ok else '🔴 INACTIVE'}               │")
-        print(f"│     • Binary executable : {'🟢 YES' if sg_ok else '🔴 NO'}                                  │")
-        print(f"│     • In settings.json  : {'🟢 REGISTERED' if s_ok else '🔴 MISSING'}                           │")
+        print(f"│  1. OpenCode native gate (Rule #19)")
+        print(f"│     • Status          : {'🟢 ACTIVE' if gate_active else '🔴 INACTIVE'}")
+        print(f"│     • Global config   : {g_asks} island-ask + {g_denies} deny rules"
+              + (f"  ({g_err})" if g_err else ""))
+        print(f"│     • Home config     : {h_asks} island-ask + {h_denies} deny rules"
+              + (f"  ({h_err})" if h_err else ""))
+        print("│     • Permission table: "
+              + ("⚠️ EDIT BYPASS (" + ", ".join(g[2] for g in oc_edit_bypass) + ")"
+                 if oc_edit_bypass else "🟢 no broad `edit *` grants"))
         print("├─────────────────────────────────────────────────────────────┤")
-        print(f"│  2. PreToolUse Guard (vault_guard_hook) : {'🟢 ACTIVE' if vg_ok and h_ok else '🔴 INACTIVE'}               │")
-        print(f"│     • Binary executable : {'🟢 YES' if vg_ok else '🔴 NO'}                                  │")
-        print(f"│     • In hooks.json     : {'🟢 REGISTERED' if h_ok else '🔴 MISSING'}                           │")
+        print(f"│  2. SessionStart hook (session_gate.py)")
+        print(f"│     • Present/executable : {'🟢 YES' if sg_ok else '🔴 NO'}")
+        print(f"│  3. Gemini legacy gate (retired 21.11) : {gemini_state}")
         print("├─────────────────────────────────────────────────────────────┤")
-        print(f"│  Overall Hooks Gate Status              : {'🟢 100% OPERATIONAL' if sg_ok and vg_ok and s_ok and h_ok else '🔴 COMPROMISED'}        │")
+        if oc_edit_bypass:
+            overall = "🔴 BYPASSED (permission-table `edit *` grant nullifies island asks)"
+        else:
+            overall = "🟢 ENFORCED" if gate_active else "🔴 NOT ENFORCED (prompt-only)"
+        print(f"│  Overall Rule #19 mechanical gate : {overall}")
         print("└─────────────────────────────────────────────────────────────┘")
         auto_log_telemetry(f"Hooks audit action: {args.action}", skill="sys.hooks")
-        sys.exit(0 if (sg_ok and vg_ok and s_ok and h_ok) else 1)
+        sys.exit(0 if gate_active else 1)
     elif args.command == "verify":
         from and_os.bin.cli_subsystems import get_subsystem
         sub = get_subsystem("verify")
@@ -2000,16 +2152,53 @@ def main() -> None:
         cmd_vault(args)
     elif args.command == "toolchain":
         cmd_toolchain(args)
+    elif args.command == "vacancy":
+        v_args = ["--contour", args.contour]
+        if args.confirm:
+            v_args.append("--confirm")
+        if args.dry_run:
+            v_args.append("--dry-run")
+        res = run_script("career_radar.py", v_args)
+        print(res.get("stdout", ""), end="")
+        if res.get("stderr"):
+            print(res["stderr"], file=sys.stderr)
+        auto_log_telemetry(f"Vacancy scan contour: {args.contour}", skill="career-radar")
+    elif args.command == "skill-count":
+        sc_args = []
+        if args.dry_run:
+            sc_args.append("--dry-run")
+        if args.json:
+            sc_args.append("--json")
+        res = run_script("skill_count_projector.py", sc_args, no_bytecode=True)
+        print(res.get("stdout", ""), end="")
+        if res.get("stderr"):
+            print(res["stderr"], file=sys.stderr)
+        auto_log_telemetry("Skill count SSoT projection", skill="skill-count")
+    elif args.command == "houdini":
+        hou_args = list(getattr(args, "extra_args", []) or [])
+        res = run_script("houdini_bridge.py", hou_args, no_bytecode=True)
+        print(res.get("stdout", ""), end="")
+        if res.get("stderr"):
+            print(res["stderr"], file=sys.stderr)
+        auto_log_telemetry(f"Houdini bridge: {hou_args[0] if hou_args else 'status'}", skill="houdini-bridge")
     elif args.command == "reverse":
-        from and_os.lib.core.rea_engine import REAEngine
+        from and_os.lib.rea_engine import REAEngine
         engine = REAEngine(token_limit=args.token_limit)
+
+        def _emit(payload):
+            """JSON payloads pretty-printed; text formats (md/yaml/toon) as-is."""
+            if isinstance(payload, str):
+                print(payload)
+            else:
+                print(json.dumps(payload, indent=2, ensure_ascii=False))
+
         if args.subaction == "status":
             st = engine.status()
             if args.json:
                 print(json.dumps(st, indent=2, ensure_ascii=False))
             else:
                 icon = "🟢" if st.get("healthy") else "🔴"
-                print(f"{icon} REA Engine: {st.get('engine_version', 'unknown')} | Node: {st.get('node_path')} | Bound: {st.get('token_limit')} tokens")
+                print(f"{icon} REA Engine: {st.get('engine_version', 'unknown')} | Node: {st.get('node_path')} | Token window: {st.get('token_limit')} tokens (md/yaml/toon; JSON bounded by REA probe limits)")
         elif args.subaction == "check-update":
             upd = engine.check_update()
             if args.json:
@@ -2019,24 +2208,30 @@ def main() -> None:
                     print(f"🟡 REA Update available: {upd.get('current_pinned')} -> {upd.get('upstream_latest')}")
                 else:
                     print(f"🟢 REA is up-to-date (v{upd.get('current_pinned')})")
+        elif args.subaction == "analyze":
+            if not args.target:
+                print("❌ Error: Target path required for analyze", file=sys.stderr)
+                sys.exit(1)
+            res = engine.analyze_target(args.target, fmt=args.format)
+            _emit(res.get("data", res))
         elif args.subaction == "inspect":
             if not args.target:
                 print("❌ Error: Target path required for inspect", file=sys.stderr)
                 sys.exit(1)
-            res = engine.inspect_target(args.target)
-            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
+            res = engine.inspect_target(args.target, fmt=args.format)
+            _emit(res.get("data", res))
         elif args.subaction == "search":
             if not args.target or not args.pattern:
                 print("❌ Error: Both target path and --pattern required for search", file=sys.stderr)
                 sys.exit(1)
-            res = engine.search_symbols(args.target, args.pattern)
-            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
+            res = engine.search_symbols(args.target, args.pattern, fmt=args.format)
+            _emit(res.get("data", res))
         elif args.subaction == "decompile":
             if not args.target or not args.procedure:
                 print("❌ Error: Both target path and --procedure required for decompile", file=sys.stderr)
                 sys.exit(1)
-            res = engine.decompile_procedure(args.target, args.procedure)
-            print(json.dumps(res.get("data", res), indent=2, ensure_ascii=False))
+            res = engine.decompile_procedure(args.target, args.procedure, fmt=args.format)
+            _emit(res.get("data", res))
     else:
         parser.print_help()
 

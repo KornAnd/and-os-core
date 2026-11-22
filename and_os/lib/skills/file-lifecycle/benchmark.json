@@ -1,0 +1,43 @@
+{
+  "skill": "file-lifecycle",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "fl-01",
+      "prompt": "Разнеси новую заметку в каноническую папку vault и обнови CONTEXT.md",
+      "expected": "file-lifecycle",
+      "decoys": ["memory", "clipping-finder"]
+    },
+    {
+      "id": "fl-02",
+      "prompt": "После переноса файла обнови CONTEXT-карты, tag indexes и wikilinks",
+      "expected": "file-lifecycle",
+      "decoys": ["memory"]
+    },
+    {
+      "id": "fl-03",
+      "prompt": "Классифицируй новый отчёт и зарегистрируй его в нужном разделе хранилища",
+      "expected": "file-lifecycle",
+      "decoys": ["memory", "clipping-finder"]
+    },
+    {
+      "id": "fl-04",
+      "prompt": "После удаления заметки почисти осиротевшие ссылки и индексы",
+      "expected": "file-lifecycle",
+      "decoys": ["memory"]
+    },
+    {
+      "id": "fl-05",
+      "prompt": "Размести новый knowledge asset по островам: куда он канонически belongs",
+      "expected": "file-lifecycle",
+      "decoys": ["memory", "clipping-finder"]
+    },
+    {
+      "id": "fl-06",
+      "prompt": "Синхронизируй CONTEXT.md с фактическим состоянием каталогов после волны правок",
+      "expected": "file-lifecycle",
+      "decoys": ["memory", "system-audit"]
+    }
+  ]
+}

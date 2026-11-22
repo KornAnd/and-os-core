@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-context_mode_manager.py - Context Mode Switcher for AnD os v1.0.0.
+context_mode_manager.py - Context Mode Switcher for AnD os v1.2.0.
 Manages active behavioral presets (dev, research, review) for LLM agents.
 """
 
@@ -59,7 +59,7 @@ class ContextModeManager:
         return f"Context mode '{target_mode}' instruction not found."
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os Context Mode Manager")
     parser.add_argument("action", nargs="?", default="get", choices=["get", "set", "show", "list"], help="Action: get, set, show, list")
     parser.add_argument("mode", nargs="?", help="Target mode name (dev, research, review)")

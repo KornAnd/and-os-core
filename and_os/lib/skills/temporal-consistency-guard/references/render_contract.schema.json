@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RenderConsistencyContract",
+  "description": "Deterministic render contract for animated sequences and shots (inspired by heygen/hyperframes).",
+  "type": "object",
+  "required": ["shot_id", "rules"],
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique shot identifier (e.g. sh_010, mars_sc02_sh005)"
+    },
+    "reference_sequence": {
+      "type": "string",
+      "description": "Path to reference greybox or previs sequence"
+    },
+    "rules": {
+      "type": "object",
+      "required": ["max_drift_px", "max_luma_variance", "max_flicker_ratio"],
+      "properties": {
+        "max_drift_px": {
+          "type": "number",
+          "description": "Maximum allowed spatial anchor point drift in pixels (e.g. 5.0)",
+          "default": 5.0
+        },
+        "max_luma_variance": {
+          "type": "number",
+          "description": "Maximum allowed luminance delta across adjacent frames (0.0 to 1.0)",
+          "default": 0.08
+        },
+        "max_flicker_ratio": {
+          "type": "number",
+          "description": "Maximum optical variance ratio allowed before gate triggers FLAGGED/REJECT",
+          "default": 0.15
+        },
+        "color_palette_lock": {
+          "type": "boolean",
+          "description": "Strict enforcement of character wardrobe and environment color continuity",
+          "default": true
+        }
+      }
+    }
+  }
+}

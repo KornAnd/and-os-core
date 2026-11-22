@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.0.0).
+vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.1.0).
 Cleans the Obsidian Vault and the Pulsar ecosystem from junk artifacts:
   - .DS_Store, Icon\r
   - Intermediate backups *.bak, *.tmp, *~
@@ -14,6 +14,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import shutil
 import argparse
 
@@ -29,7 +30,7 @@ TRASH_PATTERNS = {
 
 SAFE_SKIP_DIRS = {".git", ".space", ".obsidian"}
 
-def clean_directory(root_path, dry_run=False):
+def clean_directory(root_path, dry_run=False) -> dict:
     if not os.path.exists(root_path):
         return {"files_removed": 0, "dirs_removed": 0, "bytes_freed": 0, "errors": 0}
 
@@ -80,7 +81,7 @@ def clean_directory(root_path, dry_run=False):
         "errors": errors
     }
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os System Vacuum Cleaner")
     parser.add_argument("--target", choices=["all", "vault", "pulsar"], default="all", help="Target zone to vacuum")
     parser.add_argument("--dry-run", action="store_true", help="Scan and calculate without deleting")

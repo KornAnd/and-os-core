@@ -1,0 +1,43 @@
+{
+  "skill": "dev-flow",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "df-01",
+      "prompt": "Спланируй многошапговый dev-цикл с матрицей тест-покрытия и ветками git",
+      "expected": "dev-flow",
+      "decoys": ["system-architect", "task-graph"]
+    },
+    {
+      "id": "df-02",
+      "prompt": "Code review Python-кода: clean architecture, zero silent exceptions, глубина вложенности",
+      "expected": "dev-flow",
+      "decoys": ["system-audit", "reverse-engineer-anything"]
+    },
+    {
+      "id": "df-03",
+      "prompt": "Напиши и отрефакторь Python-модуль по чистым стандартам: 0 silent except, nesting <= 4",
+      "expected": "dev-flow",
+      "decoys": ["system-architect"]
+    },
+    {
+      "id": "df-04",
+      "prompt": "Спроектируй покрытие тестами нового модуля: happy path, граничные, интеграционные",
+      "expected": "dev-flow",
+      "decoys": ["system-audit", "task-graph"]
+    },
+    {
+      "id": "df-05",
+      "prompt": "Разбей задачу на этапы с git-ветками и тестовыми критериями на каждый",
+      "expected": "dev-flow",
+      "decoys": ["task-graph", "system-architect"]
+    },
+    {
+      "id": "df-06",
+      "prompt": "Проверь код на чистоту: silent exceptions, вложенность, дубли — и поправь",
+      "expected": "dev-flow",
+      "decoys": ["system-audit", "skill-creator"]
+    }
+  ]
+}

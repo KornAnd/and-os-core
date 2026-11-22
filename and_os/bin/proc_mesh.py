@@ -17,6 +17,7 @@ update_procfs() is composed for the shared files, this script adds its own):
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import sqlite3
 import argparse
 from datetime import datetime

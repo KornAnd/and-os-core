@@ -6,6 +6,7 @@ Ensures zero-context loss during inter-agent transitions conforming to AGENT_HAN
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import re
 import argparse
 from typing import Dict, Any, List

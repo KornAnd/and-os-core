@@ -7,6 +7,7 @@ change tracking and the lifecycle management of the checkboxes.
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 from pathlib import Path

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-system_dashboard.py — The Autonomous Interactive TUI Dashboard (AnD os v1.0.0 Live Top).
+system_dashboard.py — The Autonomous Interactive TUI Dashboard (AnD os v1.2.0 Live Top).
 Principles: Think in Code (Rule #16), the Rich TUI (the autonomy without the AI), 
 The instant slice of the state of the 7 islands, the daemons, the tasks and the ComfyUI nodes.
 
@@ -10,6 +10,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import shutil
 import socket
 import sqlite3
@@ -19,7 +20,7 @@ from datetime import datetime
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-def check_port(port):
+def check_port(port) -> bool:
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(0.2)
@@ -29,13 +30,13 @@ def check_port(port):
     except Exception:
         return False
 
-def get_disk_gb():
+def get_disk_gb() -> float:
     try:
         return round(shutil.disk_usage(VAULT_ROOT).free / (1024 ** 3), 1)
     except Exception:
         return 0.0
 
-def get_pending_tasks_count():
+def get_pending_tasks_count() -> int:
     db_path = os.path.join(VAULT_ROOT, "and_os/var/task_vault.db")
     if os.path.exists(db_path):
         try:
@@ -49,7 +50,7 @@ def get_pending_tasks_count():
             sys.stderr.write(f"[system_dashboard] DB count error: {e}\n")
     return 0
 
-def render_rich_dashboard():
+def render_rich_dashboard() -> None:
     try:
         from rich.console import Console
         from rich.table import Table
@@ -86,7 +87,7 @@ def render_rich_dashboard():
     # Header Panel
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     header_text = Text()
-    header_text.append("🌌 AnD os v1.0.0 — Unified Autonomous Executive Console\n", style="bold cyan")
+    header_text.append("🌌 AnD os v1.2.0 — Unified Autonomous Executive Console\n", style="bold cyan")
     header_text.append(f"⏱️ Timestamp: {now_str}  |  The autonomous mode: 🟢 100% Native (No AI Required)", style="dim")
     console.print(Panel(header_text, border_style="cyan"))
 
@@ -152,10 +153,10 @@ def render_rich_dashboard():
 
     console.print("[dim]💡 For the fast control: 'os boot' | 'os sync' | 'os comfy --verify' | 'os snapshot micro'[/dim]\n")
 
-def render_plain_dashboard():
+def render_plain_dashboard() -> None:
     free_gb = get_disk_gb()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n=== 🌌 AnD os v1.0.0 Autonomous Dashboard ({now_str}) ===")
+    print(f"\n=== 🌌 AnD os v1.2.0 Autonomous Dashboard ({now_str}) ===")
     print(f"  • Storage APFS   : {free_gb} GB Free (Floor >= 3.0GB: {'OK' if free_gb >= 3.0 else 'WARN'})")
     print(f"  • System Vectors : 18/18 PASS (100%)")
     print(f"  • 7 Islands      : 100% Connected (Zero Isolation)")
@@ -164,7 +165,7 @@ def render_plain_dashboard():
     print(f"  • Pending Tasks  : {get_pending_tasks_count()} tasks")
     print("============================================================\n")
 
-def main():
+def main() -> None:
     render_rich_dashboard()
 
 if __name__ == "__main__":

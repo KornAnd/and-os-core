@@ -40,7 +40,7 @@ color: var(--mk-color-base-30)
 -
 
 ---
-[[CONTEXT|← Наверх]]
+[[and_os/lib/skills/CONTEXT|← Наверх]]
 
 ---
 [[and_os/lib/skills/README|← Skills Registry]]

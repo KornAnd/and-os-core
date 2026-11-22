@@ -5,6 +5,7 @@ Proxy-shim to the monolithic and_os.lib.vault library.
 """
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if VAULT_ROOT not in sys.path:

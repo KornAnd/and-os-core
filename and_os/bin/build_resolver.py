@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 build_resolver.py — Autonomous build-error resolver with minimal diffs (Minimal Diffs).
-AnD os v1.0.0 — Island 8 (Kernel & Compiler) <-> Island 7 & 9 (CG & Xcode/Swift Engine).
+AnD os v1.2.0 — Island 8 (Kernel & Compiler) <-> Island 7 & 9 (CG & Xcode/Swift Engine).
 
 Minimal Diffs principle:
 1. Architectural refactoring is forbidden when a build breaks.
@@ -13,6 +13,7 @@ Minimal Diffs principle:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import shutil
 import subprocess

@@ -12,3 +12,6 @@ Every skill created in AnD os must belong to one primary Island:
 | **6** | Creator Profile & Health | `Nero/CONTEXT.md` | `sys_cli` |
 | **7** | Pulsar & 3D Tooling | `Nero/pulsar/INDEX.md` | `cg_core` |
 | **8** | Terminal & OS Microkernel | `and_os/opt/terminal/CONTEXT.md` | `sys_cli` |
+
+---
+[[Vault|← Vault]]

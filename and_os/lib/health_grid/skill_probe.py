@@ -76,6 +76,11 @@ class SkillProbe:
                     venv_bin = os.path.join(vault_root, "and_os", ".venv", "bin")
                     if os.path.isdir(venv_bin):
                         probe_env["PATH"] = venv_bin + os.pathsep + probe_env.get("PATH", "")
+                    # C13 F4 (defense in depth for Rule #68 / Rule #50): even
+                    # if a probe command pins a non-golden interpreter, it
+                    # must not compile bytecode into the immutable kernel.
+                    # The PATH shadow alone cannot stop an absolute python3.
+                    probe_env["PYTHONDONTWRITEBYTECODE"] = "1"
                     p_res = subprocess.run(probe_cmd, shell=True, cwd=vault_root, env=probe_env, capture_output=True, text=True, timeout=3.0)
                     result["probe_result"] = {"cmd": probe_cmd, "success": p_res.returncode == 0}
                     if p_res.returncode != 0:

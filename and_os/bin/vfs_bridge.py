@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.0.0.
+vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.2.0.
 Part of AnD os Binary Bridges (and_os/bin/).
 
 Commands:
@@ -13,6 +13,7 @@ Commands:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import subprocess
 from datetime import datetime
 
@@ -48,7 +49,7 @@ def is_daemon_running() -> int:
     return 0
 
 
-def cmd_status():
+def cmd_status() -> None:
     engine = VFSEngine()
     stats = engine.get_vfs_stats()
     pid = is_daemon_running()
@@ -69,7 +70,7 @@ def cmd_status():
     daemon_badge = f"🟢 ACTIVE (PID {pid}){resource_badge}" if pid else "⚪ INACTIVE (On-Demand Mode)"
     db_size_kb = round(os.path.getsize(stats["db_path"]) / 1024, 1) if os.path.exists(stats["db_path"]) else 0
     
-    print(f"=== 🛰️ AnD os v1.0.0 Virtual File System (VFS Status) ===")
+    print(f"=== 🛰️ AnD os v1.2.0 Virtual File System (VFS Status) ===")
     print(f"📡 Daemon status: {daemon_badge}")
     print(f"📁 Total files in the index: {stats['total_files']} (Notes: {stats['markdown_notes']})")
     print(f"💾 State database: {os.path.basename(stats['db_path'])} ({db_size_kb} KB)")
@@ -78,7 +79,7 @@ def cmd_status():
         print(f"  • {isl}: {cnt} files")
 
 
-def cmd_find(query: str, island: str = None, ext: str = None, limit: int = 15):
+def cmd_find(query: str, island: str = None, ext: str = None, limit: int = 15) -> None:
     engine = VFSEngine()
     results = engine.find_files(query=query, island=island, ext=ext, limit=limit)
     
@@ -93,14 +94,14 @@ def cmd_find(query: str, island: str = None, ext: str = None, limit: int = 15):
         print(f"  • [[{r['rel_path']}]] ({r['island']}){title_str}{tags_str}")
 
 
-def cmd_sync():
+def cmd_sync() -> None:
     engine = VFSEngine()
     print("🔄 Launching the full VFS index synchronization...")
     res = engine.bootstrap_scan(VAULT_ROOT)
     print(f"✅ VFS synchronized: {res['scanned']} files in {res['elapsed_seconds']} s.")
 
 
-def cmd_start_daemon():
+def cmd_start_daemon() -> None:
     pid = is_daemon_running()
     if pid:
         print(f"⚠️ VFS Daemon is already running (PID {pid}).")
@@ -118,12 +119,12 @@ def cmd_start_daemon():
     print(f"🚀 VFS Daemon launched in the background (PID {proc.pid}). Log: {os.path.relpath(log_file, VAULT_ROOT)}")
 
 
-def cmd_stop_daemon():
+def cmd_stop_daemon() -> None:
     daemon_script = os.path.join(AND_OS_ROOT, "sbin/vfs_daemon.py")
     subprocess.run([sys.executable, daemon_script, "--stop"])
 
 
-def cmd_pulsar():
+def cmd_pulsar() -> None:
     from vfs.pulsar_bridge import PulsarStateBridge
     bridge = PulsarStateBridge()
     projs = bridge.scan_and_sync()
@@ -132,8 +133,7 @@ def cmd_pulsar():
     for p in projs:
         act = "🟢" if p["is_active"] else "⚪"
         port = f":{p['port']}" if p["port"] else "no-port"
-        cache_status = f" | Cache: {p['cache_status']}" if p["cache_file"] else ""
-        
+
         score = p.get("compliance_score", 0)
         issues = p.get("compliance_issues", "")
         if score == 100:
@@ -142,8 +142,9 @@ def cmd_pulsar():
             comp_badge = f"🟡 {score}% WRN"
         else:
             comp_badge = f"🔴 {score}% ERR"
-            
-        print(f"  {act} [{p['category']:17}] {p['name']:24} ({port:7}) [{comp_badge}]{cache_status}")
+
+        # 16.11: status lines carry no trailing time markers (cache age).
+        print(f"  {act} [{p['category']:17}] {p['name']:24} ({port:7}) [{comp_badge}]")
         if issues:
             for issue in issues.split(" | "):
                 if issue.strip():

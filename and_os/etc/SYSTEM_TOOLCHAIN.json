@@ -1,13 +1,13 @@
 {
   "version": "4.0.0",
-  "updated_at": "2026-11-11 22:36:20",
+  "updated_at": "2026-11-22 16:30:18",
   "runtime": {
     "os": "Darwin 27.2.0 (arm64)",
     "python": {
       "version": "3.12.11",
-      "executable": "./and_os/.venv/bin/python",
+      "executable": "./and_os/.venv/bin/python3",
       "standard_target": ">=3.11 (Recommended 3.14.x)",
-      "total_packages": 56,
+      "total_packages": 85,
       "packages_categorized": {
         "Data & Document Processing": [
           {
@@ -147,8 +147,20 @@
             "version": "1.0.0"
           },
           {
+            "name": "annotated-types",
+            "version": "0.8.0"
+          },
+          {
+            "name": "anyio",
+            "version": "4.16.0"
+          },
+          {
             "name": "arrow",
             "version": "0.17.0"
+          },
+          {
+            "name": "attrs",
+            "version": "26.1.0"
           },
           {
             "name": "babel",
@@ -159,12 +171,40 @@
             "version": "3.4.7"
           },
           {
+            "name": "click",
+            "version": "8.5.1"
+          },
+          {
             "name": "clique",
             "version": "1.6.1"
           },
           {
             "name": "et_xmlfile",
             "version": "2.0.0"
+          },
+          {
+            "name": "fxhoudinimcp",
+            "version": "2.30.0"
+          },
+          {
+            "name": "h11",
+            "version": "0.16.0"
+          },
+          {
+            "name": "httpcore",
+            "version": "1.0.9"
+          },
+          {
+            "name": "httpcore2",
+            "version": "2.16.2"
+          },
+          {
+            "name": "httpx",
+            "version": "0.28.1"
+          },
+          {
+            "name": "httpx2",
+            "version": "2.16.2"
           },
           {
             "name": "idna",
@@ -179,12 +219,52 @@
             "version": "2.3.1"
           },
           {
+            "name": "jsonschema",
+            "version": "4.26.0"
+          },
+          {
+            "name": "jsonschema-specifications",
+            "version": "2025.9.1"
+          },
+          {
+            "name": "mcp",
+            "version": "2.3.0"
+          },
+          {
+            "name": "mcp-types",
+            "version": "2.3.0"
+          },
+          {
             "name": "mdurl",
             "version": "0.1.2"
           },
           {
+            "name": "opentelemetry-api",
+            "version": "1.45.2"
+          },
+          {
             "name": "pluggy",
             "version": "1.7.0"
+          },
+          {
+            "name": "pydantic",
+            "version": "2.14.4"
+          },
+          {
+            "name": "pydantic",
+            "version": "2.14.3"
+          },
+          {
+            "name": "pydantic_core",
+            "version": "2.50.5"
+          },
+          {
+            "name": "pydantic_core",
+            "version": "2.50.4"
+          },
+          {
+            "name": "PyJWT",
+            "version": "2.15.1"
           },
           {
             "name": "pyparsing",
@@ -199,12 +279,24 @@
             "version": "2.9.0.post0"
           },
           {
+            "name": "python-multipart",
+            "version": "0.0.34"
+          },
+          {
             "name": "PyYAML",
             "version": "6.0.3"
           },
           {
+            "name": "referencing",
+            "version": "0.37.0"
+          },
+          {
             "name": "roman-numerals",
             "version": "4.1.0"
+          },
+          {
+            "name": "rpds-py",
+            "version": "2026.9.1"
           },
           {
             "name": "six",
@@ -241,6 +333,30 @@
           {
             "name": "sphinxcontrib-serializinghtml",
             "version": "2.0.0"
+          },
+          {
+            "name": "sse-starlette",
+            "version": "3.7.0"
+          },
+          {
+            "name": "starlette",
+            "version": "1.10.0"
+          },
+          {
+            "name": "truststore",
+            "version": "0.10.5"
+          },
+          {
+            "name": "typing-inspection",
+            "version": "0.4.5"
+          },
+          {
+            "name": "typing_extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "uvicorn",
+            "version": "0.54.0"
           }
         ]
       },
@@ -250,8 +366,20 @@
           "version": "1.0.0"
         },
         {
+          "name": "annotated-types",
+          "version": "0.8.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.16.0"
+        },
+        {
           "name": "arrow",
           "version": "0.17.0"
+        },
+        {
+          "name": "attrs",
+          "version": "26.1.0"
         },
         {
           "name": "babel",
@@ -268,6 +396,10 @@
         {
           "name": "charset-normalizer",
           "version": "3.4.7"
+        },
+        {
+          "name": "click",
+          "version": "8.5.1"
         },
         {
           "name": "clique",
@@ -298,8 +430,32 @@
           "version": "3.1.0"
         },
         {
+          "name": "fxhoudinimcp",
+          "version": "2.30.0"
+        },
+        {
           "name": "telemetry_syncconnect",
           "version": "0.3.8"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9"
+        },
+        {
+          "name": "httpcore2",
+          "version": "2.16.2"
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1"
+        },
+        {
+          "name": "httpx2",
+          "version": "2.16.2"
         },
         {
           "name": "idna",
@@ -318,12 +474,28 @@
           "version": "3.1.6"
         },
         {
+          "name": "jsonschema",
+          "version": "4.26.0"
+        },
+        {
+          "name": "jsonschema-specifications",
+          "version": "2025.9.1"
+        },
+        {
           "name": "markdown-it-py",
           "version": "4.2.0"
         },
         {
           "name": "MarkupSafe",
           "version": "3.0.3"
+        },
+        {
+          "name": "mcp",
+          "version": "2.3.0"
+        },
+        {
+          "name": "mcp-types",
+          "version": "2.3.0"
         },
         {
           "name": "mdurl",
@@ -336,6 +508,10 @@
         {
           "name": "openpyxl",
           "version": "3.1.5"
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.45.2"
         },
         {
           "name": "packaging",
@@ -374,8 +550,28 @@
           "version": "3.0"
         },
         {
+          "name": "pydantic",
+          "version": "2.14.4"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.14.3"
+        },
+        {
+          "name": "pydantic_core",
+          "version": "2.50.5"
+        },
+        {
+          "name": "pydantic_core",
+          "version": "2.50.4"
+        },
+        {
           "name": "Pygments",
           "version": "2.20.0"
+        },
+        {
+          "name": "PyJWT",
+          "version": "2.15.1"
         },
         {
           "name": "pyparsing",
@@ -394,8 +590,16 @@
           "version": "2.9.0.post0"
         },
         {
+          "name": "python-multipart",
+          "version": "0.0.34"
+        },
+        {
           "name": "PyYAML",
           "version": "6.0.3"
+        },
+        {
+          "name": "referencing",
+          "version": "0.37.0"
         },
         {
           "name": "requests",
@@ -408,6 +612,10 @@
         {
           "name": "roman-numerals",
           "version": "4.1.0"
+        },
+        {
+          "name": "rpds-py",
+          "version": "2026.9.1"
         },
         {
           "name": "six",
@@ -450,12 +658,36 @@
           "version": "2.0.0"
         },
         {
+          "name": "sse-starlette",
+          "version": "3.7.0"
+        },
+        {
+          "name": "starlette",
+          "version": "1.10.0"
+        },
+        {
+          "name": "truststore",
+          "version": "0.10.5"
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.5"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
           "name": "ua-generator",
           "version": "2.1.2"
         },
         {
           "name": "urllib3",
           "version": "2.7.0"
+        },
+        {
+          "name": "uvicorn",
+          "version": "0.54.0"
         },
         {
           "name": "websocket-client",
@@ -472,11 +704,12 @@
       ]
     },
     "runtimes": {
-      "node": "v26.13.0",
+      "node": "v26.13.1",
       "deno": "deno 2.9.8 (stable, release, aarch64-apple-darwin)",
-      "go": "go version go1.27.3 darwin/arm64",
+      "go": "go version go1.27.4 darwin/arm64",
       "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)",
-      "git": "git version 2.54.0 (Apple Git-157)"
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "opencode": "opencode v2.3.2"
     },
     "cli_tools": {
       "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
@@ -486,7 +719,10 @@
       "gh": "gh version 2.103.3 (2026-10-26)",
       "jq": "jq-1.8.2",
       "sqlite": "3.54.0 2026-04-09 12:25:13 8fa8248e303219400c646a885e36dfc52eae33d83f4412e3f369b2be5373aapl (64-bit)",
-      "tmux": "tmux 3.8"
+      "tmux": "tmux 3.8",
+      "obsidian_cli": "obsidian-cli version v0.2.3",
+      "xcodegen": "Version: 2.46.0",
+      "gemini_cli": "0.68.0"
     },
     "creative_and_dcc": {
       "blender": "Blender 5.1.1",
@@ -494,17 +730,22 @@
       "davinci_resolve": "21.1.1",
       "xcode": "27.2",
       "unity_hub": "NOT_INSTALLED",
-      "comfy_desktop": "1.1.9"
+      "comfy_desktop": "1.1.10"
     },
     "apps": {
-      "obsidian": "1.6.7",
-      "mattermost": "6.3.2",
+      "obsidian": "1.15.1",
+      "mattermost": "6.4.0",
       "telegram": "13.1.0",
-      "docker": "4.99.0"
+      "docker": "4.99.0",
+      "obsidian_web_clipper": "1.7.1",
+      "claude": "6.6395.1",
+      "gemini_app": "1.147.5.1526",
+      "zoom": "6.6.10 (69071)",
+      "craft_anything": "0.6.1"
     }
   },
-  "total_scripts": 113,
-  "total_skills": 67,
+  "total_scripts": 120,
+  "total_skills": 51,
   "scripts": [
     {
       "name": "agent_handoff.py",
@@ -514,17 +755,17 @@
     {
       "name": "api_contract_generator.py",
       "path": "and_os/bin/api_contract_generator.py",
-      "description": "api_contract_generator.py — Typed API & Microkernel Contract Generator AnD os v1.0.0 — System Engineering Layer (Type-Safe Contracts & Schemas"
+      "description": "api_contract_generator.py — Typed API & Microkernel Contract Generator AnD os v1.2.0 — System Engineering Layer (Type-Safe Contracts & Schem"
     },
     {
       "name": "app_bridge.py",
       "path": "and_os/bin/app_bridge.py",
-      "description": "app_bridge.py — Dispatcher for seamless interaction between Obsidian and External Projects (v1.0.0). Manages project registration, health va"
+      "description": "app_bridge.py — Dispatcher for seamless interaction between Obsidian and External Projects (v1.1.0). Manages project registration, health va"
     },
     {
       "name": "app_deconstructor.py",
       "path": "and_os/bin/app_deconstructor.py",
-      "description": "app_deconstructor.py — Automated Application & Service Architecture Deconstructor AnD os v1.0.0 — System Engineering Layer (Clean Architecture"
+      "description": "app_deconstructor.py — Automated Application & Service Architecture Deconstructor AnD os — System Engineering Layer (Clean Architecture & Re"
     },
     {
       "name": "app_quick_check.py",
@@ -544,7 +785,7 @@
     {
       "name": "asset_indexer.py",
       "path": "and_os/bin/asset_indexer.py",
-      "description": "Asset Indexer for ANDREY OS (v1.0.0) Scans non-MD assets (images, archives, audio, binaries, code exports), maps them to parent context file"
+      "description": "Asset Indexer for ANDREY OS (v1.1.0) Scans non-MD assets (images, archives, audio, binaries, code exports), maps them to parent context file"
     },
     {
       "name": "audit_graph_orphans.py",
@@ -559,17 +800,17 @@
     {
       "name": "backup_engine.py",
       "path": "and_os/bin/backup_engine.py",
-      "description": "backup_engine.py — Enterprise Backup Engine for AnD os v1.0.0. Features: - 100% Full Obsidian Vault backup (All knowledge domains, configs, co"
+      "description": "backup_engine.py — Enterprise Backup Engine for AnD os v1.2.0. Features: - 100% Full Obsidian Vault backup (All knowledge domains, configs, "
     },
     {
       "name": "board_parser.py",
       "path": "and_os/bin/board_parser.py",
-      "description": "Board Parser & Visual Semantic Extractor (Miro, Holst, FigJam, Schemas) AnD os v1.0.0 - Think in Code Infrastructure Supports: 1. Visual parsi"
+      "description": "Board Parser & Visual Semantic Extractor (Miro, Holst, FigJam, Schemas) AnD os v1.2.0 - Think in Code Infrastructure Supports: 1. Visual par"
     },
     {
       "name": "bootstrap_system.py",
       "path": "and_os/bin/bootstrap_system.py",
-      "description": "bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine. AnD os v1.0.0 (Rule №48: Zero-Cost Cross-Platform Unix Compa"
+      "description": "bootstrap_system.py — Zero-Touch System Bootstrap & Platform Provisioning Engine. AnD os v1.2.0 (Rule №48: Zero-Cost Cross-Platform Unix Com"
     },
     {
       "name": "budget_calc.py",
@@ -584,17 +825,17 @@
     {
       "name": "build_resolver.py",
       "path": "and_os/bin/build_resolver.py",
-      "description": "build_resolver.py — Autonomous build-error resolver with minimal diffs (Minimal Diffs). AnD os v1.0.0 — Island 8 (Kernel & Compiler) <-> Islan"
+      "description": "build_resolver.py — Autonomous build-error resolver with minimal diffs (Minimal Diffs). AnD os v1.2.0 — Island 8 (Kernel & Compiler) <-> Isl"
     },
     {
       "name": "career_radar.py",
       "path": "and_os/bin/career_radar.py",
-      "description": "career_radar.py — Executive Market Radar & Opportunity Matcher Part of AnD os | Rule #16 (Think-in-Code), Rule #54 (Zero-Orphans), Rule #59 "
+      "description": "career_radar.py — Multi-Contour Executive & Opportunity Market Radar. Part of AnD os | Rule #16 (Think-in-Code), Rule #51 (Decoupling), Rule"
     },
     {
       "name": "cg_bridge.py",
       "path": "and_os/bin/cg_bridge.py",
-      "description": "CG Pipeline Integration Bridge (cg_bridge.py) AnD os v1.0.0 - Think in Code Infrastructure Provides a reliable, token-efficient and reproducib"
+      "description": "CG Pipeline Integration Bridge (cg_bridge.py) AnD os v1.2.0 - Think in Code Infrastructure Provides a reliable, token-efficient and reproduc"
     },
     {
       "name": "checkpoint_manager.py",
@@ -614,7 +855,7 @@
     {
       "name": "codemap_engine.py",
       "path": "and_os/bin/codemap_engine.py",
-      "description": "codemap_engine.py — Ultra-lightweight architectural code map generator (Codemaps Engine). AnD os v1.0.0 — Island 8 (Kernel & System Compiler)."
+      "description": "codemap_engine.py — Ultra-lightweight architectural code map generator (Codemaps Engine). AnD os v1.2.0 — Island 8 (Kernel & System Compiler"
     },
     {
       "name": "comfy_graph.py",
@@ -629,27 +870,27 @@
     {
       "name": "context_budget_guard.py",
       "path": "and_os/bin/context_budget_guard.py",
-      "description": "context_budget_guard.py — Context budget guard and phase compactor for AnD os v1.0.0. Island 8 (Kernel Core) <-> the agent's instrumental runt"
+      "description": "context_budget_guard.py — Context budget guard and phase compactor for AnD os v1.2.0. Island 8 (Kernel Core) <-> the agent's instrumental ru"
     },
     {
       "name": "context_bundler.py",
       "path": "and_os/bin/context_bundler.py",
-      "description": "Task Context Bundler & Output Trimming Utility AnD os v1.0.0 - Think in Code Context Squeezer Collects minimum sufficient context for tasks (s"
+      "description": "Task Context Bundler & Output Trimming Utility AnD os v1.2.0 - Think in Code Context Squeezer Collects minimum sufficient context for tasks "
     },
     {
       "name": "context_mode_manager.py",
       "path": "and_os/bin/context_mode_manager.py",
-      "description": "context_mode_manager.py - Context Mode Switcher for AnD os v1.0.0. Manages active behavioral presets (dev, research, review) for LLM agents."
+      "description": "context_mode_manager.py - Context Mode Switcher for AnD os v1.2.0. Manages active behavioral presets (dev, research, review) for LLM agents."
     },
     {
       "name": "context_router.py",
       "path": "and_os/bin/context_router.py",
-      "description": "context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.0.0). Indexes all the CONTEXT.md in the V"
+      "description": "context_router.py — The smart quick DB and the router of the contextual files of the ANDREY OS (v1.1.0). Indexes all the CONTEXT.md in the V"
     },
     {
       "name": "continuous_learner.py",
       "path": "and_os/bin/continuous_learner.py",
-      "description": "continuous_learner.py — Intelligent experience compiler of sessions for AnD os v1.0.0. Island 8 (Kernel & Compiler) <-> Island 1 & 6 (Knowledg"
+      "description": "continuous_learner.py — Intelligent experience compiler of sessions for AnD os v1.2.0. Island 8 (Kernel & Compiler) <-> Island 1 & 6 (Knowle"
     },
     {
       "name": "convert_doc.py",
@@ -669,7 +910,7 @@
     {
       "name": "dependency_engine.py",
       "path": "and_os/bin/dependency_engine.py",
-      "description": "dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer. AnD os v1.0.0 (Pillar II & VI: Full Information Dependency &"
+      "description": "dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer. AnD os v1.2.0 (Pillar II & VI: Full Information Dependency"
     },
     {
       "name": "dev_flow.py",
@@ -684,12 +925,12 @@
     {
       "name": "docs_sync.py",
       "path": "and_os/bin/docs_sync.py",
-      "description": "docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.0.0. Parses SSOT configurations (system.json, sys_cli.py, root_c"
+      "description": "docs_sync.py - Automatic Runbook and Documentation Synchronizer for AnD os v1.2.0. Parses SSOT configurations (system.json, sys_cli.py, root"
     },
     {
       "name": "editorial_otio_conform.py",
       "path": "and_os/bin/editorial_otio_conform.py",
-      "description": "editorial_otio_conform.py — OpenTimelineIO Editorial Conform Engine (AnD os v1.0.0) Conforms editorial timelines, handles EDL/XML/OTIO interch"
+      "description": "editorial_otio_conform.py — OpenTimelineIO Editorial Conform Engine (AnD os v1.2.0) Conforms editorial timelines, handles EDL/XML/OTIO inter"
     },
     {
       "name": "eval_engine.py",
@@ -702,9 +943,14 @@
       "description": "export_kernel.py — Zero-Leak Deterministic Kernel Exporter for AnD os. Extracts and sanitizes only open-source microkernel components. Part "
     },
     {
+      "name": "export_skills.py",
+      "path": "and_os/bin/export_skills.py",
+      "description": "export_skills.py — Zero-Leak Autonomous Skills Exporter. Extracts standalone, portable AI skills for Claude Code, Cursor, OpenCode, and Gemi"
+    },
+    {
       "name": "finance_bridge.py",
       "path": "and_os/bin/finance_bridge.py",
-      "description": "finance_bridge.py — Analytical and Synchronization Gateway of the Financial Capital (AnD os v1.0.0). Provides a 100% local, hermetic (Air-Gap)"
+      "description": "finance_bridge.py — Analytical and Synchronization Gateway of the Financial Capital (AnD os v1.2.0). Provides a 100% local, hermetic (Air-Ga"
     },
     {
       "name": "fix_webdav_sync_issues.py",
@@ -712,29 +958,39 @@
       "description": "fix_webdav_sync_issues.py — The complex fix of the problematic paths and the files for the stable synchronization of the WebDAV: 1. The repl"
     },
     {
+      "name": "fs_guard.py",
+      "path": "and_os/bin/fs_guard.py",
+      "description": "fs_guard.py -- Canonical Filesystem Map Guard (decision engine). Single, stateless decision engine behind the canonical FS map (SSoT data: a"
+    },
+    {
       "name": "ftrack_cache.py",
       "path": "and_os/bin/ftrack_cache.py",
-      "description": "Caching module for Ftrack API dumps: reduces token spend and speeds up analysis. Features: query_cached(session, query_str, cache_key, max_a"
+      "description": "ftrack_cache.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in two "
+    },
+    {
+      "name": "ftrack_daily_pipeline.py",
+      "path": "and_os/bin/ftrack_daily_pipeline.py",
+      "description": "ftrack_daily_pipeline.py — the daily Ftrack read-only loop (22.11). 22.11 (Phase 3 closeout, Andrei decision, option A): the 07:30 ftrack_ca"
     },
     {
       "name": "ftrack_gantt_exporter.py",
       "path": "and_os/bin/ftrack_gantt_exporter.py",
-      "description": "ftrack_gantt_exporter.py — Pinpoint Ftrack data export module for the Gantt Chart (v2.0.0). Supports filtering by projects (--project mars /"
+      "description": "ftrack_gantt_exporter.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack live"
     },
     {
       "name": "ftrack_inspector.py",
       "path": "and_os/bin/ftrack_inspector.py",
-      "description": "ftrack_inspector.py — Analyzer of the Ftrack structure and the staged careful data retrieval. Features: 1. inspect: the deep audit of the pr"
+      "description": "ftrack_inspector.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in "
     },
     {
       "name": "ftrack_report.py",
       "path": "and_os/bin/ftrack_report.py",
-      "description": "Ftrack -> tables -> the status report (Kot / Mars). Modes: python3 ftrack_report.py --project kot --export        # export the raw data into"
+      "description": "ftrack_report.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in two"
     },
     {
       "name": "ftrack_sync.py",
       "path": "and_os/bin/ftrack_sync.py",
-      "description": "Synchronization Ftrack -> Obsidian for the projects Kot Ucheny and Motomars PM. Uses the unified optimized analytical engine ftrack_report. "
+      "description": "ftrack_sync.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in two l"
     },
     {
       "name": "telemetry_sync_sync.py",
@@ -754,32 +1010,37 @@
     {
       "name": "health_bridge.py",
       "path": "and_os/bin/health_bridge.py",
-      "description": "health_bridge.py — Unified analytical and synchronization gateway of the ANDREY OS family health (AnD os v1.0.0). Standards: - Rule #7: Dual-c"
+      "description": "health_bridge.py — Unified analytical and synchronization gateway of the ANDREY OS family health (AnD os v1.2.0). Standards: - Rule #7: Dual"
+    },
+    {
+      "name": "houdini_bridge.py",
+      "path": "and_os/bin/houdini_bridge.py",
+      "description": "Houdini bridge facade (external composition; kernel sys_cli.py untouched, Rule #15). Commands (Rule #73 execution protocol): status [--json]"
     },
     {
       "name": "hybrid_animatic_director.py",
       "path": "and_os/bin/hybrid_animatic_director.py",
-      "description": "hybrid_animatic_director.py — AI-Assisted Storyboard & 3D Animatic Assembler AnD os v1.0.0 — Studio Production & Narrative Layer (Island 4 & I"
+      "description": "hybrid_animatic_director.py — AI-Assisted Storyboard & 3D Animatic Assembler AnD os v1.2.0 — Studio Production & Narrative Layer (Island 4 &"
     },
     {
       "name": "hybrid_comfyui_render.py",
       "path": "and_os/bin/hybrid_comfyui_render.py",
-      "description": "hybrid_comfyui_render.py — Multi-Pass 3D-to-AI Styler and ComfyUI Dispatcher AnD os v1.0.0 — Hybrid Production Layer (Island 7 & 3D Pipeline) "
+      "description": "hybrid_comfyui_render.py — Multi-Pass 3D-to-AI Styler and ComfyUI Dispatcher AnD os v1.2.0 — Hybrid Production Layer (Island 7 & 3D Pipeline"
     },
     {
       "name": "image_ocr.py",
       "path": "and_os/bin/image_ocr.py",
-      "description": "Image OCR analyzer via tesseract. Uses tesseract OCR with the rus+eng language packs. Install: brew install tesseract tesseract-lang Run: py"
-    },
-    {
-      "name": "language_migration.py",
-      "path": "and_os/bin/language_migration.py",
-      "description": "language_migration.py — Rule #3 EN-migration workbench (audit R2, WI-5.3). Machine-readable backlog and progress tracking for the Cyrillic -"
+      "description": "image_ocr.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in two liv"
     },
     {
       "name": "link_graph_orphans.py",
       "path": "and_os/bin/link_graph_orphans.py",
       "description": "link_graph_orphans.py — Idempotent attachment of isolated notes to the root and category hubs of Obsidian. Goal: 1. For each isolated note ("
+    },
+    {
+      "name": "link_guard.py",
+      "path": "and_os/bin/link_guard.py",
+      "description": "link_guard.py — Vault-wide wikilink integrity gate (CLI). AnD os v1.2.0 (R-2, 20.11). Named per the AGENTS.md Fast-Track contract (\"sys_cli "
     },
     {
       "name": "manifest_projector.py",
@@ -789,12 +1050,12 @@
     {
       "name": "mattermost_inspector.py",
       "path": "and_os/bin/mattermost_inspector.py",
-      "description": "mattermost_inspector.py — The analyzer of the structure, the auditor and the staged extractor of the Mattermost slices. The architectural st"
+      "description": "mattermost_inspector.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived"
     },
     {
       "name": "mattermost_sync.py",
       "path": "and_os/bin/mattermost_sync.py",
-      "description": "Mattermost API -> the digest of the messages and the follow-ups (Studio). Modes: python3 mattermost_sync.py --teams                          "
+      "description": "mattermost_sync.py - Thin facade delegating to the canonical hub module. Audit R4, P3 (R4-DUP-1): the ftrack/mattermost/OCR stack lived in t"
     },
     {
       "name": "mirror_collector.py",
@@ -809,7 +1070,7 @@
     {
       "name": "obsidian_blueprint_generator.py",
       "path": "and_os/bin/obsidian_blueprint_generator.py",
-      "description": "obsidian_blueprint_generator.py — Generator of the reference architecture and plugins passport of Obsidian. AnD os v1.0.0 — Production Environ"
+      "description": "obsidian_blueprint_generator.py — Generator of the reference architecture and plugins passport of Obsidian. AnD os v1.2.0 — Production Envir"
     },
     {
       "name": "passport_sync_runner.py",
@@ -829,7 +1090,7 @@
     {
       "name": "postmortem_analyzer.py",
       "path": "and_os/bin/postmortem_analyzer.py",
-      "description": "postmortem_analyzer.py — Production Bottleneck & Sprint Postmortem Analyzer AnD os v1.0.0 — Studio Production Layer (Island 5: Studio & Theory "
+      "description": "postmortem_analyzer.py — Production Bottleneck & Sprint Postmortem Analyzer AnD os v1.2.0 — Studio Production Layer (Island 5: Studio & Theor"
     },
     {
       "name": "proc_mesh.py",
@@ -839,17 +1100,17 @@
     {
       "name": "project_manager.py",
       "path": "and_os/bin/project_manager.py",
-      "description": "project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.0.0. Automatically registers new projects in Nero/pulsar (Isl"
+      "description": "project_manager.py — Universal Project & App Onboarding Dispatcher for AnD os v1.2.0. Automatically registers new projects in Nero/pulsar (I"
     },
     {
       "name": "project_registry.py",
       "path": "and_os/bin/project_registry.py",
-      "description": "project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.0.0). Catalogs all autonomous external s"
+      "description": "project_registry.py — Unified Registry of External Software Systems and Web Services, ANDREY OS (v1.1.0). Catalogs all autonomous external s"
     },
     {
       "name": "project_skeleton.py",
       "path": "and_os/bin/project_skeleton.py",
-      "description": "project_skeleton.py — Reference project skeleton generator (Skeleton Engine). AnD os v1.0.0 — Island 9 (Xcode / iOS Game Engineering) & Island"
+      "description": "project_skeleton.py — Reference project skeleton generator (Skeleton Engine). AnD os v1.2.0 — Island 9 (Xcode / iOS Game Engineering) & Isla"
     },
     {
       "name": "projects_registry_sync.py",
@@ -857,24 +1118,29 @@
       "description": "projects_registry_sync.py — External Project Registry Regenerator (SSoT sync). Regenerates and_os/srv/projects_registry.json from live sourc"
     },
     {
+      "name": "publish_doc.py",
+      "path": "and_os/bin/publish_doc.py",
+      "description": "publish_doc.py — Publication-grade Markdown to HTML/PDF publisher. Part of the document-hub skill (Contour: Publication, v1.1). Reverses the"
+    },
+    {
       "name": "quick_find.py",
       "path": "and_os/bin/quick_find.py",
-      "description": "quick_find.py — Fast Knowledge Retrieval Tool with Okapi BM25 & Bilingual Expansion AnD os v1.0.0 — Think in Code Knowledge Retrieval Engine ("
+      "description": "quick_find.py — Fast Knowledge Retrieval Tool with Okapi BM25 & Bilingual Expansion AnD os v1.2.0 — Think in Code Knowledge Retrieval Engine"
     },
     {
       "name": "quick_verify.py",
       "path": "and_os/bin/quick_verify.py",
-      "description": "quick_verify.py - Fast 6-Phase Pre-Flight Verification Loop for AnD os. Inspired by Everything-Claude-Code verification principles and adapt"
+      "description": "quick_verify.py - Fast Pre-Flight Verification Loop for AnD os. Inspired by Everything-Claude-Code verification principles and adapted for m"
     },
     {
       "name": "refactor_cleaner.py",
       "path": "and_os/bin/refactor_cleaner.py",
-      "description": "refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.0.0. Analyzes Python & Swift ASTs for unused functions, dead code b"
+      "description": "refactor_cleaner.py - Safe Refactoring and Dead Code Cleaner for AnD os v1.2.0. Analyzes Python & Swift ASTs for unused functions, dead code"
     },
     {
       "name": "register_component.py",
       "path": "and_os/bin/register_component.py",
-      "description": "Component Lifecycle & Registration Engine (register_component.py) AnD os v1.0.0 - Modular Architecture Infrastructure The automated tool for t"
+      "description": "Component Lifecycle & Registration Engine (register_component.py) AnD os v1.2.0 - Modular Architecture Infrastructure The automated tool for"
     },
     {
       "name": "rules_compiler.py",
@@ -889,7 +1155,7 @@
     {
       "name": "run_tests.py",
       "path": "and_os/bin/run_tests.py",
-      "description": "run_tests.py — Canonical AnD os test-suite runner. Single entrypoint for `pytest and_os/tests` with the hermetic-FHS contract (Rule #50) enf"
+      "description": "run_tests.py — Canonical AnD os test-suite runner. Single entrypoint for the full canonical suite (audit R4 P1; evolved in P11; consolidated"
     },
     {
       "name": "safe_snapshot.py",
@@ -904,7 +1170,7 @@
     {
       "name": "script_bible_extractor.py",
       "path": "and_os/bin/script_bible_extractor.py",
-      "description": "script_bible_extractor.py — Narrative IP & Script Bible Entity Extractor AnD os v1.0.0 — Narrative & Creative Layer (Island 4: Story & Books) "
+      "description": "script_bible_extractor.py — Narrative IP & Script Bible Entity Extractor AnD os v1.2.0 — Narrative & Creative Layer (Island 4: Story & Books"
     },
     {
       "name": "script_chunker.py",
@@ -922,19 +1188,19 @@
       "description": "session_gate.py — Universal Session Gate & Domain Anchor Beacon. Acts as a SessionStart lifecycle hook for Antigravity & LLM agents. Injects"
     },
     {
-      "name": "skill_abi_backfill.py",
-      "path": "and_os/bin/skill_abi_backfill.py",
-      "description": "skill_abi_backfill.py — SKILL_MODULE_ABI frontmatter backfill (audit R2, WI-5.1). Adds the ABI-mandated `ttl` and `reviewed` keys to every S"
-    },
-    {
       "name": "skill_bus.py",
       "path": "and_os/bin/skill_bus.py",
-      "description": "skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.0.0) Universal gateway for all 58 system skills: - inspect: zero-token archit"
+      "description": "skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.2.0) Universal gateway for all 50 system skills: - inspect: zero-token arch"
+    },
+    {
+      "name": "skill_count_projector.py",
+      "path": "and_os/bin/skill_count_projector.py",
+      "description": "skill_count_projector.py — Single-source-of-truth projector for the active-skills count (R-4, 20.11: closes the \"skill-count drift\" class — "
     },
     {
       "name": "skill_dormancy_checker.py",
       "path": "and_os/bin/skill_dormancy_checker.py",
-      "description": "Skill Usage & Dormancy Analyzer AnD os v1.0.0 - Skill Governance (Rule №18) Parses and_os/lib/skills/telemetry.md, matches against all registe"
+      "description": "Skill Usage & Dormancy Analyzer AnD os v1.2.0 - Skill Governance (Rule №18) Parses and_os/lib/skills/telemetry.md, matches against all regis"
     },
     {
       "name": "sos_auditor.py",
@@ -949,7 +1215,7 @@
     {
       "name": "statusline.py",
       "path": "and_os/bin/statusline.py",
-      "description": "statusline.py — Dynamic kernel statusline (Runtime Statusline Beacon). AnD os v1.0.0 — Island 8 (Kernel & AND_Terminal :8099). Prints a compac"
+      "description": "statusline.py — Dynamic kernel statusline (Runtime Statusline Beacon). AnD os v1.2.0 — Island 8 (Kernel & AND_Terminal :8099). Prints a comp"
     },
     {
       "name": "sync_context.py",
@@ -979,7 +1245,7 @@
     {
       "name": "system_dashboard.py",
       "path": "and_os/bin/system_dashboard.py",
-      "description": "system_dashboard.py — The Autonomous Interactive TUI Dashboard (AnD os v1.0.0 Live Top). Principles: Think in Code (Rule #16), the Rich TUI (t"
+      "description": "system_dashboard.py — The Autonomous Interactive TUI Dashboard (AnD os v1.2.0 Live Top). Principles: Think in Code (Rule #16), the Rich TUI "
     },
     {
       "name": "system_tools_map.py",
@@ -1002,14 +1268,19 @@
       "description": "tdd_scaffold.py - TDD Test Scaffold Generator for AnD os (Python & Swift). Extracts classes, functions, and methods from source files and ge"
     },
     {
+      "name": "telemetry_compact.py",
+      "path": "and_os/bin/telemetry_compact.py",
+      "description": "telemetry_compact.py - Monthly compaction of the telemetry journal (audit R4, P10, R4-TEL-2). The live journal and_os/lib/skills/telemetry.m"
+    },
+    {
       "name": "telemetry_logger.py",
       "path": "and_os/bin/telemetry_logger.py",
-      "description": "telemetry_logger.py — Fast telemetry logging module (IPC Bus). Modular program for appending validated records to and_os/lib/skills/telemetr"
+      "description": "telemetry_logger.py — telemetry journal writer (Rule #11, IPC Bus). Appends validated records to and_os/lib/skills/telemetry.md without load"
     },
     {
       "name": "temporal_consistency_guard.py",
       "path": "and_os/bin/temporal_consistency_guard.py",
-      "description": "temporal_consistency_guard.py — Frame Deflicker & Temporal Consistency Checker AnD os v1.0.0 — Quality & Animation Gate (Island 7 & Production"
+      "description": "temporal_consistency_guard.py — Frame Deflicker & Temporal Consistency Checker AnD os v1.2.0 — Quality & Animation Gate (Island 7 & Producti"
     },
     {
       "name": "tg_career_fetcher.py",
@@ -1029,7 +1300,7 @@
     {
       "name": "vacuum_cleaner.py",
       "path": "and_os/bin/vacuum_cleaner.py",
-      "description": "vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.0.0). Cleans the Obsidian Vault and the Pulsar ecosystem from junk artifact"
+      "description": "vacuum_cleaner.py — AnD os System Sanitizer & Junk Collector (v1.1.0). Cleans the Obsidian Vault and the Pulsar ecosystem from junk artifact"
     },
     {
       "name": "validate_system.py",
@@ -1044,17 +1315,22 @@
     {
       "name": "vfs_bridge.py",
       "path": "and_os/bin/vfs_bridge.py",
-      "description": "vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.0.0. Part of AnD os Binary Bridges (and_os/bin/). Commands: sys_cli.py vf"
+      "description": "vfs_bridge.py — CLI Router and Bridge for VFS Subsystem in AnD os v1.2.0. Part of AnD os Binary Bridges (and_os/bin/). Commands: sys_cli.py "
     },
     {
       "name": "video_harness.py",
       "path": "and_os/bin/video_harness.py",
-      "description": "video_harness.py — Autonomous technical QC validator for video and passes (Video E2E Harness). AnD os v1.0.0 — Island 7 & 5 (Pulsar & CG Produ"
+      "description": "video_harness.py — Autonomous technical QC validator for video and passes (Video E2E Harness). AnD os v1.2.0 — Island 7 & 5 (Pulsar & CG Pro"
     },
     {
       "name": "video_scenes.py",
       "path": "and_os/bin/video_scenes.py",
       "description": "video_scenes.py — The selective media analysis of the video via the FFmpeg (Scene Detection). A part of the standard Think in Code (Rule #16"
+    },
+    {
+      "name": "web_perf_baseline.py",
+      "path": "and_os/bin/web_perf_baseline.py",
+      "description": "web_perf_baseline.py — Deterministic HTTP performance baseline & regression. Part of the ui-inspector skill (Contour B: Evidence-Based QA, v"
     },
     {
       "name": "weeek_sync.py",
@@ -1084,34 +1360,14 @@
       "description": "Use when generating strict JSON schema contracts, TypeScript interfaces, and inter-process communication specs between services."
     },
     {
-      "name": "app-bridge",
-      "path": "and_os/lib/skills/app-bridge/SKILL.md",
-      "description": "Use when synchronizing shared state contracts, blueprints, and IPC data channels between Obsidian and Pulsar applications."
-    },
-    {
-      "name": "app-deconstructor",
-      "path": "and_os/lib/skills/app-deconstructor/SKILL.md",
-      "description": "Use when deconstructing foreign codebases into architectural blueprints, interfaces, subcommands, and dependency graphs."
-    },
-    {
       "name": "board-analyzer",
       "path": "and_os/lib/skills/board-analyzer/SKILL.md",
       "description": "Use when parsing and analyzing visual boards (Canvas, Miro, FigJam) to extract cards, connections, and structured task graphs."
     },
     {
-      "name": "book-hub",
-      "path": "and_os/lib/skills/book-hub/SKILL.md",
-      "description": "Use when ingesting, structuring, and breaking down book notes into 8-block actionable summaries with practical frameworks."
-    },
-    {
-      "name": "book-summary-practical",
-      "path": "and_os/lib/skills/book-summary-practical/SKILL.md",
-      "description": "Use when transforming raw book reading notes into execution toolkits, management checklists, and pipeline threshold tables."
-    },
-    {
-      "name": "budget-calculator",
-      "path": "and_os/lib/skills/budget-calculator/SKILL.md",
-      "description": "Use when calculating studio shot production costs, render farm budgets, contractor payroll rates, and commercial project estimates."
+      "name": "book-pipeline",
+      "path": "and_os/lib/skills/book-pipeline/SKILL.md",
+      "description": "Use when ingesting book notes into actionable 8-block summaries, transforming business/management books into execution toolkits (Monday-morning decisi"
     },
     {
       "name": "career-radar",
@@ -1119,14 +1375,9 @@
       "description": "Use when executing weekly executive market intelligence scans, vacancy scoring, and career opportunity radar for System Architect across CG animation, "
     },
     {
-      "name": "cg-article",
-      "path": "and_os/lib/skills/cg-article/SKILL.md",
-      "description": "Use when drafting thought-leadership articles, case studies, and analytical breakdowns for CG_core social channels."
-    },
-    {
-      "name": "cg-content-factory",
-      "path": "and_os/lib/skills/cg-content-factory/SKILL.md",
-      "description": "Use when batch generating multimedia CG marketing assets, shot breakdowns, and multi-platform promotional content."
+      "name": "cg-content",
+      "path": "and_os/lib/skills/cg-content/SKILL.md",
+      "description": "Use when drafting thought-leadership articles, case studies, analytical breakdowns, batch CG marketing assets, shot breakdowns, and multi-platform pro"
     },
     {
       "name": "cg-core-consulting",
@@ -1139,19 +1390,14 @@
       "description": "Use when executing multi-DCC production pipeline steps: procedural modeling, scene assembly, USD overrides, and master cutting."
     },
     {
-      "name": "clean-code-guardian",
-      "path": "and_os/lib/skills/clean-code-guardian/SKILL.md",
-      "description": "Use when authoring, reviewing, or refactoring Python code to enforce Uncle Bob clean architecture, zero silent exceptions, and low nesting."
-    },
-    {
       "name": "clipping-finder",
       "path": "and_os/lib/skills/clipping-finder/SKILL.md",
       "description": "Use when searching across raw clippings, web extracts, and unstructured articles in Clippings/ to extract core insights for active tasks."
     },
     {
-      "name": "comfy-builder",
-      "path": "and_os/lib/skills/comfy-builder/SKILL.md",
-      "description": "Use when designing, compiling, or refactoring JSON node graphs for ComfyUI desktop and standalone execution."
+      "name": "comfy-studio",
+      "path": "and_os/lib/skills/comfy-studio/SKILL.md",
+      "description": "Use when designing, compiling, or refactoring JSON node graphs for ComfyUI, or batch executing 3D neural passes, depth maps, and latent upscaling via "
     },
     {
       "name": "context-compressor",
@@ -1159,24 +1405,24 @@
       "description": "Use when compressing large multi-file directories and codebase contexts into minimal-token Markdown bundles per Rule #44."
     },
     {
-      "name": "decision-log",
-      "path": "and_os/lib/skills/decision-log/SKILL.md",
-      "description": "Use when capturing and recording irreversible architectural, business, technology, or personal Architecture Decision Records (ADRs)."
+      "name": "cut-suite",
+      "path": "and_os/lib/skills/cut-suite/SKILL.md",
+      "description": "Use when directing hybrid 2D/3D/AI animatics, planning camera keyframe layouts, cutting shot timelines, calculating frame handles, or interchanging ED"
+    },
+    {
+      "name": "deep-research",
+      "path": "and_os/lib/skills/deep-research/SKILL.md",
+      "description": "Use when conducting multi-source deep research on a technical or industry topic: outline with per-item fields, parallel subagent retrieval with resume"
     },
     {
       "name": "dev-flow",
       "path": "and_os/lib/skills/dev-flow/SKILL.md",
-      "description": "Use when planning multi-step software engineering cycles, designing test coverage matrices, and managing git branches."
+      "description": "Use when planning multi-step software engineering cycles, designing test coverage matrices, managing git branches, or authoring, reviewing, and refact"
     },
     {
       "name": "document-hub",
       "path": "and_os/lib/skills/document-hub/SKILL.md",
-      "description": "Use when converting, extracting text, OCR parsing, or restructuring PDFs, DOCX, and spreadsheet documents."
-    },
-    {
-      "name": "editorial-otio-conform",
-      "path": "and_os/lib/skills/editorial-otio-conform/SKILL.md",
-      "description": "Use when cutting shot timelines, calculating frame handles, performing roundtrip conforms, and interchanging EDL/XML/OTIO files."
+      "description": "Use when converting, extracting text, OCR parsing, or restructuring PDFs, DOCX, and spreadsheet documents, or producing publication-ready HTML/PDF fro"
     },
     {
       "name": "employee-hub",
@@ -1184,19 +1430,14 @@
       "description": "Use when evaluating artist competency scorecards, aggregating crew feedback, and auditing workload across studio departments."
     },
     {
-      "name": "endurance-training-plan",
-      "path": "and_os/lib/skills/endurance-training-plan/SKILL.md",
-      "description": "Use when designing structured marathon, half-marathon, and cycling training blocks with heart rate and power zone periodization."
-    },
-    {
-      "name": "executive-mirror",
-      "path": "and_os/lib/skills/executive-mirror/SKILL.md",
-      "description": "Use when executing monthly 360° personal retrospectives, cross-island attention audits, and closed-loop strategic calibrations against the 20-year vis"
-    },
-    {
       "name": "external-skills-gateway",
       "path": "and_os/lib/skills/external-skills-gateway/SKILL.md",
       "description": "Use when searching, inspecting, filtering, or integrating open-source agent skills from skills.sh, Vercel Labs, and GitHub into AnD os."
+    },
+    {
+      "name": "file-lifecycle",
+      "path": "and_os/lib/skills/file-lifecycle/SKILL.md",
+      "description": "Use when classifying and routing newly drafted notes, reports, and knowledge assets to their canonical Obsidian Vault folders, or updating CONTEXT.md "
     },
     {
       "name": "ftrack-sync",
@@ -1204,29 +1445,19 @@
       "description": "Use when synchronizing project milestones, shot progress, asset statuses, and task assignments from Ftrack API for Mars and Kot productions."
     },
     {
-      "name": "telemetry_sync",
-      "path": "and_os/lib/skills/telemetry_sync/SKILL.md",
-      "description": "Use when retrieving nocturnal HRV, sleep architecture, resting HR, and ACWR training load indices from telemetry_sync Connect."
-    },
-    {
       "name": "github-ops",
       "path": "and_os/lib/skills/github-ops/SKILL.md",
-      "description": "Use when searching GitHub repositories, inspecting issues, analyzing pull requests, checking CI/CD workflow runs, reading remote code, or tracking rel"
+      "description": "Use when searching GitHub repositories, inspecting issues, analyzing pull requests (including modernizing stale PRs), checking CI/CD workflow runs, re"
     },
     {
-      "name": "goal-writer",
-      "path": "and_os/lib/skills/goal-writer/SKILL.md",
-      "description": "Use when formulating SMART annual, quarterly, and life milestone goals across career, health, creative, and family domains."
+      "name": "goal-system",
+      "path": "and_os/lib/skills/goal-system/SKILL.md",
+      "description": "Use when setting SMART annual, quarterly, or life milestone goals across career, health, creative, family, and wealth domains; auditing goal achieveme"
     },
     {
-      "name": "health-diagnostics-hub",
-      "path": "and_os/lib/skills/health-diagnostics-hub/SKILL.md",
-      "description": "Use when analyzing laboratory blood biomarkers, ultrasound findings, clinical consultation notes, and preventive health panels."
-    },
-    {
-      "name": "health-orchestrator",
-      "path": "and_os/lib/skills/health-orchestrator/SKILL.md",
-      "description": "Use when computing cross-domain clinical health synthesis, orthopedics vs running cadence, and athletic recovery clearances."
+      "name": "health-hub",
+      "path": "and_os/lib/skills/health-hub/SKILL.md",
+      "description": "Use when analyzing laboratory blood biomarkers, ultrasound findings, clinical consultation notes, and preventive health panels, or computing cross-dom"
     },
     {
       "name": "higgsfield-seedance-prompt",
@@ -1234,14 +1465,9 @@
       "description": "Use when engineering cinematic camera movement, lighting, and temporal coherence prompts for Higgsfield and Seedance video models."
     },
     {
-      "name": "hybrid-animatic-director",
-      "path": "and_os/lib/skills/hybrid-animatic-director/SKILL.md",
-      "description": "Use when directing hybrid 2D/3D/AI animatics, synthesizing shot transitions, and planning camera keyframe layouts."
-    },
-    {
-      "name": "hybrid-comfyui-render",
-      "path": "and_os/lib/skills/hybrid-comfyui-render/SKILL.md",
-      "description": "Use when batch executing 3D neural passes, depth maps, and latent upscaling via local ComfyUI workers."
+      "name": "houdini-bridge",
+      "path": "and_os/lib/skills/houdini-bridge/SKILL.md",
+      "description": "Use when controlling a running Houdini 22.x instance through the fxhoudinimcp MCP bridge on loopback: scene builds, node and parameter edits, frame co"
     },
     {
       "name": "investor-outreach",
@@ -1254,14 +1480,9 @@
       "description": "Use when prototyping, engineering, compiling, and debugging native iOS/macOS games and apps in Swift, SwiftUI, and SpriteKit without user programming."
     },
     {
-      "name": "knowledge-promoter",
-      "path": "and_os/lib/skills/knowledge-promoter/SKILL.md",
-      "description": "Use when orchestrating closed-loop memory in AnD os: running Pre-flight Recall to retrieve negative constraints before execution, or Post-flight Learn"
-    },
-    {
       "name": "llm-council",
       "path": "and_os/lib/skills/llm-council/SKILL.md",
-      "description": "Use when orchestrating multi-agent consensus debates, adversarial evaluations, and multi-model synthesis on critical decisions."
+      "description": "Use when orchestrating multi-agent consensus debates, adversarial evaluations, multi-model synthesis on critical decisions, obtaining an independent c"
     },
     {
       "name": "mattermost-sync",
@@ -1274,9 +1495,14 @@
       "description": "Use when decomposing production meeting transcripts into prioritized action points with assignees and deadline milestones."
     },
     {
+      "name": "memory",
+      "path": "and_os/lib/skills/memory/SKILL.md",
+      "description": "Use when orchestrating closed-loop memory in AnD os: running Pre-flight Recall to retrieve negative constraints, Post-flight Learning to crystallize s"
+    },
+    {
       "name": "negotiation",
       "path": "and_os/lib/skills/negotiation/SKILL.md",
-      "description": "Use when preparing for high-stakes business negotiations, difficult team conversations, client pitches, or contractual objections."
+      "description": "Use when preparing for any high-stakes dialogue: commercial negotiations, salary and offer talks, job interviews (candidate or interviewer side), lett"
     },
     {
       "name": "obsidian-bases",
@@ -1294,34 +1520,19 @@
       "description": "Use when analyzing personal multi-currency financial balances, investment brokerage assets, and monthly cashflow dynamics."
     },
     {
-      "name": "postmortem-analyzer",
-      "path": "and_os/lib/skills/postmortem-analyzer/SKILL.md",
-      "description": "Use when conducting sprint postmortems, isolating production bottlenecks via Theory of Constraints (TOC), and updating lessons learned."
-    },
-    {
-      "name": "project-state",
-      "path": "and_os/lib/skills/project-state/SKILL.md",
-      "description": "Use when capturing operational delta snapshots of active studio production projects, sprint velocity, and blocker states."
-    },
-    {
       "name": "prompt-improver",
       "path": "and_os/lib/skills/prompt-improver/SKILL.md",
-      "description": "Use when refining agent system prompts, clarifying underspecified user queries, and distilling high-fidelity context instructions."
+      "description": "Use when adapting Andrey's raw, handwritten, or voice-dictated prompts into precise structured agent tasks (5-block spec), or clarifying underspecifie"
     },
     {
       "name": "reverse-engineer-anything",
       "path": "and_os/lib/skills/reverse-engineer-anything/SKILL.md",
-      "description": "Reverse engineer native, managed, Electron/JavaScript, packaged, firmware, SQLite, and browser targets with REA. Use shipped-artifact or requested run"
-    },
-    {
-      "name": "script-bible-extractor",
-      "path": "and_os/lib/skills/script-bible-extractor/SKILL.md",
-      "description": "Use when distilling narrative bibles, character rosters, location indices, and lore continuity from screenplays and novels."
+      "description": "Use when reverse-engineering native, managed, Electron/JavaScript, packaged, firmware, SQLite, or browser targets, or deconstructing foreign codebases"
     },
     {
       "name": "skill-creator",
       "path": "and_os/lib/skills/skill-creator/SKILL.md",
-      "description": "Use when creating, validating, linting, or updating skills in AnD os. Enforces SKILL_MODULE_ABI v2.1, 8-Island architectural binding, clean code stand"
+      "description": "Use when creating, validating, linting, updating, dieting, or routing-evaluating skills in AnD os. Enforces SKILL_MODULE_ABI v2.1, 8-Island architectu"
     },
     {
       "name": "skill-router",
@@ -1331,22 +1542,12 @@
     {
       "name": "status-report",
       "path": "and_os/lib/skills/status-report/SKILL.md",
-      "description": "Use when compiling executive producer status reports for Mars and Kot animation features with department velocity and dependencies."
+      "description": "Use when compiling executive producer status reports for Mars and Kot animation features with department velocity and dependencies, capturing operatio"
     },
     {
       "name": "story-dev",
       "path": "and_os/lib/skills/story-dev/SKILL.md",
-      "description": "Use when developing dramaturgical animation narratives, character arcs, loglines, synopses, worldbuilding rules, or step outlines."
-    },
-    {
-      "name": "strategy-review",
-      "path": "and_os/lib/skills/strategy-review/SKILL.md",
-      "description": "Use when evaluating quarterly personal OKRs, strategic career development vectors, and multi-year life vision alignment."
-    },
-    {
-      "name": "sync-context",
-      "path": "and_os/lib/skills/sync-context/SKILL.md",
-      "description": "Use when updating CONTEXT.md maps upon filesystem file additions or edits, validating tag indexes, and repairing wikilinks."
+      "description": "Use when developing dramaturgical animation narratives, character arcs, loglines, synopses, worldbuilding rules, step outlines, or distilling narrativ"
     },
     {
       "name": "system-architect",
@@ -1356,17 +1557,17 @@
     {
       "name": "system-audit",
       "path": "and_os/lib/skills/system-audit/SKILL.md",
-      "description": "Use when running full 5-ring Health Grid integrity validations across filesystem syntax, knowledge graph, AST, and background daemons."
+      "description": "Use when running full 5-ring Health Grid integrity validations across filesystem syntax, knowledge graph, AST, and background daemons, auditing the in"
     },
     {
       "name": "ta-bu-plan",
       "path": "and_os/lib/skills/ta-bu-plan/SKILL.md",
-      "description": "Use when reviewing or expanding Ta-Bu animation startup strategy, unit economics, corporate legal structures, and domain roadmaps."
+      "description": "Use when reviewing or expanding Ta-Bu animation startup strategy, challenging a proposed strategic direction (forcing questions), unit economics, corp"
     },
     {
       "name": "task-graph",
       "path": "and_os/lib/skills/task-graph/SKILL.md",
-      "description": "Use when querying the SQLite task index, managing priority blockers, and computing dependency DAGs across all vault markdown TODOs."
+      "description": "Use when querying the SQLite task index, managing priority blockers, computing dependency DAGs across all vault markdown TODOs, or publishing compiled"
     },
     {
       "name": "tax-compliance",
@@ -1376,12 +1577,17 @@
     {
       "name": "teach-hub",
       "path": "and_os/lib/skills/teach-hub/SKILL.md",
-      "description": "Use when constructing interactive pedagogical learning paths, mentoring trajectories, and mission-based curricula."
+      "description": "Use when constructing interactive training paths for studio staff, mentoring trajectories, mission-based curricula, or B2B educational consulting cont"
     },
     {
       "name": "temporal-consistency-guard",
       "path": "and_os/lib/skills/temporal-consistency-guard/SKILL.md",
       "description": "Use when verifying visual and narrative continuity, character wardrobe constancy, and lighting consistency across AI video shots."
+    },
+    {
+      "name": "training-hub",
+      "path": "and_os/lib/skills/training-hub/SKILL.md",
+      "description": "Use when retrieving nocturnal HRV, sleep architecture, resting HR, and ACWR training load indices from telemetry_sync Connect, or designing structured maratho"
     },
     {
       "name": "uc-diet-planning",
@@ -1391,22 +1597,12 @@
     {
       "name": "ui-inspector",
       "path": "and_os/lib/skills/ui-inspector/SKILL.md",
-      "description": "Use when inspecting frontend web UI applications, probing HTTP ports for 200 OK liveness, and verifying stylesheet assets."
-    },
-    {
-      "name": "vault-router",
-      "path": "and_os/lib/skills/vault-router/SKILL.md",
-      "description": "Use when classifying and routing newly drafted notes, reports, and knowledge assets to their canonical Obsidian Vault folders."
+      "description": "Use when inspecting frontend web UI applications, probing HTTP ports for 200 OK liveness, verifying stylesheet assets, or running evidence-based QA on"
     },
     {
       "name": "weeek-hub",
       "path": "and_os/lib/skills/weeek-hub/SKILL.md",
       "description": "Use when synchronizing Weeek project workspaces, identifying overdue task blockers, or balancing sprint kanban boards."
-    },
-    {
-      "name": "yt-analyze",
-      "path": "and_os/lib/skills/yt-analyze/SKILL.md",
-      "description": "Use when parsing YouTube video transcripts, extracting visual keyframe timestamps, and compiling technical teardowns."
     }
   ]
 }

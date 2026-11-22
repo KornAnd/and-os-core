@@ -18,6 +18,7 @@ Commands:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 from typing import Dict, Any

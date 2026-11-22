@@ -1,6 +1,6 @@
 """
 Unit & Integration Test Suite for Production 3D Skeleton
-AnD os v1.0.0 — Island 7: 3D Pipeline Core Verification
+AnD os v1.2.0 — Island 7: 3D Pipeline Core Verification
 """
 
 import sys

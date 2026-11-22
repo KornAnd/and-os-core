@@ -5,7 +5,7 @@ Part of AnD os Kernel Core (and_os/lib/core/).
 
 Generates lightweight, sub-millisecond .stat snapshots for instant agent reading:
   - sys.stat: ~200 bytes, ultra-low token consumption (~40 tokens)
-  - islands.stat: 8 islands health matrix
+  - islands.stat: 9 islands health matrix
   - daemons.stat: active background services
   - tasks.stat: task metrics from SQLite/markdown
 
@@ -59,6 +59,13 @@ def update_procfs() -> dict:
     # cannot see, which is exactly how the drift survived until F1).
     from and_os.lib.core.root_config import get_system_release
     release = get_system_release(VAULT_ROOT)
+    # C14 K5: honest status — previously STATUS=HEALTHY was hardcoded even
+    # when the resource guard warned, so an agent reading sys.stat could
+    # never see a degraded system. Per-daemon states stay in daemons.stat.
+    resource_guard = "OK" if free_gb >= 3.0 else "WARN_DISK_LOW"
+    status = "HEALTHY" if resource_guard == "OK" else "DEGRADED"
+    daemons_up = sum(1 for d in daemons.values() if d['status'] == 'UP')
+
     sys_stat_path = os.path.join(DIR_PROC, "sys.stat")
     with open(sys_stat_path, "w", encoding="utf-8") as f:
         f.write(f"OS=AnD_os\n")
@@ -66,10 +73,10 @@ def update_procfs() -> dict:
         f.write(f"RULES_COUNT={release.get('rules_count', 'UNKNOWN')}\n")
         f.write(f"TIMESTAMP={now}\n")
         f.write(f"DISK_FREE_GB={free_gb}\n")
-        f.write(f"RESOURCE_GUARD={'OK' if free_gb >= 3.0 else 'WARN_DISK_LOW'}\n")
+        f.write(f"RESOURCE_GUARD={resource_guard}\n")
         f.write(f"VFS_SENTINEL={'ACTIVE' if vfs_up else 'STANDBY'}\n")
-        f.write(f"DAEMONS_UP={sum(1 for d in daemons.values() if d['status'] == 'UP')}/{len(daemons)}\n")
-        f.write(f"STATUS=HEALTHY\n")
+        f.write(f"DAEMONS_UP={daemons_up}/{len(daemons)}\n")
+        f.write(f"STATUS={status}\n")
 
     # 4. Write daemons.stat
     daemons_stat_path = os.path.join(DIR_PROC, "daemons.stat")
@@ -82,7 +89,7 @@ def update_procfs() -> dict:
     islands_stat_path = os.path.join(DIR_PROC, "islands.stat")
     states = load_states()
     with open(islands_stat_path, "w", encoding="utf-8") as f:
-        f.write(f"# AnD os 8 Islands Matrix ({now})\n")
+        f.write(f"# AnD os 9 Islands Matrix ({now})\n")
         f.write("1_knowledge=ACTIVE\n")
         f.write("2_cg_core=ACTIVE\n")
         f.write(f"3_ta_bu={states.get('ta_bu', {}).get('status', 'OK')}\n")
@@ -91,6 +98,9 @@ def update_procfs() -> dict:
         f.write("6_and_os=SOVEREIGN_CORE\n")
         f.write(f"7_pulsar_3d=ACTIVE\n")
         f.write(f"8_terminal={'ACTIVE' if daemons['terminal_web']['status'] == 'UP' else 'STANDBY'}\n")
+        # Island 9 (Xcode/iOS) added 20.11 (decision I-1): content island,
+        # no daemon/state source of its own — static ACTIVE like islands 1/2/4/7.
+        f.write("9_xcode_ios=ACTIVE\n")
 
     return {
         "timestamp": now,

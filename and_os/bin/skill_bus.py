@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.0.0)
-Universal gateway for all 58 system skills:
+skill_bus.py — Microkernel Skill Bus & Interop Engine (AnD os v1.2.0)
+Universal gateway for all 50 system skills:
   - inspect: zero-token architecture summary and bindings introspection
   - run: uniform execution of skill engine scripts with telemetry logging
   - ref: 0-token topical reference extraction (saving 95% prompt tokens)
@@ -14,6 +14,7 @@ Rule #50 (Stateless FHS), Rule #51 (Microkernel Bus Decoupling), and Rule #54.
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import argparse
 import subprocess
@@ -22,6 +23,12 @@ from typing import Dict, Any, List, Optional
 VAULT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SKILLS_DIR = os.path.join(VAULT_ROOT, "and_os", "lib", "skills")
 BINDINGS_PATH = os.path.join(VAULT_ROOT, "and_os", "etc", "SKILL_BINDINGS.json")
+
+# Display-side stdout budget (18.11 R4 / ABI section A): engines may print
+# long logs, but the bus is the agent's token surface (Rule #44).
+TRUNCATE_MAX_LINES = 150
+TRUNCATE_HEAD = 15
+TRUNCATE_TAIL = 20
 
 def load_bindings() -> Dict[str, Any]:
     """Load canonical skill bindings registry."""
@@ -91,6 +98,37 @@ def inspect_skill(skill_name: str) -> Dict[str, Any]:
         "description": fm.get("description", "")
     }
 
+def is_json_payload(text: str) -> bool:
+    """True when the whole stream is one JSON document.
+
+    The bus contract for --json and pipe producers requires such payloads
+    to survive truncation intact; a parse failure simply means "not a
+    payload" (the truncation path), so the probe answers False.
+    """
+    try:
+        json.loads(text)
+    except (ValueError, TypeError, RecursionError):
+        return False
+    return True
+
+
+def maybe_truncate(stdout: str, max_lines: int = TRUNCATE_MAX_LINES) -> str:
+    """Bound an engine's display stdout (ABI section A, Rule #44).
+
+    - <= max_lines: returned unchanged.
+    - Valid JSON payload: returned unchanged (see is_json_payload).
+    - Otherwise: head + marker + tail (the trim_output.py pattern, Rule #24).
+    """
+    lines = stdout.splitlines()
+    if len(lines) <= max_lines:
+        return stdout
+    if is_json_payload(stdout):
+        return stdout
+    omitted = len(lines) - (TRUNCATE_HEAD + TRUNCATE_TAIL)
+    marker = (f"\n--- ✂️ [ANDREY OS SYSTEM: {omitted} output lines truncated "
+              f"for token economy (Rule #44)] ✂️ ---\n")
+    return "\n".join(lines[:TRUNCATE_HEAD] + [marker] + lines[-TRUNCATE_TAIL:])
+
 def run_skill(skill_name: str, args: List[str], json_mode: bool = False) -> int:
     """Execute the skill's bound Python engine with supplied arguments."""
     bindings = load_bindings()
@@ -117,7 +155,7 @@ def run_skill(skill_name: str, args: List[str], json_mode: bool = False) -> int:
 
     proc = subprocess.run(cmd, text=True, capture_output=True)
     if proc.stdout:
-        print(proc.stdout, end="")
+        print(maybe_truncate(proc.stdout), end="")
     if proc.stderr:
         print(proc.stderr, file=sys.stderr, end="")
     return proc.returncode
@@ -221,13 +259,13 @@ def pipe_skills(producer_name: str, consumer_name: str, initial_args: List[str])
     cmd_cons = [sys.executable, cons_engine] + cons_args
     c_res = subprocess.run(cmd_cons, text=True, capture_output=True)
     if c_res.stdout:
-        print(c_res.stdout, end="")
+        print(maybe_truncate(c_res.stdout), end="")
     if c_res.stderr:
         print(c_res.stderr, file=sys.stderr, end="")
     return c_res.returncode
 
-def main():
-    parser = argparse.ArgumentParser(description="Microkernel Skill Bus (AnD os v1.0.0)")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Microkernel Skill Bus (AnD os v1.2.0)")
     subparsers = parser.add_subparsers(dest="action", help="Action to perform")
 
     # list

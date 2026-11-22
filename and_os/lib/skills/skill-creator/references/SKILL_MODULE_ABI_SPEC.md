@@ -1,6 +1,7 @@
 # 🏛️ SKILL_MODULE_ABI v2.1 — Canonical Skill Architecture
 
 > Standard ABI contract for all skills running within AnD os.
+> Compact lint-enforced subset (validated by `validate_skill.py`). Full reference SSoT: `and_os/etc/SKILL_MODULE_ABI.md` — keep both in sync on any ABI change.
 
 ## 1. Dual Modality
 - **`EXECUTABLE_ENGINE`**: Active computational tools. Must contain `scripts/` with Python entrypoints accepting `--json` and `--help`.
@@ -23,9 +24,12 @@ probe_cmd: "<canary shell command>"
 ```
 
 ## 3. Clean Architecture Invariant (Rule #35 & #50)
-- **Reference Standard**: Strictly governed by `clean-code-guardian` (`and_os/lib/skills/clean-code-guardian/SKILL.md`).
+- **Reference Standard**: Strictly governed by the `dev-flow` §4 engineering standard (`and_os/lib/skills/dev-flow/SKILL.md`).
 - All internal scripts must reside in `scripts/`.
 - Zero silent exceptions (`except Exception: pass` is blocked).
 - Maximum cyclomatic nesting depth <= 4 (<= 3 for business logic).
 - Stateless execution: write mutations only to `and_os/var/` or via `ClosedLoopDispatcher`.
 - Mandatory canary test in `scripts/canary.py` with execution latency < 500ms.
+
+---
+[[Vault|← Vault]]

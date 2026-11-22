@@ -1,5 +1,5 @@
 """
-health_grid — Modular distributed health diagnostic and audit grid (AnD os v1.0.0).
+health_grid — Modular distributed health diagnostic and audit grid (AnD os v1.2.0).
 Concentric security rings architecture (Ring 0 - Ring 4).
 """
 

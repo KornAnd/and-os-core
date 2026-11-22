@@ -1,0 +1,43 @@
+{
+  "skill": "system-architect",
+  "version": "1.0.0",
+  "created": "2026-11-18",
+  "prompts": [
+    {
+      "id": "sy-01",
+      "prompt": "Запусти новый веб-сервис с нуля: нужен спека, C4-диаграммы, ADR и работающий скелет",
+      "expected": "system-architect",
+      "decoys": ["dev-flow"]
+    },
+    {
+      "id": "sy-02",
+      "prompt": "Запроектируй новый 3D-пайплайн модуль: Spec-Before-Code, дизайн-доки, runnable skeleton",
+      "expected": "system-architect",
+      "decoys": ["cg-pipeline", "dev-flow"]
+    },
+    {
+      "id": "sy-03",
+      "prompt": "Bootstrap новой игры: архитектура, контракты, первый запускаемый каркас",
+      "expected": "system-architect",
+      "decoys": ["ios-game-builder"]
+    },
+    {
+      "id": "sy-04",
+      "prompt": "Нужен дизайн нового микросервиса с API-контрактами и разбивкой на модули до кода",
+      "expected": "system-architect",
+      "decoys": ["api-contract-generator", "dev-flow"]
+    },
+    {
+      "id": "sy-05",
+      "prompt": "Спроектируй ядро нового инструмента: C4 blueprint, ADR, заготовленный репозиторий",
+      "expected": "system-architect",
+      "decoys": ["system-audit"]
+    },
+    {
+      "id": "sy-06",
+      "prompt": "Новый пайплайн обработки данных: сначала архитектура и границы, потом код",
+      "expected": "system-architect",
+      "decoys": ["dev-flow", "context-compressor"]
+    }
+  ]
+}

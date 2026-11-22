@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-quick_verify.py - Fast 6-Phase Pre-Flight Verification Loop for AnD os.
+quick_verify.py - Fast Pre-Flight Verification Loop for AnD os.
 Inspired by Everything-Claude-Code verification principles and adapted for macOS, Python & Swift.
 
 Phases:
@@ -12,15 +12,22 @@ Phases:
   Phase 6: Diff Hygiene & Size Analysis (Git diff line count check and status report)
   Phase 7: Closed-Loop Memory & Knowledge Integrity Guard
   Phase 8: Rules Fast Index Freshness Gate (SYSTEM.md parity check)
+  Phase 9: Canonical Port Map Gate (C16: allocation, services.json parity,
+           supervised liveness)
+  Phase 10: Bytecode Hygiene Sweep (R-5, 20.11: no __pycache__ outside the
+           allowed zones — pycache must never accumulate in the sovereign vault)
 """
 
 import os
 import sys
 import ast
 import re
+import json
 import time
+import socket
 import argparse
 import subprocess
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 sys.dont_write_bytecode = True
@@ -32,10 +39,14 @@ if VAULT_ROOT not in sys.path:
 
 IGNORE_DIRS = {".space", ".obsidian", ".trash", "Trash", ".opencode", ".makemd", ".smart-env", ".git", "node_modules", ".archive", "var", "vault_shadow", "__pycache__", ".venv", ".build"}
 
-# Patterns for secret scan (strictly alphanumeric keys)
+# Patterns for secret scan (strictly alphanumeric keys).
+# Ranges follow the SSoT: and_os/lib/skills/system-audit/scripts/
+# security_scan.py SECRET_PATTERNS (D1, 17.11: one open range per family,
+# a superset of the legacy {24,64}/{20,40} ranges — a 22-char token must
+# trip every gate identically).
 SECRET_PATTERNS = [
-    re.compile(r"sk-[a-zA-Z0-9]{24,64}"),
-    re.compile(r"ghp_[a-zA-Z0-9]{20,40}"),
+    re.compile(r"sk-[a-zA-Z0-9]{20,}"),
+    re.compile(r"ghp_[a-zA-Z0-9]{20,}"),
     re.compile(r"AKIA[0-9A-Z]{16}"),
     re.compile(r"password\s*=\s*['\"][^'\"]{8,}['\"]", re.IGNORECASE)
 ]
@@ -49,15 +60,93 @@ SECRET_PATTERNS = [
 CANONICAL_ROOT_DIRECTORIES = frozenset({
     ".archive", ".git", ".makemd", ".obsidian", ".opencode", ".smart-env", ".space", ".trash", "Trash",
     "Book", "CG_core", "Clippings", "Industry", "Nero", "Product", "Story", "Ta-Bu", "Tags", "Tasks", "Studio",
-    "and_os"
+    "and_os", "docs"
 })
 
 
 
 
+def check_port_map(port_map_path: str, services_json_path: str) -> tuple:
+    """C16: validate the canonical local port registry (pure, testable).
+
+    Returns (ok, errors, entries_checked). Checks:
+      1. no double allocation of a local port (1024-65535);
+      2. parity with services.json: a supervised=true entry must exist
+         there, and every ported services.json service must be in the map
+         (name mismatch is an error);
+      3. supervised local services must be listening on 127.0.0.1.
+    Fails closed on a missing/corrupt registry.
+    """
+    errors: List[str] = []
+    try:
+        with open(port_map_path, "r", encoding="utf-8") as f:
+            entries = json.load(f).get("ports", [])
+    except (OSError, json.JSONDecodeError, AttributeError) as err:
+        return False, [f"port_map.json unreadable: {err.__class__.__name__}: {err}"], 0
+
+    seen: Dict[int, str] = {}
+    for entry in entries:
+        try:
+            port = int(entry["port"])
+        except (KeyError, ValueError, TypeError):
+            errors.append(f"malformed port entry: {entry!r}")
+            continue
+        svc = entry.get("service", "?")
+        if not 1024 <= port <= 65535:
+            errors.append(f"{svc}: port {port} outside 1024-65535")
+        if port in seen:
+            errors.append(f"port {port} double-allocated: {seen[port]} and {svc}")
+        else:
+            seen[port] = svc
+
+    # Parity with services.json (the SSoT for supervised services)
+    svc_ports: Dict[int, str] = {}
+    try:
+        with open(services_json_path, "r", encoding="utf-8") as f:
+            for s in json.load(f).get("services", []):
+                if s.get("port"):
+                    svc_ports[int(s["port"])] = s.get("id", "?")
+        for port, sid in svc_ports.items():
+            if port not in seen:
+                errors.append(
+                    f"services.json service '{sid}' (port {port}) is missing from port_map.json"
+                )
+            elif seen[port] != sid:
+                errors.append(
+                    f"port {port} mismatch: services.json '{sid}' vs port_map '{seen[port]}'"
+                )
+        for port, svc in seen.items():
+            entry = next((e for e in entries if e.get("port") == port), None)
+            if entry and entry.get("supervised") and port not in svc_ports:
+                errors.append(
+                    f"port_map marks '{svc}' (port {port}) supervised but services.json has no such service"
+                )
+    except (OSError, json.JSONDecodeError) as err:
+        errors.append(f"services.json unreadable (parity check skipped): {err}")
+
+    # Liveness: supervised local services must be listening
+    for entry in entries:
+        try:
+            port = int(entry["port"])
+        except (KeyError, ValueError, TypeError):
+            continue
+        if entry.get("supervised"):
+            try:
+                with socket.create_connection(("127.0.0.1", port), timeout=1.0):
+                    pass
+            except OSError:
+                errors.append(
+                    f"supervised service '{entry.get('service', '?')}' (port {port}) is not listening on 127.0.0.1"
+                )
+
+    return len(errors) == 0, errors, len(entries)
+
+
 class QuickVerifier:
     def __init__(self, root_dir: str, target_paths: Optional[List[str]] = None, verbose: bool = False):
-        self.root_dir = os.path.abspath(root_dir)
+        # Path (not str): the Phase 10 contract and the test suite use
+        # `verifier.root_dir / "..."` path-joining (R-5, 20.11).
+        self.root_dir = Path(os.path.abspath(root_dir))
         self.target_paths = target_paths or []
         self.verbose = verbose
         self.results = {
@@ -68,7 +157,9 @@ class QuickVerifier:
             "phase4_tests": {"passed": True, "errors": [], "tests_run": 0},
             "phase5_security": {"passed": True, "errors": []},
             "phase6_diff": {"passed": True, "files_changed": 0, "lines_added": 0, "lines_removed": 0},
-            "phase7_memory": {"passed": True, "errors": [], "items_count": 0}
+            "phase7_memory": {"passed": True, "errors": [], "items_count": 0},
+            "phase9_port_map": {"passed": True, "errors": [], "ports_checked": 0},
+            "phase10_pycache": {"passed": True, "errors": [], "pycache_dirs": 0}
         }
 
     def _walk_code_files(self, dir_path: str, extensions: tuple) -> List[str]:
@@ -486,6 +577,64 @@ class QuickVerifier:
                 f"Release Ledger Parity check unavailable: {err.__class__.__name__}: {err}"
             )
 
+    def run_phase9_port_map(self) -> None:
+        """Phase 9: Canonical Port Map Gate (C16).
+
+        Validates and_os/etc/port_map.json: no double allocation, parity
+        with services.json (supervised SSoT), and that every supervised
+        local service is actually listening.
+
+        Standalone mode (published/foreign checkout): the local port
+        registry is not shipped with the open-source package (it carries
+        local-only service allocations), so a missing registry skips the
+        phase with a visible notice instead of failing closed — the port
+        gate is not in the standalone strict list (zero-leak protocol
+        §2.3: strict in standalone = Phases 0-5 + 8). In the sovereign
+        vault the registry must exist: a corrupt one still fails closed
+        via check_port_map.
+        """
+        port_map_path = os.path.join(self.root_dir, "and_os", "etc", "port_map.json")
+        services_path = os.path.join(self.root_dir, "and_os", "etc", "services.json")
+        if not os.path.exists(port_map_path):
+            self.results["phase9_port_map"] = {
+                "passed": True,
+                "errors": [],
+                "ports_checked": 0,
+                "skipped": "standalone checkout: port_map.json not shipped (local-only registry)"
+            }
+            return
+        ok, errors, checked = check_port_map(port_map_path, services_path)
+        self.results["phase9_port_map"] = {
+            "passed": ok,
+            "errors": errors,
+            "ports_checked": checked
+        }
+
+    def run_phase10_pycache(self) -> None:
+        """Phase 10: Bytecode Hygiene Sweep (R-5, 20.11).
+
+        The sovereign vault must never accumulate __pycache__: every Python
+        entry point sets sys.dont_write_bytecode / PYTHONDONTWRITEBYTECODE=1.
+        Recurring incidents (4 in 2 days, 20.11) came from external test
+        runners (parallel sessions) that do not honor the env var. Allowed
+        zones (interpreter / dependency / trash trees) are skipped.
+        """
+        allowed = {".venv", "venv", "node_modules", ".trash", "Trash",
+                   ".git", ".archive", ".space", ".obsidian"}
+        found = []
+        for root, dirs, _files in os.walk(self.root_dir):
+            dirs[:] = [d for d in dirs if d not in allowed]
+            if "__pycache__" in dirs:
+                rel = os.path.relpath(os.path.join(root, "__pycache__"), self.root_dir)
+                found.append(rel)
+                if len(found) >= 25:
+                    break
+        self.results["phase10_pycache"] = {
+            "passed": not found,
+            "errors": [f"__pycache__ leaked into vault: {p}" for p in found],
+            "pycache_dirs": len(found),
+        }
+
     def verify(self) -> Dict[str, Any]:
         t0 = time.time()
         files = self.get_staged_or_modified_files()
@@ -499,6 +648,8 @@ class QuickVerifier:
         self.run_phase6_diff()
         self.run_phase7_memory()
         self.run_phase8_rules_freshness()
+        self.run_phase9_port_map()
+        self.run_phase10_pycache()
 
         elapsed = round(time.time() - t0, 3)
 
@@ -509,6 +660,8 @@ class QuickVerifier:
             and self.results["phase4_tests"]["passed"]
             and self.results["phase5_security"]["passed"]
             and self.results["phase7_memory"]["passed"]
+            and self.results["phase9_port_map"]["passed"]
+            and self.results["phase10_pycache"]["passed"]
         )
 
         return {
@@ -532,10 +685,17 @@ def format_report(summary: Dict[str, Any]) -> str:
     p5_str = "🟢 PASS" if res["phase5_security"]["passed"] else "🔴 FAIL"
     diff_str = f"{res['phase6_diff']['files_changed']} files (+{res['phase6_diff']['lines_added']}/-{res['phase6_diff']['lines_removed']})"
     p7_str = f"🟢 PASS ({res['phase7_memory']['items_count']} items)" if res["phase7_memory"]["passed"] else "🔴 FAIL"
+    p9 = res["phase9_port_map"]
+    if p9.get("skipped"):
+        p9_str = "🟡 SKIP (standalone: port map not shipped)"
+    elif p9["passed"]:
+        p9_str = f"🟢 PASS ({p9['ports_checked']} ports)"
+    else:
+        p9_str = "🔴 FAIL"
 
     lines = [
         "┌─────────────────────────────────────────────────────────────┐",
-        f"│  🔍 Quick Verification Loop (Pre-Flight 9-Phase)  {summary['elapsed_seconds']}s   │",
+        f"│  🔍 Quick Verification Loop (Pre-Flight 11-Phase)  {summary['elapsed_seconds']}s   │",
         "├─────────────────────────────────────────────────────────────┤",
         f"│  Overall Status   : {status_icon:<39} │",
         f"│  Files Scanned    : {summary['scanned_files_count']:<39} │",
@@ -549,6 +709,8 @@ def format_report(summary: Dict[str, Any]) -> str:
         f"│  Phase 6: Diff Delta       : {diff_str:<32} │",
         f"│  Phase 7: Memory Loop      : {p7_str:<32} │",
         f"│  Phase 8: Rules Freshness  : {('🟢 PASS' if res.get('phase8_rules', {}).get('passed') else '🔴 FAIL'):<32} │",
+        f"│  Phase 9: Port Map Gate    : {p9_str:<32} │",
+        f"│  Phase 10: Bytecode Sweep  : {('🟢 PASS' if res.get('phase10_pycache', {}).get('passed') else '🔴 FAIL'):<32} │",
         "└─────────────────────────────────────────────────────────────┘"
     ]
 
@@ -559,6 +721,8 @@ def format_report(summary: Dict[str, Any]) -> str:
         + res["phase4_tests"]["errors"]
         + res["phase5_security"]["errors"]
         + res["phase7_memory"]["errors"]
+        + res["phase9_port_map"]["errors"]
+        + res.get("phase10_pycache", {}).get("errors", [])
     )
     if all_errors:
         lines.append("\n🚨 CRITICAL DEFECTS:")

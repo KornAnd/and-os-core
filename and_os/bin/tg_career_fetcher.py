@@ -11,6 +11,7 @@ Extracts exact post URL (`https://t.me/{channel}/{post_id}`), date, and cleans t
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import os
 import re
 import json

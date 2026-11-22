@@ -11,7 +11,6 @@ Covers:
 import os
 import re
 import sys
-import json
 import glob
 import tokenize
 from typing import Dict, Any, List, Tuple
@@ -165,52 +164,40 @@ class FSSyntaxProbe:
         except (OSError, ValueError, ImportError) as e:
             toolchain_errors.append(f"Toolchain probe error: {e}")
 
-        # 5.2 Hermetic FHS Boundary (Rule #50): the source tree must be free
-        # of binary contamination. Golden-interpreter bytecode caches
-        # (cpython-<golden major.minor> from toolchain.lock.json) are
-        # documented transient runtime state and tolerated; any other
-        # interpreter's bytecode or a shared object outside and_os/var is an
-        # ERROR (drift vector, cf. cpython-315 pyc found in audit R2 P1).
-        golden_tag = None
-        toolchain_lock_path = os.path.join(vault_root, "and_os", "etc", "toolchain.lock.json")
-        if os.path.exists(toolchain_lock_path):
-            try:
-                with open(toolchain_lock_path, "r", encoding="utf-8") as tlf:
-                    tver = json.load(tlf).get("golden_stack", {}).get("python", {}).get("target_version", "")
-                vparts = tver.split(".")
-                if len(vparts) >= 2:
-                    golden_tag = f"cpython-{vparts[0]}{vparts[1]}"
-            except (OSError, json.JSONDecodeError, ValueError) as terr:
-                sys.stderr.write(f"[fs_syntax_probe] Notice reading toolchain lock: {terr}\n")
-
+        # 5.2 Hermetic FHS Boundary (Rule #50/#71): the source tree must be
+        # free of binary contamination. Rule #71 is absolute — any .pyc or
+        # __pycache__ (even an empty one) under and_os outside the
+        # sanctioned volatile zones (var/.venv/venv) is an ERROR, including
+        # golden-interpreter caches. 22.11 external audit C-02: the former
+        # golden-tolerance contradicted the daily Bytecode Sweep on one
+        # invariant; criterion aligned to Rule #71.
         binary_contamination = []
-        transient_caches = 0
-        pyc_tag_re = re.compile(r"\.(cpython-\d+)\.pyc$")
         and_os_root = os.path.join(vault_root, "and_os")
         if os.path.exists(and_os_root):
             for broot, bdirs, bfiles in os.walk(and_os_root):
                 bdirs[:] = [d for d in bdirs if d not in ("var", ".venv", "venv")]
-                in_pycache = os.path.basename(broot) == "__pycache__"
                 violating_here = []
                 for bf in bfiles:
                     bfp = os.path.join(broot, bf)
                     rel_bf = os.path.relpath(bfp, vault_root)
-                    if bf.endswith((".so", ".pyd")):
+                    if bf.endswith((".so", ".pyd", ".pyc")):
                         violating_here.append(rel_bf)
-                    elif bf.endswith(".pyc"):
-                        tag_match = pyc_tag_re.search(bf)
-                        if golden_tag is None or (tag_match and tag_match.group(1) != golden_tag):
-                            violating_here.append(rel_bf)
-                if in_pycache and not violating_here:
-                    transient_caches += 1
+                if os.path.basename(broot) == "__pycache__" and not violating_here:
+                    violating_here.append(os.path.relpath(broot, vault_root))
                 for rel_bf in violating_here:
                     binary_contamination.append(rel_bf)
                     if fix:
                         try:
-                            os.remove(rel_bf if os.path.isabs(rel_bf) else os.path.join(vault_root, rel_bf))
-                            if in_pycache and not os.listdir(os.path.dirname(os.path.join(vault_root, rel_bf))):
+                            full_bf = os.path.join(vault_root, rel_bf)
+                            if os.path.isdir(full_bf):
                                 import shutil
-                                shutil.rmtree(os.path.dirname(os.path.join(vault_root, rel_bf)))
+                                shutil.rmtree(full_bf)
+                            else:
+                                os.remove(full_bf)
+                                parent = os.path.dirname(full_bf)
+                                if os.path.basename(parent) == "__pycache__" and not os.listdir(parent):
+                                    import shutil
+                                    shutil.rmtree(parent)
                         except OSError as err:
                             sys.stderr.write(f"[fs_syntax_probe] Notice removing {rel_bf}: {err}\n")
 
@@ -229,8 +216,7 @@ class FSSyntaxProbe:
             "python_scripts_total": len(py_files),
             "pulsar_scripts_scanned": pulsar_scripts_count,
             "syntax_errors": len(syntax_errors),
-            "binary_contamination": len(binary_contamination) if not fix else 0,
-            "transient_bytecode_caches": transient_caches
+            "binary_contamination": len(binary_contamination) if not fix else 0
         }
 
         # 6. Hermetic Workspace Boundary Check (Rule #7 & Rule #54)

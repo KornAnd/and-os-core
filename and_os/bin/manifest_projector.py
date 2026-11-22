@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))

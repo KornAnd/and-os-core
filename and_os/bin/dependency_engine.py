@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 dependency_engine.py — Unified System Dependency Analyzer & Cascade Synchronizer.
-AnD os v1.0.0 (Pillar II & VI: Full Information Dependency & Automatic Propagation Gate).
+AnD os v1.2.0 (Pillar II & VI: Full Information Dependency & Automatic Propagation Gate).
 
 Purpose:
 1. The building of the full graph of the informational and the functional dependencies (Directed Dependency Graph):
@@ -22,6 +22,7 @@ Usage:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 from pathlib import Path
 _vroot = str(Path(__file__).resolve().parents[2])
 if _vroot not in sys.path:
@@ -158,7 +159,7 @@ SYSTEM_DEPENDENCY_SPEC = {
     }
 }
 
-def get_system_metadata():
+def get_system_metadata() -> tuple:
     """Dynamically extracts system version and rules count from system.json."""
     sys_json = VAULT_ROOT / "and_os" / "etc" / "system.json"
     ver = "1.0.0"
@@ -173,7 +174,7 @@ def get_system_metadata():
             sys.stderr.write(f"[dependency_engine] Warning reading {sys_json}: {e}\n")
     return ver, rules_n
 
-def scan_physical_elements():
+def scan_physical_elements() -> dict:
     """Scans physical state of vault elements and compares modification times."""
     analysis = []
     
@@ -209,7 +210,7 @@ def scan_physical_elements():
         "stale_relations": stale_relations
     }
 
-def generate_mermaid_diagram():
+def generate_mermaid_diagram() -> str:
     """Builds a comprehensive visual Mermaid diagram of system dependencies."""
     lines = [
         "```mermaid",
@@ -276,7 +277,7 @@ def generate_mermaid_diagram():
     ]
     return "\n".join(lines)
 
-def propagate_updates():
+def propagate_updates() -> list:
     """Cascading propagation of dependencies."""
     log = []
     
@@ -369,7 +370,7 @@ updated: {now_str}
 
     return log
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="AnD os Dependency Engine")
     parser.add_argument("--propagate", action="store_true", help="Perform the cascading update of all the dependencies")
     parser.add_argument("--mermaid", action="store_true", help="Print the Mermaid code of the graph")
@@ -394,7 +395,7 @@ def main():
         if args.json:
             print(json.dumps(scan, indent=2, ensure_ascii=False))
         else:
-            print("=== 🕸️ AnD os v1.0.0 DEPENDENCY ANALYSIS ===")
+            print("=== 🕸️ AnD os v1.2.0 DEPENDENCY ANALYSIS ===")
             print(f"📦 The managed key nodes: {scan['total_managed_nodes']}")
             print(f"⚡ The active skills: {scan['active_skills_count']}")
             print(f"📁 The CONTEXT.md navigators: {scan['contexts_count']}")

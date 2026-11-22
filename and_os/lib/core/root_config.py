@@ -1,6 +1,6 @@
 """
 root_config.py — Hermetic Root Discovery & Environment Resolver
-AnD os v1.0.0 — Core Architecture Layer (Unix-Grade Path & Config Grounding)
+AnD os v1.2.0 — Core Architecture Layer (Unix-Grade Path & Config Grounding)
 
 Defines:
   - resolve_vault_root(): Discovers Vault root strictly by marker files (SYSTEM.md, system.json, and_os/).
@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+import sys
 from typing import Optional
 
 
@@ -141,10 +142,10 @@ def get_system_version(vault_root: Optional[str] = None) -> str:
         try:
             with open(manifest, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            return data.get("version", "1.0.0")
+            return data.get("version", "1.2.0")
         except (json.JSONDecodeError, OSError) as err:
             sys.stderr.write(f"[root_config] Notice reading {manifest}: {err}\n")
-    return "1.0.0"
+    return "1.2.0"
 
 
 def get_system_release(vault_root: Optional[str] = None) -> dict:
@@ -158,7 +159,7 @@ def get_system_release(vault_root: Optional[str] = None) -> dict:
                 data = json.load(f)
             return {
                 "name": data.get("name", "AnD os"),
-                "version": data.get("version", "1.0.0"),
+                "version": data.get("version", "1.2.0"),
                 "status": data.get("status", "PRODUCTION_RELEASE"),
                 "manifest_version": data.get("manifestVersion", "1.0.0"),
                 "rules_count": data.get("rulesCount", 66),
@@ -166,4 +167,4 @@ def get_system_release(vault_root: Optional[str] = None) -> dict:
             }
         except (json.JSONDecodeError, OSError) as err:
             sys.stderr.write(f"[root_config] Notice reading release {manifest}: {err}\n")
-    return {"name": "AnD os", "version": "1.0.0", "status": "UNKNOWN", "root": root}
+    return {"name": "AnD os", "version": "1.2.0", "status": "UNKNOWN", "root": root}

@@ -2,7 +2,23 @@
 
 > Single Source of Truth: `and_os/etc/RELEASE_LEDGER.json` (15 entries, versioned) | This file: public storefront projection.
 
-**Current Production Version:** `v1.0.0` (2026-11-13)
+**Current Production Version:** `v1.3.0` (2026-11-22)
+
+---
+
+## v1.3.0 — 2026-11-22 (MINOR)
+**Summary:** Deep audit closeout and gate-integrity kernel fix: `sys_cli hooks` now detects always-allow edit-star permission-table bypasses (the 17.11/22.11 false-green class eliminated), gate-incident rows removed in 2 cycles, dead-host MCP disabled, pyc and wikilink-gate incidents closed, security baseline re-frozen (194, CLEAN)
+*Components:* `core`
+
+### Key Changes:
+- P1-2 kernel: `sys_cli hooks` now audits the OpenCode sqlite permission table for always-allow edit-star grants (`oc_permission_table_edit_bypass`, read-only `mode=ro`, `OC_PERMISSION_DB` test override); bypass → gate reported BYPASSED + exit 1 (false-green class eliminated); 4-test regression contract (`test_hooks_permission_table_p12.py`)
+- P1-1 gate incident: always-allow edit-star rows removed in 2 cycles (original 11:50:31 + 17:31:16 re-grant caught live by the new P1-2 monitor); island ASK gate restored (36 asks + 12 denies active); durable-control gap documented — direct sqlite delete is not durable against OpenCode in-memory state, TUI revoke is the durable countermeasure
+- P2: postgres-dash remote MCP disabled (host NXDOMAIN, registration retained for studio restore); gitlab-orbit audit flag dismissed as false positive (npx present)
+- Deep audit closeout: 54 cpython-312 pyc artifacts removed from and_os/bin (root cause = non-hermetic ComfyUI venv; golden venv proven hermetic via and_os_no_pyc.pth); empty-target wikilink artifact gate fixed (stale exclude path, dead entry removed, +3 legit citation excludes); import smoke 234/234 modules import-safe; 51 skills audited clean
+- Security baseline re-frozen at release time: 194 actionable findings, VERDICT CLEAN; PI-AUTOLOAD-CONFIG over-broad FP class documented (benign AGENTS.md/CLAUDE.md docstring references) + scanner-tightening recommendation
+- Mutation canary: Obsidian app state excluded (.obsidian, .makemd) after a mid-audit canary hit (.makemd/superstate.mdc); volatile-zone test contract extended (5/5 PASS)
+- Language gate: 4 functional-Cyrillic files added to the documented exempt_files allowlist (RU report writers + matchers, RU test fixtures — same sanctioned class as the existing ftrack entries)
+- Verification: full suite 807/807, sys_cli verify all phases green, Health Grid green at release time (transient torn-read/canary incidents from concurrent session writes documented and resolved)
 
 ---
 
@@ -183,3 +199,6 @@
 - Established Pulsar workspace (:8080-:8099) and PWA AND_Terminal console
 
 ---
+
+---
+[[Vault|← Vault]]

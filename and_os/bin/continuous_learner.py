@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-continuous_learner.py — Intelligent experience compiler of sessions for AnD os v1.0.0.
+continuous_learner.py — Intelligent experience compiler of sessions for AnD os v1.2.0.
 Island 8 (Kernel & Compiler) <-> Island 1 & 6 (Knowledge Realm).
 
 Analyzes transcripts/logs of completed sessions or atomic user decisions:
@@ -14,6 +14,7 @@ Analyzes transcripts/logs of completed sessions or atomic user decisions:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 import re
 from datetime import datetime
@@ -71,7 +72,7 @@ source: {source}
 # 🧠 База Опыта: {topic}
 
 > **Дата**: {date_tag} | **Домен**: `{domain}` | **Статус**: 🟢 VERIFIED
-> **Контекст**: Решение извлечено автоматическим компилятором опыта AnD os v1.0.0.
+> **Контекст**: Решение извлечено автоматическим компилятором опыта AnD os v1.2.0.
 
 ---
 

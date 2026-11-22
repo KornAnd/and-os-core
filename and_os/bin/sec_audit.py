@@ -11,6 +11,7 @@ Performs AST and heuristic analysis on Python, Swift, Shell, and Web codebase fo
 """
 
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import os
 import ast
 import re

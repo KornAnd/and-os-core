@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 project_skeleton.py — Reference project skeleton generator (Skeleton Engine).
-AnD os v1.0.0 — Island 9 (Xcode / iOS Game Engineering) & Island 7 (Pulsar 3D Tools).
+AnD os v1.2.0 — Island 9 (Xcode / iOS Game Engineering) & Island 7 (Pulsar 3D Tools).
 
 Deploys battle-ready architectural skeletons instead of empty catalogs:
 1. 'ios-spritekit' template: native Swift / SpriteKit architecture for mobile games (EscPlanet):
@@ -16,6 +16,7 @@ Deploys battle-ready architectural skeletons instead of empty catalogs:
 
 import os
 import sys
+sys.dont_write_bytecode = True  # Rule #71: no bytecode leaks from entrypoints.
 import json
 from datetime import datetime
 from typing import Dict, Any
@@ -37,7 +38,7 @@ def create_ios_game_skeleton(target_dir: str, app_name: str = "EscPlanet") -> Di
     with open(config_swift, "w", encoding="utf-8") as f:
         f.write(f"""//
 // GameConfig.swift
-// {app_name} — AnD os v1.0.0 Architecture
+// {app_name} — AnD os v1.2.0 Architecture
 //
 
 import Foundation
